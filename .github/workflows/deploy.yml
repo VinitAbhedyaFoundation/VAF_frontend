@@ -16,7 +16,7 @@ jobs:
 
       - name: Deploy Preview
         if: github.event_name == 'pull_request'
-        run: vercel --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel --yes --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Production
         if: github.ref == 'refs/heads/main'
