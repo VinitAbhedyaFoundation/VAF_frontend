@@ -20,4 +20,4 @@ jobs:
 
       - name: Deploy Production
         if: github.ref == 'refs/heads/main'
-        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
