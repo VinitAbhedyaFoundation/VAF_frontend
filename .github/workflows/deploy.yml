@@ -19,5 +19,5 @@ jobs:
         run: vercel --yes --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Production
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'push'
         run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
