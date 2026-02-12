@@ -3,7 +3,7 @@ import { Menu, X, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
-import logo from "@/assets/Logo.jpg.jpeg";
+import logo from "@/assets/Logo.jpg.png";
 
 const navLinks = [
   { label: "Home", href: "#home" },
