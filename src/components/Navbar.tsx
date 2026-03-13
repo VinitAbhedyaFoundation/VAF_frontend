@@ -7,23 +7,24 @@ import { Link } from "react-router-dom";
 const logo = "/images/VinitAbhedya/Logo.png";
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+  { label: "Home", href: "#home" },
+  { label: "About", href: "#about" },
+  { label: "Contact", href: "#contact" },
 ];
 
 const initiatives = [
   {
     label: "Sambhajinagar Ploggers",
-    href: "/Ploggers",
-  },
-  {
-    label: "Laal Bindi",
-    href: "/laal-bindi",
+    href: "/ploggers",
   },
   {
     label: "Social Shelf",
     href: "/social-shelf",
+   
+  },
+  {
+    label: "Laal Bindi",
+    href: "/laal-bindi",
   },
 ];
 
@@ -65,21 +66,26 @@ const Navbar = () => {
           className="flex items-center gap-3"
         >
           <img src={logo} alt="Logo" className="h-20 w-auto" />
-          <span className="text-2xl text-black font-serif tracking-wide">
-            Vinit Abhedya Foundation
-          </span>
+<span
+  className={`text-2xl font-serif tracking-wide ${
+    scrolled ? "text-black" : "text-white"
+  }`}
+>
+  Vinit Abhedya Foundation
+</span>
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-10 relative">
 
           {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
+            <a
+  key={link.href}
+  href={link.href}
               onClick={scrollToTop}
-              className="text-sm font-medium text-black relative group transition-all duration-300"
-            >
+className={`text-sm font-medium relative group transition-all duration-300 ${
+  scrolled ? "text-black" : "text-white"
+}`}            >
               {link.label}
 
               <span
@@ -87,7 +93,7 @@ const Navbar = () => {
                   scrolled ? "bg-black" : "bg-white"
                 }`}
               ></span>
-            </Link>
+            </a>
           ))}
 
           {/* Initiatives Dropdown */}
@@ -138,11 +144,11 @@ const Navbar = () => {
           </div>
 
           {/* Donate Button */}
-          <Link to="/donate" onClick={scrollToTop}>
-            <Button className="bg-green-600 hover:bg-green-700 text-white gap-2 rounded-full px-7 py-2 transition-all duration-300 shadow-md hover:shadow-lg">
+          <a href="#donate">
+              <Button className="bg-green-600 hover:bg-green-700 text-white gap-2 rounded-full px-7 py-2 transition-all duration-300 shadow-md hover:shadow-lg">
               <Heart className="w-4 h-4" /> Donate
             </Button>
-          </Link>
+          </a>
         </div>
 
         {/* Mobile Toggle */}

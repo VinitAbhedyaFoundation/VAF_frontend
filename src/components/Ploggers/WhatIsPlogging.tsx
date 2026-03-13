@@ -20,7 +20,7 @@
    ];
  
    return (
-     <section id="what-is-plogging" className="section-padding bg-secondary/30">
+     <section id="what-is-plogging" className="scroll-mt-24 section-padding bg-secondary/30">
        <div className="container-wide">
          <div className="text-center max-w-2xl mx-auto mb-12">
            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">

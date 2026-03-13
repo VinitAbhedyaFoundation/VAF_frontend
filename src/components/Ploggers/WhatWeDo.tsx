@@ -25,7 +25,7 @@
    ];
  
    return (
-     <section id="what-we-do" className="section-padding bg-primary text-primary-foreground">
+     <section id="what-we-do" className="scroll-mt-24 section-padding bg-primary text-primary-foreground">
        <div className="container-wide">
          <div className="text-center max-w-2xl mx-auto mb-12">
            <h2 className="text-3xl sm:text-4xl font-bold mb-4">

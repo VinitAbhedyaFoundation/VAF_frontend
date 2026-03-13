@@ -4,7 +4,7 @@ const AboutSection = () => {
   return (
     <section
       id="about"
-      className="relative pt-7 pb-7 bg-[#F6E2CC]"
+      className="scroll-mt-24 relative pt-7 pb-7 bg-[#F6E2CC]"
     >
       <div className="ss-container relative z-10 opacity-100">
 
