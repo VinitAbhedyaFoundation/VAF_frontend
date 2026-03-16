@@ -50,7 +50,6 @@ export function Navigation() {
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="group cursor-pointer relative"
         >
-          {/* halo behind logo */}
           <div className="absolute -inset-3 bg-white/60 blur-xl rounded-full opacity-70"></div>
 
           <motion.img
@@ -58,7 +57,7 @@ export function Navigation() {
             alt="Laal Bindi Logo"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.4 }}
-            className="relative w-20 md:w-24 h-auto object-contain transition-all duration-300"
+            className="relative w-20 md:w-24 h-auto object-contain"
           />
         </button>
 
@@ -76,7 +75,11 @@ export function Navigation() {
                   ? "text-[#2B2826] hover:text-[#8B3A3A]"
                   : "text-white hover:text-[#E36A6A]"
               }`}
-              style={!isScrolled ? { textShadow: "0 2px 8px rgba(0,0,0,0.6)" } : {}}
+              style={
+                !isScrolled
+                  ? { textShadow: "0 2px 8px rgba(0,0,0,0.6)" }
+                  : {}
+              }
             >
               {link.label}
 
@@ -89,7 +92,11 @@ export function Navigation() {
           ))}
         </div>
 
-        <MobileMenu navLinks={navLinks} scrollToSection={scrollToSection} />
+        <MobileMenu
+          navLinks={navLinks}
+          scrollToSection={scrollToSection}
+          isScrolled={isScrolled}
+        />
       </div>
     </motion.nav>
   );
@@ -98,11 +105,26 @@ export function Navigation() {
 function MobileMenu({
   navLinks,
   scrollToSection,
+  isScrolled,
 }: {
   navLinks: Array<{ label: string; href: string }>;
   scrollToSection: (href: string) => void;
+  isScrolled: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  /* Scroll lock */
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("menu-open");
+    } else {
+      document.body.classList.remove("menu-open");
+    }
+
+    return () => {
+      document.body.classList.remove("menu-open");
+    };
+  }, [isOpen]);
 
   const handleLinkClick = (href: string) => {
     scrollToSection(href);
@@ -111,23 +133,40 @@ function MobileMenu({
 
   return (
     <div className="md:hidden">
+      {/* Hamburger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-10 h-10 flex flex-col items-center justify-center gap-1.5"
         aria-label="Toggle menu"
       >
-        <span className={`w-6 h-px bg-white transition-all duration-300 ${isOpen ? "rotate-45 translate-y-2" : ""}`} />
-        <span className={`w-6 h-px bg-white transition-all duration-300 ${isOpen ? "opacity-0" : ""}`} />
-        <span className={`w-6 h-px bg-white transition-all duration-300 ${isOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+        <span
+          className={`w-6 h-px transition-all duration-300 ${
+            isScrolled ? "bg-[#2B2826]" : "bg-white"
+          } ${isOpen ? "rotate-45 translate-y-2" : ""}`}
+        />
+
+        <span
+          className={`w-6 h-px transition-all duration-300 ${
+            isScrolled ? "bg-[#2B2826]" : "bg-white"
+          } ${isOpen ? "opacity-0" : ""}`}
+        />
+
+        <span
+          className={`w-6 h-px transition-all duration-300 ${
+            isScrolled ? "bg-[#2B2826]" : "bg-white"
+          } ${isOpen ? "-rotate-45 -translate-y-2" : ""}`}
+        />
       </button>
 
+      {/* Mobile Menu */}
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 bg-[#FAF8F5] z-50 flex flex-col items-center justify-center"
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 h-screen overflow-y-auto bg-[#FAF8F5] z-50 flex flex-col items-center justify-center"
         >
+          {/* Close button */}
           <button
             onClick={() => setIsOpen(false)}
             className="absolute top-6 right-6 text-[#2B2826] text-3xl"
@@ -135,9 +174,10 @@ function MobileMenu({
             ×
           </button>
 
-          {/* Mobile logo */}
+          {/* Logo */}
           <div className="mb-12 relative">
             <div className="absolute -inset-3 bg-white/60 blur-xl rounded-full opacity-70"></div>
+
             <img
               src={logoDark}
               alt="Laal Bindi Logo"
@@ -145,7 +185,8 @@ function MobileMenu({
             />
           </div>
 
-          <nav className="flex flex-col items-center gap-8">
+          {/* Links */}
+          <nav className="flex flex-col items-center gap-10">
             {navLinks.map((link, index) => (
               <motion.button
                 key={index}
@@ -153,7 +194,7 @@ function MobileMenu({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="text-2xl text-[#2B2826] hover:text-[#8B3A3A] transition-colors duration-300 tracking-wide"
+                className="text-[26px] font-medium tracking-wide text-[#2B2826] hover:text-[#8B3A3A] transition-colors duration-300"
               >
                 {link.label}
               </motion.button>

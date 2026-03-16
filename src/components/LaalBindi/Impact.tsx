@@ -1,5 +1,6 @@
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { useInView } from "framer-motion";
 
 export function Impact() {
   const ref = useRef(null);
@@ -17,63 +18,90 @@ export function Impact() {
         "Laal Bindi didn't just teach us about hygiene—it gave us permission to speak. Now I can talk to my daughter openly about things my mother never discussed with me.",
       author: "A mother from a community workshop",
       location: "Rajasthan"
+    },
+    {
+      quote:
+        "When girls learn about their bodies without fear, they grow with confidence. These conversations change lives.",
+      author: "A teacher from an awareness program",
+      location: "Madhya Pradesh"
     }
   ];
+
+  const [index, setIndex] = useState(0);
+
+  // auto slide
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % voices.length);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section
       ref={ref}
-      className="min-h-[75vh] flex items-center justify-center px-6 md:px-12 py-16 md:py-20"
+      className="relative min-h-[75vh] flex items-center justify-center px-6 md:px-12 py-20 md:py-24 bg-[#F6F3F1] overflow-hidden"
     >
-      <div className="max-w-5xl w-full">
-        <motion.div
+      {/* soft glow */}
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[#8B3A3A]/10 blur-[140px] rounded-full"></div>
+
+      <div className="relative max-w-4xl w-full text-center">
+
+        {/* heading */}
+        <motion.h2
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
+          className="text-3xl md:text-5xl lg:text-6xl text-[#2B2826] mb-16"
         >
-          <h2 className="text-3xl md:text-5xl lg:text-6xl text-[#2B2826] mb-14 leading-tight text-center">
-            Voices of{" "}
-            <span className="italic text-[#8B3A3A]">Change</span>
-          </h2>
-        </motion.div>
+          Voices of{" "}
+          <span className="italic text-[#8B3A3A]">Change</span>
+        </motion.h2>
 
-        <div className="space-y-10 md:space-y-12">
-          {voices.map((voice, index) => (
+        {/* slider */}
+        <div className="relative h-[240px] flex items-center justify-center">
+
+          <AnimatePresence mode="wait">
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 25 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.15 + index * 0.15 }}
-              className="relative"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              transition={{ duration: 0.6 }}
+              className="max-w-3xl"
             >
-              <div className="absolute -left-2 md:-left-3 top-0 w-1 h-full bg-gradient-to-b from-[#8B3A3A] to-transparent opacity-30" />
+              <p className="text-xl md:text-2xl lg:text-3xl text-[#2B2826] leading-relaxed mb-8 italic">
+                “{voices[index].quote}”
+              </p>
 
-              <div className="pl-6 md:pl-10">
-                <p className="text-xl md:text-2xl lg:text-3xl text-[#2B2826] leading-relaxed mb-6 italic">
-                  "{voice.quote}"
+              <div className="space-y-1">
+                <p className="text-base md:text-lg text-[#736D6A]">
+                  — {voices[index].author}
                 </p>
 
-                <div className="space-y-1">
-                  <p className="text-base md:text-lg text-[#736D6A]">
-                    — {voice.author}
-                  </p>
-                  <p className="text-sm md:text-base text-[#8B3A3A]">
-                    {voice.location}
-                  </p>
-                </div>
+                <p className="text-sm md:text-base text-[#8B3A3A] font-medium">
+                  {voices[index].location}
+                </p>
               </div>
             </motion.div>
+          </AnimatePresence>
+
+        </div>
+
+        {/* navigation dots */}
+        <div className="flex justify-center gap-3 mt-10">
+          {voices.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                i === index ? "bg-[#8B3A3A]" : "bg-[#8B3A3A]/30"
+              }`}
+            />
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.7, delay: 0.6 }}
-          className="mt-12 text-center"
-        >
-          <div className="inline-block w-12 h-0.5 bg-[#8B3A3A]" />
-        </motion.div>
       </div>
     </section>
   );

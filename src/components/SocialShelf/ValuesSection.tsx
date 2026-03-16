@@ -23,7 +23,7 @@ const values = [
 
 const ValuesSection = () => {
   return (
-    <section id="values" className="py-10 md:py-16 bg-[#F6E2CC]">
+    <section id="values" className="scroll-mt-24 py-10 md:py-16 bg-[#F6E2CC]">
       <div className="ss-container px-4">
 
         {/* Header */}

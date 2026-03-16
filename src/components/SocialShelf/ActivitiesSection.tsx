@@ -31,7 +31,7 @@ const ActivitiesSection = () => {
   return (
     <section
       id="activities"
-      className="relative py-10 md:py-16 bg-[#F6E2CC] overflow-hidden"
+      className="scroll-mt-28 relative py-10 md:py-16 bg-[#F6E2CC] overflow-hidden"
     >
       {/* Soft Decorative Glow */}
       <div className="absolute inset-0 pointer-events-none">

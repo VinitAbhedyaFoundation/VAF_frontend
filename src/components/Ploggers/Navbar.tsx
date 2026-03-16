@@ -100,8 +100,17 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden mt-4 pb-4 border-t border-border pt-4 bg-background/95 backdrop-blur-md rounded-lg">
-            <div className="flex flex-col gap-4">
+<div
+  className="
+  absolute top-full left-4 right-4
+  bg-white
+  rounded-2xl
+  p-6
+  shadow-xl
+  border border-emerald-100
+  max-w-[calc(100vw-2rem)]
+  "
+>            <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <a
                   key={link.label}
