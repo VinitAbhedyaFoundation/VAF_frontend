@@ -20,6 +20,11 @@ const initiatives = [
   {
     label: "Social Shelf",
     href: "/social-shelf",
+   
+  },
+  {
+    label: "Laal Bindi",
+    href: "/laal-bindi",
   },
   {
     label: "Laal Bindi",

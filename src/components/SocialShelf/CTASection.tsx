@@ -2,7 +2,7 @@ function CTASection() {
   return (
     <section
       id="join"
-      className="pt-7 pb-7 bg-[#0F2A28] text-white"
+      className="scroll-mt-24 pt-7 pb-7 bg-[#0F2A28] text-white"
     >
       <div className="ss-container">
         <div className="max-w-3xl mx-auto text-center">

@@ -18,7 +18,7 @@ const Footer = () => {
     "absolute left-0 -bottom-1 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full";
 
   return (
-    <motion.footer
+    <motion.footer id="contact"
       initial={{ opacity: 0, y: 80 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
