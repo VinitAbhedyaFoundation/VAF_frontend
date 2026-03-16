@@ -9,9 +9,8 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import PloggersPage from "./pages/Ploggers";
 import SocialShelfPage from "./pages/SocialShelf";
 import LaalBindiPage from "./pages/LaalBindi";
+import GalleryPage from "./components/Ploggers/GalleryPage";
 import Donate from "./pages/Donate";
-
-
 
 const queryClient = new QueryClient();
 
@@ -28,6 +27,7 @@ const App = () => (
           <Route path="/ploggers" element={<PloggersPage />} />
           <Route path="/social-shelf" element={<SocialShelfPage />} />
           <Route path="/laal-bindi" element={<LaalBindiPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/donate" element={<Donate />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
