@@ -26,6 +26,10 @@ const initiatives = [
     label: "Laal Bindi",
     href: "/laal-bindi",
   },
+  {
+    label: "Laal Bindi",
+    href: "/laal-bindi",
+  },
 ];
 
 const Navbar = () => {
@@ -49,6 +53,16 @@ const Navbar = () => {
     });
   };
 
+  const handleNavClick = (href: string) => {
+    if (href.startsWith("#")) {
+      const id = href.slice(1);
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -66,13 +80,13 @@ const Navbar = () => {
           className="flex items-center gap-3"
         >
           <img src={logo} alt="Logo" className="h-20 w-auto" />
-<span
-  className={`text-2xl font-serif tracking-wide ${
-    scrolled ? "text-black" : "text-white"
-  }`}
->
-  Vinit Abhedya Foundation
-</span>
+          <span
+            className={`text-2xl font-serif tracking-wide ${
+              scrolled ? "text-black" : "text-white"
+            }`}
+          >
+            Vinit Abhedya Foundation
+          </span>
         </Link>
 
         {/* Desktop Nav */}
@@ -80,12 +94,16 @@ const Navbar = () => {
 
           {navLinks.map((link) => (
             <a
-  key={link.href}
-  href={link.href}
-              onClick={scrollToTop}
-className={`text-sm font-medium relative group transition-all duration-300 ${
-  scrolled ? "text-black" : "text-white"
-}`}            >
+              key={link.href}
+              href={link.href}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavClick(link.href);
+              }}
+              className={`text-sm font-medium relative group transition-all duration-300 ${
+                scrolled ? "text-black" : "text-white"
+              }`}
+            >
               {link.label}
 
               <span
@@ -144,8 +162,8 @@ className={`text-sm font-medium relative group transition-all duration-300 ${
           </div>
 
           {/* Donate Button */}
-          <a href="#donate">
-              <Button className="bg-green-600 hover:bg-green-700 text-white gap-2 rounded-full px-7 py-2 transition-all duration-300 shadow-md hover:shadow-lg">
+          <a href="#donate" onClick={(e) => { e.preventDefault(); handleNavClick("#donate"); }}>
+            <Button className="bg-green-600 hover:bg-green-700 text-white gap-2 rounded-full px-7 py-2 transition-all duration-300 shadow-md hover:shadow-lg">
               <Heart className="w-4 h-4" /> Donate
             </Button>
           </a>
@@ -172,17 +190,18 @@ className={`text-sm font-medium relative group transition-all duration-300 ${
             <div className="flex flex-col p-6 gap-4">
 
               {navLinks.map((link) => (
-                <Link
+                <a
                   key={link.href}
-                  to={link.href}
+                  href={link.href}
                   className="text-base font-medium text-black py-2"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     setOpen(false);
-                    scrollToTop();
+                    handleNavClick(link.href);
                   }}
                 >
                   {link.label}
-                </Link>
+                </a>
               ))}
 
               <div className="mt-4 font-semibold text-black">
@@ -203,17 +222,18 @@ className={`text-sm font-medium relative group transition-all duration-300 ${
                 </Link>
               ))}
 
-              <Link
-                to="/donate"
-                onClick={() => {
+              <a
+                href="#donate"
+                onClick={(e) => {
+                  e.preventDefault();
                   setOpen(false);
-                  scrollToTop();
+                  handleNavClick("#donate");
                 }}
               >
                 <Button className="bg-green-600 hover:bg-green-700 text-white gap-2 rounded-full w-full mt-4">
                   <Heart className="w-4 h-4" /> Donate
                 </Button>
-              </Link>
+              </a>
 
             </div>
           </motion.div>

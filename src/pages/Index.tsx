@@ -4,10 +4,11 @@ import ImpactSection from "@/components/ImpactSection";
 import AboutSection from "@/components/AboutSection";
 import InitiativesSection from "@/components/InitiativesSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
-import TeamSection from "@/components/TeamSection";
+//import TeamSection from "@/components/TeamSection"; 
 import VolunteerOfMonthSection from "@/components/VolunteerOfMonthSection";
 import DonationSection from "@/components/DonationSection";
 import Footer from "@/components/Footer";
+import FAQSection from "@/components/FAQSection";
 
 const Index = () => {
   return (
@@ -18,9 +19,10 @@ const Index = () => {
       <AboutSection />
       <InitiativesSection />
       <TestimonialsSection />
-      <TeamSection />
+      { /* <TeamSection /> */}
       <VolunteerOfMonthSection />
       <DonationSection />
+      <FAQSection />
       <Footer />
     </div>
   );
