@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Heart, Gift, Sparkles, HandHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const reasons = [
   {
@@ -21,15 +22,23 @@ const reasons = [
 ];
 
 const DonationSection = () => {
+
+  const navigate = useNavigate(); // navigation hook
+
+  const handleDonate = () => {
+    navigate("/donate"); // redirect to donation page
+  };
+
   return (
     <section
       id="donate"
-      className="relative bg-emerald-700 text-white py-24 overflow-hidden"
+      className="relative py-24 bg-gradient-to-b from-emerald-50 via-green-50 to-emerald-100 text-slate-900 overflow-hidden"
     >
-      {/* Ambient depth glow */}
-      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-emerald-400/20 blur-[160px] rounded-full pointer-events-none" />
+      {/* 🌿 organic nature lighting blobs — matching CTASection exactly */}
+      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-emerald-300/30 blur-[140px] rounded-full" />
+      <div className="absolute bottom-[-200px] right-[-150px] w-[500px] h-[500px] bg-green-400/20 blur-[140px] rounded-full" />
 
-      <div className="relative container mx-auto px-6">
+      <div className="relative z-10 container mx-auto px-6">
 
         {/* Heading */}
         <motion.div
@@ -39,15 +48,15 @@ const DonationSection = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-20 max-w-3xl mx-auto"
         >
-          <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20">
-            <Heart className="w-7 h-7 text-white" />
+          <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center rounded-full bg-emerald-100 border border-emerald-200">
+            <Heart className="w-7 h-7 text-emerald-700" />
           </div>
 
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-green-900">
             Every Contribution Counts
           </h2>
 
-          <p className="text-lg text-emerald-100/90 leading-relaxed">
+          <p className="text-lg text-slate-600 leading-relaxed">
             Your generosity strengthens communities, restores environments,
             and empowers individuals to create lasting impact.
           </p>
@@ -64,27 +73,31 @@ const DonationSection = () => {
               transition={{ delay: i * 0.15, duration: 0.5 }}
               className="
                 group
-                bg-white/10
-                backdrop-blur-xl
-                border border-white/20
-                rounded-2xl
-                p-8
+                rounded-3xl
+                p-10
+                text-center
+                bg-white
+                shadow-lg
+                border border-emerald-100
                 transition-all duration-300
-                hover:-translate-y-2
-                hover:bg-white/20
-                hover:shadow-xl
-                hover:shadow-black/20
+                hover:-translate-y-2 hover:shadow-xl
               "
             >
-              <div className="w-12 h-12 mb-5 flex items-center justify-center rounded-lg bg-white/20 group-hover:bg-white/30 transition-colors duration-300">
-                <r.icon className="w-6 h-6 text-white" />
+              <div className="
+                inline-flex items-center justify-center
+                w-16 h-16 rounded-2xl mb-6
+                bg-emerald-100 text-emerald-700
+                transition-transform duration-300
+                group-hover:scale-110
+              ">
+                <r.icon className="w-7 h-7" />
               </div>
 
-              <h3 className="text-lg font-semibold mb-3">
+              <h3 className="text-xl font-semibold mb-3 text-slate-900">
                 {r.title}
               </h3>
 
-              <p className="text-sm text-emerald-100/80 leading-relaxed">
+              <p className="text-sm text-slate-600 leading-relaxed">
                 {r.desc}
               </p>
             </motion.div>
@@ -101,19 +114,21 @@ const DonationSection = () => {
         >
           <Button
             size="lg"
+            onClick={handleDonate}
             className="
+              group
               rounded-full
               px-12
               py-6
               text-lg
               font-semibold
-              bg-white
-              text-emerald-700
-              hover:bg-emerald-50
+              bg-emerald-600
+              text-white
+              hover:bg-emerald-700
               transition-all duration-300
+              hover:scale-105
               shadow-xl
               hover:shadow-2xl
-              hover:-translate-y-1
               gap-2
             "
           >
@@ -121,7 +136,7 @@ const DonationSection = () => {
             Donate Now
           </Button>
 
-          <p className="text-sm text-emerald-100/80 mt-6">
+          <p className="text-sm text-slate-600 mt-6">
             Secure payment • Tax deductible • Every rupee matters
           </p>
         </motion.div>
