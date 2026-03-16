@@ -19,7 +19,7 @@
    ];
  
    return (
-     <section id="community" className="section-padding">
+     <section id="community" className="scroll-mt-24 section-padding">
        <div className="container-wide">
          <div className="text-center max-w-2xl mx-auto mb-12">
            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">

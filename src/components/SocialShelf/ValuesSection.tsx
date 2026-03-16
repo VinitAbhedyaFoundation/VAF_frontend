@@ -23,7 +23,7 @@ const values = [
 
 const ValuesSection = () => {
   return (
-    <section id="values" className="pt-7 pb-7 bg-[#F6E2CC]">
+    <section id="values" className="scroll-mt-24 pt-7 pb-7 bg-[#F6E2CC]">
       <div className="ss-container">
 
         {/* Header */}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   ExternalLink,
   Sparkles,
@@ -24,7 +25,7 @@ const initiatives = [
     tag: "Environment",
     badge: "bg-emerald-600",
     accentColor: "#059669",
-    link: "#",
+    link: "/ploggers",
   },
   {
     title: "Social Shelf",
@@ -34,7 +35,7 @@ const initiatives = [
     tag: "Education",
     badge: "bg-[#E8A857]",
     accentColor: "#E8A857",
-    link: "#",
+    link: "/social-shelf",
   },
   {
     title: "Laal Bindi",
@@ -44,7 +45,7 @@ const initiatives = [
     tag: "Women Empowerment",
     badge: "bg-rose-600",
     accentColor: "#e11d48",
-    link: "#",
+    link: "/laal-bindi",
   },
 ];
 
@@ -201,6 +202,19 @@ const InitiativesSection = () => {
 
           {/* Carousel Container */}
           <div className="relative">
+          {/* Left Button */}
+<button
+  onClick={() => paginate(-1)}
+className="absolute -left-6 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full">
+  <ChevronLeft className="w-5 h-5 text-slate-800" />
+</button>
+
+{/* Right Button */}
+<button
+  onClick={() => paginate(1)}
+className="absolute -right-6 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full">
+  <ChevronRight className="w-5 h-5 text-slate-800" />
+</button>
             <div
               className="relative overflow-hidden rounded-3xl"
               role="region"

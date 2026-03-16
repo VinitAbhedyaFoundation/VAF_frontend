@@ -26,7 +26,7 @@ const CTASection = () => {
   return (
     <section
       id="join"
-      className="section-padding bg-gradient-to-br from-emerald-900 via-emerald-700 to-emerald-400 text-white relative overflow-hidden"
+      className="scroll-mt-24 section-padding bg-gradient-to-br from-emerald-900 via-emerald-700 to-emerald-400 text-white relative overflow-hidden"
     >
       <div className="container-wide relative z-10">
         {/* Heading */}

@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 
 const AboutSection = () => {
   return (
-    <section id="about"   className="pt-16 pb-20 bg-white scroll-mt-22" >
-      <div className="container mx-auto px-4">
+<section id="about" className="scroll-mt-24 pt-16 pb-20 bg-white scroll-mt-24">
+        <div className="container mx-auto px-4">
         {/* Section Intro */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}

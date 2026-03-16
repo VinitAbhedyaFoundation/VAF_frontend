@@ -31,7 +31,7 @@ const ActivitiesSection = () => {
   return (
     <section
       id="activities"
-      className="relative pt-7 pb-7 bg-[#F6E2CC]"
+      className="scroll-mt-28 relative pt-7 pb-7 bg-[#F6E2CC]"
     >
 
       {/* Soft Decorative Glow */}

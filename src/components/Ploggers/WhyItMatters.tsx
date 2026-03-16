@@ -25,7 +25,7 @@
    ];
  
    return (
-     <section id="why-it-matters" className="section-padding">
+     <section id="why-it-matters" className=" scroll-mt-24 section-padding">
        <div className="container-wide">
          <div className="grid lg:grid-cols-2 gap-12 items-center">
            <div>
