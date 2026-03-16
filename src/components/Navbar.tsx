@@ -59,20 +59,16 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex items-center justify-between h-20 px-6">
         
-        {/* Logo + Foundation Name */}
-        <Link
-          to="/"
-          onClick={scrollToTop}
-          className="flex items-center gap-3"
-        >
-          <img src={logo} alt="Logo" className="h-20 w-auto" />
-<span
-  className={`text-2xl font-serif tracking-wide ${
-    scrolled ? "text-black" : "text-white"
-  }`}
->
-  Vinit Abhedya Foundation
-</span>
+        {/* Logo */}
+        <Link to="/" onClick={scrollToTop} className="flex items-center gap-3">
+          <img src={logo} alt="Logo" className="h-16 w-auto" />
+          <span
+            className={`text-2xl font-serif tracking-wide ${
+              scrolled ? "text-black" : "text-white"
+            }`}
+          >
+            Vinit Abhedya Foundation
+          </span>
         </Link>
 
         {/* Desktop Nav */}
@@ -83,9 +79,10 @@ const Navbar = () => {
   key={link.href}
   href={link.href}
               onClick={scrollToTop}
-className={`text-sm font-medium relative group transition-all duration-300 ${
-  scrolled ? "text-black" : "text-white"
-}`}            >
+              className={`text-sm font-medium relative group transition-all duration-300 ${
+                scrolled ? "text-black" : "text-white"
+              }`}
+            >
               {link.label}
 
               <span
@@ -153,7 +150,7 @@ className={`text-sm font-medium relative group transition-all duration-300 ${
 
         {/* Mobile Toggle */}
         <button
-          className={`${scrolled ? "text-black" : "text-white"} md:hidden`}
+          className={`md:hidden ${scrolled ? "text-black" : "text-white"}`}
           onClick={() => setOpen(!open)}
         >
           {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
