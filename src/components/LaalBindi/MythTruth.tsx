@@ -40,75 +40,92 @@ export function MythTruth() {
   return (
     <section
       ref={ref}
-      className="min-h-[75vh] flex items-center justify-center px-6 md:px-12 py-16 md:py-20 bg-[#2B2826]"
+      className="relative min-h-[75vh] flex items-center justify-center px-6 md:px-12 py-20 md:py-24 bg-[#2B2826] overflow-hidden"
     >
-      <div className="max-w-5xl w-full">
+      {/* soft background glow */}
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[#8B3A3A]/20 blur-[140px] rounded-full"></div>
+
+      <div className="relative max-w-5xl w-full">
+
+        {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
         >
-          <h2 className="text-3xl md:text-5xl lg:text-6xl text-[#FAF8F5] mb-6 leading-tight text-center">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl text-[#FAF8F5] mb-6 text-center">
             Myth vs{" "}
             <span className="italic text-[#8B3A3A]">Truth</span>
           </h2>
 
-          <p className="text-center text-[#E8E4DF] text-lg mb-10">
-            Click on any myth to reveal the truth
+          <p className="text-center text-[#E8E4DF] text-lg mb-14">
+            Click on a myth to reveal the truth
           </p>
         </motion.div>
 
-        <div className="space-y-5 md:space-y-6">
-          {mythTruths.map((item, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -25 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.1 + index * 0.08 }}
-              onClick={() => toggleReveal(index)}
-              className="cursor-pointer group"
-            >
-              <div className="relative p-5 md:p-6 border border-[#FAF8F5]/20 hover:border-[#8B3A3A]/50 transition-all duration-400">
-                <motion.div
-                  animate={{
-                    opacity: revealedItems.has(index) ? 0.4 : 1,
-                    filter: revealedItems.has(index) ? "blur(2px)" : "blur(0px)"
-                  }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <span className="text-sm text-[#8B3A3A] uppercase tracking-wider mb-1 block">
-                    Myth
-                  </span>
-                  <p className="text-lg md:text-xl text-[#FAF8F5] leading-relaxed">
-                    {item.myth}
-                  </p>
-                </motion.div>
+        {/* Items */}
+        <div className="space-y-6">
+          {mythTruths.map((item, index) => {
+            const revealed = revealedItems.has(index);
 
-                <motion.div
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{
-                    opacity: revealedItems.has(index) ? 1 : 0,
-                    height: revealedItems.has(index) ? "auto" : 0,
-                    marginTop: revealedItems.has(index) ? "1rem" : 0
-                  }}
-                  transition={{ duration: 0.4 }}
-                  className="overflow-hidden"
-                >
-                  <span className="text-sm text-[#A85555] uppercase tracking-wider mb-1 block">
-                    Truth
-                  </span>
-                  <p className="text-lg md:text-xl text-[#E8E4DF] leading-relaxed">
-                    {item.truth}
-                  </p>
-                </motion.div>
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 25 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                onClick={() => toggleReveal(index)}
+                className="cursor-pointer group"
+              >
+                <div className="relative p-6 md:p-7 rounded-xl border border-[#FAF8F5]/15 bg-[#2B2826]/60 backdrop-blur-sm hover:border-[#8B3A3A]/40 transition-all duration-300">
 
-                <div className="absolute top-5 right-5 text-[#8B3A3A] text-lg">
-                  {revealedItems.has(index) ? "×" : "+"}
+                  {/* MYTH */}
+                  <motion.div
+                    animate={{
+                      opacity: revealed ? 0.35 : 1,
+                      filter: revealed ? "blur(1px)" : "blur(0px)"
+                    }}
+                    transition={{ duration: 0.35 }}
+                  >
+                    <span className="text-xs text-[#8B3A3A] uppercase tracking-[0.25em] mb-2 block">
+                      Myth
+                    </span>
+
+                    <p className="text-lg md:text-xl text-[#FAF8F5] leading-relaxed">
+                      {item.myth}
+                    </p>
+                  </motion.div>
+
+                  {/* TRUTH */}
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      opacity: revealed ? 1 : 0,
+                      height: revealed ? "auto" : 0,
+                      marginTop: revealed ? "1.25rem" : 0
+                    }}
+                    transition={{ duration: 0.4 }}
+                    className="overflow-hidden"
+                  >
+                    <span className="text-xs text-[#A85555] uppercase tracking-[0.25em] mb-2 block">
+                      Truth
+                    </span>
+
+                    <p className="text-lg md:text-xl text-[#E8E4DF] leading-relaxed">
+                      {item.truth}
+                    </p>
+                  </motion.div>
+
+                  {/* Toggle icon */}
+                  <div className="absolute top-6 right-6 text-[#8B3A3A] text-xl font-light transition-transform duration-300 group-hover:scale-110">
+                    {revealed ? "–" : "+"}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
+
       </div>
     </section>
   );
