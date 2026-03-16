@@ -66,17 +66,28 @@ const Navbar = () => {
           : "bg-transparent"
       }`}
     >
-      <div className="container mx-auto flex items-center justify-between h-20 px-6">
-        
+      <div className="container mx-auto flex items-center justify-between h-16 md:h-20 px-4 md:px-6">
+
         {/* Logo + Foundation Name */}
         <Link
           to="/"
           onClick={scrollToTop}
-          className="flex items-center gap-3"
+          className="flex items-center gap-2 md:gap-3"
         >
-          <img src={logo} alt="Logo" className="h-20 w-auto" />
+          <img src={logo} alt="Logo" className="h-10 md:h-14 w-auto" />
+
+          {/* Full name desktop */}
           <span
-            className={`text-2xl font-serif tracking-wide ${
+            className={`hidden sm:block whitespace-nowrap font-serif tracking-wide text-base sm:text-lg md:text-xl ${
+              scrolled ? "text-black" : "text-white"
+            }`}
+          >
+            Vinit Abhedya Foundation
+          </span>
+
+          {/* Short name mobile */}
+          <span
+            className={`sm:hidden font-serif text-lg ${
               scrolled ? "text-black" : "text-white"
             }`}
           >
@@ -85,8 +96,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-10 relative">
-
+        <div className="hidden lg:flex items-center gap-10 relative">
           {navLinks.map((link) => (
             <a
               key={link.href}
@@ -157,7 +167,13 @@ const Navbar = () => {
           </div>
 
           {/* Donate Button */}
-          <a href="#donate" onClick={(e) => { e.preventDefault(); handleNavClick("#donate"); }}>
+          <a
+            href="#donate"
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavClick("#donate");
+            }}
+          >
             <Button className="bg-green-600 hover:bg-green-700 text-white gap-2 rounded-full px-7 py-2 transition-all duration-300 shadow-md hover:shadow-lg">
               <Heart className="w-4 h-4" /> Donate
             </Button>
@@ -166,7 +182,7 @@ const Navbar = () => {
 
         {/* Mobile Toggle */}
         <button
-          className={`${scrolled ? "text-black" : "text-white"} md:hidden`}
+          className={`${scrolled ? "text-black" : "text-white"} lg:hidden`}
           onClick={() => setOpen(!open)}
         >
           {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -177,13 +193,13 @@ const Navbar = () => {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-white border-t border-gray-200 overflow-hidden"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25 }}
+            className="lg:hidden fixed top-20 left-0 w-full bg-white shadow-xl border-t border-gray-200 z-40"
           >
             <div className="flex flex-col p-6 gap-4">
-
               {navLinks.map((link) => (
                 <a
                   key={link.href}
@@ -229,7 +245,6 @@ const Navbar = () => {
                   <Heart className="w-4 h-4" /> Donate
                 </Button>
               </a>
-
             </div>
           </motion.div>
         )}

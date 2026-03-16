@@ -31,54 +31,53 @@ const ActivitiesSection = () => {
   return (
     <section
       id="activities"
-      className="relative pt-7 pb-7 bg-[#F6E2CC]"
+      className="relative py-10 md:py-16 bg-[#F6E2CC] overflow-hidden"
     >
-
       {/* Soft Decorative Glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[#C2410C]/5 rounded-full blur-3xl" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[380px] h-[380px] md:w-[500px] md:h-[500px] bg-[#C2410C]/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="ss-container relative z-10">
+      <div className="ss-container relative z-10 px-4">
 
         {/* Header */}
-        <div className="max-w-2xl mx-auto text-center mb-14">
-          <p className="text-[11px] tracking-[0.35em] uppercase text-[#92400E] mb-3">
+        <div className="max-w-2xl mx-auto text-center mb-10 md:mb-14">
+          <p className="text-[10px] md:text-[11px] tracking-[0.35em] uppercase text-[#92400E] mb-3">
             WHAT WE DO
           </p>
 
-          <h2 className="text-3xl md:text-4xl font-display font-semibold text-[#0F172A] mb-4">
+          <h2 className="text-2xl md:text-4xl font-display font-semibold text-[#0F172A] mb-4">
             What happens on the Shelf
           </h2>
 
-          <p className="text-base text-[#1F2937] leading-relaxed">
+          <p className="text-sm md:text-base text-[#1F2937] leading-relaxed">
             Our gatherings are designed for depth, not speed.
             Each session creates space for reflection and genuine connection.
           </p>
         </div>
 
         {/* Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
 
           {activities.map((activity, index) => (
             <div
               key={index}
-              className="group relative p-7 bg-white rounded-xl
+              className="group relative p-5 md:p-7 bg-white rounded-xl
                          border border-[#E5D3B3]
                          transition-all duration-300
                          hover:-translate-y-1 hover:shadow-xl"
             >
               {/* Icon */}
-              <div className="w-11 h-11 rounded-full flex items-center justify-center mb-5
+              <div className="w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center mb-4 md:mb-5
                               bg-[#C2410C]/10 text-[#C2410C]
                               transition-all duration-300
                               group-hover:bg-[#C2410C]
                               group-hover:text-white">
-                <activity.icon className="w-5 h-5" />
+                <activity.icon className="w-4 h-4 md:w-5 md:h-5" />
               </div>
 
               {/* Title */}
-              <h3 className="text-lg font-semibold text-[#111827] mb-3 transition-colors duration-300 group-hover:text-[#C2410C]">
+              <h3 className="text-base md:text-lg font-semibold text-[#111827] mb-2 md:mb-3 transition-colors duration-300 group-hover:text-[#C2410C]">
                 {activity.title}
               </h3>
 
@@ -93,14 +92,12 @@ const ActivitiesSection = () => {
           ))}
 
         </div>
-
       </div>
 
       {/* Divider */}
-      <div className="mt-20 flex justify-center">
-        <div className="w-28 h-[2px] bg-[#C2410C]/70" />
+      <div className="mt-12 md:mt-20 flex justify-center">
+        <div className="w-20 md:w-28 h-[2px] bg-[#C2410C]/70" />
       </div>
-
     </section>
   );
 };

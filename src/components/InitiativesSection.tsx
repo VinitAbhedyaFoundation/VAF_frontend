@@ -171,7 +171,7 @@ const InitiativesSection = () => {
       {/* Initiatives Carousel Section */}
       <section
         id="initiatives"
-        className="relative pt-32 pb-16 bg-gradient-to-br from-slate-50 via-white to-slate-100 overflow-hidden"
+        className="relative pt-20 sm:pt-24 lg:pt-32 pb-12 sm:pb-16"
         style={{
           backgroundImage: `
             radial-gradient(circle at 20% 30%, ${currentInitiative.accentColor}08 0%, transparent 50%),
@@ -208,7 +208,7 @@ const InitiativesSection = () => {
             {/* Left Button */}
             <button
               onClick={() => paginate(-1)}
-              className="absolute -left-6 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full"
+              className="hidden md:flex absolute -left-6 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full"
             >
               <ChevronLeft className="w-5 h-5 text-slate-800" />
             </button>
@@ -216,7 +216,7 @@ const InitiativesSection = () => {
             {/* Right Button */}
             <button
               onClick={() => paginate(1)}
-              className="absolute -right-6 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full"
+              className="hidden md:flex absolute -right-6 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full"
             >
               <ChevronRight className="w-5 h-5 text-slate-800" />
             </button>
@@ -237,10 +237,10 @@ const InitiativesSection = () => {
                   exit="exit"
                   className="relative w-full"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 p-8 lg:p-12 items-center min-h-[600px]">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 p-4 sm:p-6 lg:p-12 items-center min-h-[520px] lg:min-h-[600px]">
                     {/* Photo Collage */}
                     <motion.div
-                      className="relative order-2 lg:order-1 h-[520px] lg:h-[620px]"
+                     className="relative order-2 lg:order-1 h-[360px] sm:h-[420px] lg:h-[620px]"
                       initial={{ opacity: 0, x: -40 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2, duration: 0.6 }}
@@ -296,7 +296,7 @@ const InitiativesSection = () => {
                       transition={{ delay: 0.3, duration: 0.6 }}
                     >
                       <div className="space-y-4">
-                        <h2 className="text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 leading-[0.95] tracking-tight">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900">
                           {currentInitiative.title.split(" ").map((word, i) => (
                             <motion.span
                               key={i}
@@ -378,7 +378,7 @@ const InitiativesSection = () => {
       </section>
 
       {/* CTA Section - Soft Green Ombre Background */}
-      <section className="relative py-16 md:py-20 overflow-hidden">
+      <section className="relative py-12 sm:py-16 md:py-20 overflow-hidden">
         {/* Multi-layer gradient background for soft ombre effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/60 via-teal-50/40 to-green-100/50" />
         <div className="absolute inset-0 bg-gradient-to-tr from-emerald-50/30 via-transparent to-teal-100/40" />
@@ -424,13 +424,13 @@ const InitiativesSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.6, duration: 0.7 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4"
+                className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4 w-full"
               >
                 <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }}>
                   <Button
                     asChild
                     size="lg"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 rounded-xl font-semibold shadow-lg min-w-[220px]"
+                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 rounded-xl font-semibold shadow-lg min-w-[220px]"
                   >
                     <a href={VOLUNTEER_FORM} target="_blank" rel="noopener noreferrer">
                       <HandHeart className="w-5 h-5 mr-2" />
