@@ -8,6 +8,7 @@ import {
   Instagram,
   Twitter,
   Youtube,
+  Linkedin,
 } from "lucide-react";
 
 const Footer = () => {
@@ -18,7 +19,8 @@ const Footer = () => {
     "absolute left-0 -bottom-1 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full";
 
   return (
-    <motion.footer id="contact"
+    <motion.footer
+      id="contact"
       initial={{ opacity: 0, y: 80 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -168,16 +170,20 @@ const Footer = () => {
             </h4>
 
             <div className="flex gap-5">
-              <a href="https://www.facebook.com/share/1DnSdfrGCj/" target="_blank" rel="noopener noreferrer">
-                <Facebook className="w-5 h-5 hover:text-white transition" />
-              </a>
-
               <a href="https://www.instagram.com/vinitabhedyafoundation" target="_blank" rel="noopener noreferrer">
                 <Instagram className="w-5 h-5 hover:text-white transition" />
               </a>
 
               <a href="https://x.com/MH20PLOGGERS" target="_blank" rel="noopener noreferrer">
                 <Twitter className="w-5 h-5 hover:text-white transition" />
+              </a>
+
+              <a href="https://www.linkedin.com/company/sambhajinagarploggers/" target="_blank" rel="noopener noreferrer">
+                <Linkedin className="w-5 h-5 hover:text-white transition" />
+              </a>
+
+              <a href="https://www.facebook.com/share/1DnSdfrGCj/" target="_blank" rel="noopener noreferrer">
+                <Facebook className="w-5 h-5 hover:text-white transition" />
               </a>
 
               <a href="https://youtube.com/@vinitabhedyafoundation" target="_blank" rel="noopener noreferrer">

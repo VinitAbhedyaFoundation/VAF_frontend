@@ -26,10 +26,6 @@ const initiatives = [
     label: "Laal Bindi",
     href: "/laal-bindi",
   },
-  {
-    label: "Laal Bindi",
-    href: "/laal-bindi",
-  },
 ];
 
 const Navbar = () => {

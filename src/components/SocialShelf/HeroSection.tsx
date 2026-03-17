@@ -1,4 +1,4 @@
-const heroImage = "/images/TSS/hero-bg.jpeg";
+const heroImage = "/images/TSS/ChatGPT Image Mar 17, 2026, 07_49_15 PM.png";
 const googleFormLink = "https://forms.gle/AjoNYEgmrRgtrE5c9"; 
 
 const HeroSection = () => {

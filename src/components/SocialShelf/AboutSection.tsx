@@ -4,7 +4,7 @@ const AboutSection = () => {
   return (
     <section
       id="about"
-      className="scroll-mt-24 relative py-14 sm:py-16 lg:py-20 bg-[#F6E2CC]"
+      className="scroll-mt-24 relative py-14 sm:py-7 lg:py-20 bg-[#F6E2CC]"
     >
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
 
@@ -88,7 +88,7 @@ const AboutSection = () => {
       </div>
 
       {/* Divider */}
-      <div className="mt-12 sm:mt-16 flex justify-center">
+      <div className="mt-7 sm:mt-16 flex justify-center">
         <div className="w-24 sm:w-32 h-[2px] bg-[#C2410C]" />
       </div>
     </section>
