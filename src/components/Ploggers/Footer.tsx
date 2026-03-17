@@ -1,4 +1,4 @@
-import { Mail, MapPin, Instagram, Youtube, Phone, MessageCircle } from "lucide-react";
+import { Mail, MapPin, Instagram, Youtube, Phone, MessageCircle, Linkedin } from "lucide-react";
 
 const footerLogo = "/images/Ploggers/sambhajinagar-logo-for-Website.png";
 
@@ -34,12 +34,6 @@ const Footer = () => {
                 className="h-14 w-auto object-contain"
               />
             </a>
-
-            <p className="text-sm text-white/70 leading-relaxed max-w-sm">
-              A grassroots environmental movement encouraging citizens to walk,
-              jog and clean public spaces together through the power of
-              community plogging.
-            </p>
           </div>
 
           {/* Quick Links */}
@@ -91,7 +85,18 @@ const Footer = () => {
                 <Youtube className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
               </a>
 
-              {/* WhatsApp */}
+              {/* LinkedIn */}
+              <a
+                href="https://www.linkedin.com/company/sambhajinagarploggers/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-emerald-500 transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]"
+              >
+                <Linkedin className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
+              </a>
+
+              {/* WhatsApp (commented out) */}
+              {/*
               <a
                 href="https://wa.me/918856859643"
                 target="_blank"
@@ -100,6 +105,7 @@ const Footer = () => {
               >
                 <MessageCircle className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
               </a>
+              */}
 
             </div>
           </div>
@@ -112,7 +118,6 @@ const Footer = () => {
 
             <ul className="space-y-4">
 
-              {/* Address */}
               <li>
                 <a
                   href="https://www.google.com/maps/search/?api=1&query=Chh.+Sambhajinagar,+Maharashtra"
@@ -125,7 +130,6 @@ const Footer = () => {
                 </a>
               </li>
 
-              {/* Phone */}
               <li>
                 <a
                   href="tel:+918856859643"
@@ -136,20 +140,6 @@ const Footer = () => {
                 </a>
               </li>
 
-              {/* WhatsApp Direct */}
-              <li>
-                <a
-                  href="https://wa.me/918856859643"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-3 text-sm text-white/70 hover:text-emerald-400 transition-all duration-300"
-                >
-                  <MessageCircle className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
-                  Chat on WhatsApp
-                </a>
-              </li>
-
-              {/* Email */}
               <li>
                 <a
                   href="mailto:admin@vinitabhedyafoundation.com"

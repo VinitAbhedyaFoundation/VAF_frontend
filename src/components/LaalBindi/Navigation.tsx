@@ -50,7 +50,7 @@ export function Navigation() {
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="group cursor-pointer relative"
         >
-          <div className="absolute -inset-3 bg-white/60 blur-xl rounded-full opacity-70"></div>
+          {/* ❌ removed white glow div */}
 
           <motion.img
             src={isScrolled ? logoDark : logoLight}
@@ -113,7 +113,6 @@ function MobileMenu({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  /* Scroll lock */
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add("menu-open");
@@ -139,23 +138,9 @@ function MobileMenu({
         className="w-10 h-10 flex flex-col items-center justify-center gap-1.5"
         aria-label="Toggle menu"
       >
-        <span
-          className={`w-6 h-px transition-all duration-300 ${
-            isScrolled ? "bg-[#2B2826]" : "bg-white"
-          } ${isOpen ? "rotate-45 translate-y-2" : ""}`}
-        />
-
-        <span
-          className={`w-6 h-px transition-all duration-300 ${
-            isScrolled ? "bg-[#2B2826]" : "bg-white"
-          } ${isOpen ? "opacity-0" : ""}`}
-        />
-
-        <span
-          className={`w-6 h-px transition-all duration-300 ${
-            isScrolled ? "bg-[#2B2826]" : "bg-white"
-          } ${isOpen ? "-rotate-45 -translate-y-2" : ""}`}
-        />
+        <span className={`w-6 h-px ${isScrolled ? "bg-[#2B2826]" : "bg-white"} ${isOpen ? "rotate-45 translate-y-2" : ""}`} />
+        <span className={`w-6 h-px ${isScrolled ? "bg-[#2B2826]" : "bg-white"} ${isOpen ? "opacity-0" : ""}`} />
+        <span className={`w-6 h-px ${isScrolled ? "bg-[#2B2826]" : "bg-white"} ${isOpen ? "-rotate-45 -translate-y-2" : ""}`} />
       </button>
 
       {/* Mobile Menu */}
@@ -163,10 +148,8 @@ function MobileMenu({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.25 }}
-          className="fixed inset-0 h-screen overflow-y-auto bg-[#FAF8F5] z-50 flex flex-col items-center justify-center"
+          className="fixed inset-0 h-screen bg-[#FAF8F5] z-50 flex flex-col items-center justify-center"
         >
-          {/* Close button */}
           <button
             onClick={() => setIsOpen(false)}
             className="absolute top-6 right-6 text-[#2B2826] text-3xl"
@@ -175,13 +158,12 @@ function MobileMenu({
           </button>
 
           {/* Logo */}
-          <div className="mb-12 relative">
-            <div className="absolute -inset-3 bg-white/60 blur-xl rounded-full opacity-70"></div>
-
+          <div className="mb-12">
+            {/* ❌ removed white glow here too */}
             <img
               src={logoDark}
               alt="Laal Bindi Logo"
-              className="relative w-24 h-auto object-contain"
+              className="w-24 h-auto object-contain"
             />
           </div>
 
@@ -194,7 +176,7 @@ function MobileMenu({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="text-[26px] font-medium tracking-wide text-[#2B2826] hover:text-[#8B3A3A] transition-colors duration-300"
+                className="text-[26px] font-medium text-[#2B2826] hover:text-[#8B3A3A]"
               >
                 {link.label}
               </motion.button>
