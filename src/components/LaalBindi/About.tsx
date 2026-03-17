@@ -51,27 +51,26 @@ export function About() {
             About <span className="italic text-[#8B3A3A]">Laal Bindi</span>
           </motion.h2>
 
-          {/* paragraphs */}
+          {/* updated paragraphs */}
           <div className="space-y-8 text-lg md:text-xl text-[#2B2826] leading-relaxed">
+            
             <motion.p variants={item} className="opacity-90">
-              Laal Bindi is more than an initiative. It's a movement rooted in dignity,
-              education, and openness. We believe that menstruation is not a subject
-              to be hidden or whispered about—it's a natural, fundamental part of life
-              that deserves respect and understanding.
+              Laal Bindi is a movement that promotes dignity, awareness, and open conversations about menstruation. 
+              We believe periods are a natural part of life and should never be hidden or treated with shame. 
+              Through this initiative, we aim to break silence and challenge the myths surrounding menstruation.
             </motion.p>
 
             <motion.p variants={item} className="opacity-90">
-              Born from countless conversations with women and girls across communities,
-              Laal Bindi addresses the deep-rooted stigma that surrounds periods in India.
-              Through awareness sessions, education programs, and community engagement,
-              we're creating spaces where questions are welcomed and knowledge is shared freely.
+              The idea grew from conversations with women and girls across communities who shared their experiences 
+              of stigma and challenges. Through awareness sessions, educational programs, and community engagement, 
+              we create safe spaces where people can ask questions, learn freely, and speak openly.
             </motion.p>
 
             <motion.p variants={item} className="opacity-90">
-              The red bindi—traditionally a symbol of strength and identity—represents
-              our commitment to transforming shame into confidence, silence into
-              conversation, and stigma into support.
+              The red bindi, a symbol of strength and identity, represents our mission—to turn silence into conversation, 
+              shame into confidence, and stigma into support.
             </motion.p>
+
           </div>
         </motion.div>
 
