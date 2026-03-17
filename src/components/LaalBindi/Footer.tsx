@@ -30,10 +30,7 @@ export function Footer() {
               <span className="text-xl font-medium">Laal Bindi</span>
             </div>
 
-            <p className="text-sm text-[#E8E4DF]/80 leading-relaxed">
-              A movement dedicated to breaking menstrual stigma through
-              awareness, education, and open conversations in communities.
-            </p>
+          
           </motion.div>
 
           {/* EXPLORE */}
