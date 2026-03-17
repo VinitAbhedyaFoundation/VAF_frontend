@@ -132,16 +132,6 @@ const Footer = () => {
 
               <li>
                 <a
-                  href="tel:+918856859643"
-                  className="group flex items-center gap-3 text-sm text-white/70 hover:text-emerald-400 transition-all duration-300"
-                >
-                  <Phone className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
-                  +91 88568 59643
-                </a>
-              </li>
-
-              <li>
-                <a
                   href="mailto:admin@vinitabhedyafoundation.com"
                   className="group flex items-center gap-3 text-sm text-white/70 hover:text-emerald-400 transition-all duration-300"
                 >

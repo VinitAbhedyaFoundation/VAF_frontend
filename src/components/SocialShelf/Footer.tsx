@@ -57,12 +57,24 @@ function Footer() {
               CONTACT
             </p>
 
-            <div className="flex flex-col gap-3 text-sm text-white/60">
-              <p>Chh. Sambhajinagar, Maharashtra</p>
-              <p>+91 88568 59643</p>
-              <p>admin@vinitabhedyafoundation.com</p>
+            <div className="flex flex-col gap-3 text-sm">
+              <a
+                href="https://maps.google.com/?q=Chh.+Sambhajinagar,+Maharashtra"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/60 hover:text-[#C2410C] transition duration-300"
+              >
+                Chh. Sambhajinagar, Maharashtra
+              </a>
+
+              <a
+                href="mailto:admin@vinitabhedyafoundation.com"
+                className="text-white/60 hover:text-[#C2410C] transition duration-300"
+              >
+                admin@vinitabhedyafoundation.com
+              </a>
             </div>
-          </div>
+          </div> {/* ← THIS WAS MISSING */}
 
           {/* Socials */}
           <div>
@@ -71,7 +83,6 @@ function Footer() {
             </p>
 
             <div className="flex gap-4">
-
               <a
                 href="https://www.instagram.com/the_socialshelf?igsh=MWRtdnVuNnVuOHZlNw=="
                 target="_blank"
@@ -107,7 +118,6 @@ function Footer() {
               >
                 <Twitter className="w-4 h-4 text-white/70 group-hover:text-white" />
               </a>
-
             </div>
           </div>
 
@@ -118,7 +128,6 @@ function Footer() {
 
         {/* Bottom */}
         <div className="mt-6 flex flex-col md:flex-row justify-between items-center text-xs text-white/50 gap-3">
-
           <p>
             © {new Date().getFullYear()} Social Shelf — A Vinit Abhedya Foundation Initiative
           </p>
@@ -126,7 +135,6 @@ function Footer() {
           <p className="text-[#C2410C]">
             Read • Reflect • Connect
           </p>
-
         </div>
 
       </div>

@@ -82,21 +82,6 @@ export function Footer() {
                 <Instagram className="w-5 h-5" />
               </a>
 
-              {/* WhatsApp */}
-              <a
-                href="https://wa.me/918856859643"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-[#8B3A3A] transition"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12.04 2C6.52 2 2.06 6.46 2.06 11.98c0 1.9.5 3.73 1.45 5.33L2 22l4.82-1.44c1.55.85 3.3 1.3 5.08 1.3h.01c5.52 0 9.98-4.46 9.98-9.98S17.56 2 12.04 2zm0 18.16c-1.63 0-3.23-.44-4.62-1.27l-.33-.2-2.86.85.86-2.78-.21-.34a8.12 8.12 0 01-1.24-4.34c0-4.5 3.66-8.16 8.16-8.16 4.5 0 8.16 3.66 8.16 8.16s-3.66 8.16-8.16 8.16z"/>
-                </svg>
-              </a>
 
             </div>
           </motion.div>
@@ -113,15 +98,6 @@ export function Footer() {
 
             <div className="space-y-4">
 
-              {/* Phone */}
-              <a
-                href="tel:+918856859643"
-                className="flex items-center gap-3 text-sm text-[#E8E4DF]/80 hover:text-[#A85555] transition"
-              >
-                <Phone className="w-5 h-5 text-[#A85555] shrink-0" />
-                +91 88568 59643
-              </a>
-
               {/* Email */}
               <a
                 href="mailto:admin@vinitabhedyafoundation.com"
@@ -129,23 +105,6 @@ export function Footer() {
               >
                 <Mail className="w-5 h-5 text-[#A85555] shrink-0" />
                 admin@vinitabhedyafoundation.com
-              </a>
-
-              {/* WhatsApp */}
-              <a
-                href="https://wa.me/918856859643"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-sm text-[#E8E4DF]/80 hover:text-[#A85555] transition"
-              >
-                <svg
-                  className="w-5 h-5 text-[#A85555] shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12.04 2C6.52 2 2.06 6.46 2.06 11.98c0 1.9.5 3.73 1.45 5.33L2 22l4.82-1.44c1.55.85 3.3 1.3 5.08 1.3h.01c5.52 0 9.98-4.46 9.98-9.98S17.56 2 12.04 2zm0 18.16c-1.63 0-3.23-.44-4.62-1.27l-.33-.2-2.86.85.86-2.78-.21-.34a8.12 8.12 0 01-1.24-4.34c0-4.5 3.66-8.16 8.16-8.16 4.5 0 8.16 3.66 8.16 8.16s-3.66 8.16-8.16 8.16z"/>
-                </svg>
-                Chat on WhatsApp
               </a>
 
             </div>
