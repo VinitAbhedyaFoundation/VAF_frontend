@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-const heroImage = "/images/Ploggers/hero-bg.jpeg";
+const heroImage = "/images/Ploggers/ChatGPT Image Mar 17, 2026, 11_57_43 PM.png";
 
 const HeroSection = () => {
   return (
