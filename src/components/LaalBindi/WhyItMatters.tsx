@@ -16,7 +16,7 @@ export function WhyItMatters() {
     },
     {
       number: "Many",
-      text: "face restrictions, isolation, and shame during their periods"
+      text: "face restrictions, isolation, and shame during their periods, due to superstitions"
     }
   ];
 
