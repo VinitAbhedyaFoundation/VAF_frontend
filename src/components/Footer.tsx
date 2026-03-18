@@ -129,7 +129,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="group w-fit">
                 <a
-                  href="/legal/Privacy-Policy-Update-with-Refund.pdf"
+                  href="/legal/Privacy Policy VAF.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={linkClass}
@@ -141,7 +141,7 @@ const Footer = () => {
 
               <li className="group w-fit">
                 <a
-                  href="/legal/terms-and-conditions.pdf"
+                  href="/legal/Terms and conditions VAF.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={linkClass}
