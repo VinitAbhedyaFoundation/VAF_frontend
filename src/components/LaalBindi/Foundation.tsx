@@ -55,9 +55,7 @@ export function Foundation() {
         {/* description */}
         <div className="max-w-2xl mx-auto space-y-5 text-base md:text-lg text-[#2B2826] leading-relaxed">
           <p className="opacity-90">
-            The Vinit Abhedya Foundation is dedicated to creating meaningful
-            social impact through education, awareness, and community
-            empowerment.
+        
           </p>
 
           <p className="opacity-90">

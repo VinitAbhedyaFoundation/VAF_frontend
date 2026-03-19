@@ -1,26 +1,38 @@
-import { ArrowRight, Users, HandHeart } from "lucide-react";
+import { ArrowRight, Users, HandHeart, Handshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 const VOLUNTEER_FORM =
   "https://docs.google.com/forms/d/e/1FAIpQLScrmxN2cjHbjJs8vBSqrRIyhlioUrAsiq8ufqvg7B_3G3efUg/viewform";
 
+const COLLAB_FORM =
+  "https://docs.google.com/forms/d/1CdjS6LotlErRAV_2qHIkEv1nrriqyAQlcohxuXeSYhw/edit";
+
 const CTASection = () => {
   const actions = [
     {
       icon: Users,
-      title: "Join a Drive or Collaborate",
+      title: "Join a Drive",
       description:
-        "Walk, clean, and make a difference with our community.",
-      buttonText: "Join a Drive",
+        "Walk, clean, and make a difference with our community. Be part of real impact on ground.",
+      buttonText: "Join a Plogging Drive",
       link: VOLUNTEER_FORM,
+      external: true,
+    },
+    {
+      icon: Handshake,
+      title: "Partner With Us",
+      description:
+        "Partner with us to amplify awareness and create meaningful impact together.",
+      buttonText: "Collaborate With Us",
+      link: COLLAB_FORM,
       external: true,
     },
     {
       icon: HandHeart,
       title: "Support the Mission",
       description:
-        "Help us grow our impact through donations and support.",
+        "Help us expand our impact through donations for drives, equipment, and awareness programs.",
       buttonText: "Donate Now",
       link: "/donate",
       external: false,
@@ -44,8 +56,8 @@ const CTASection = () => {
             Be Part of the Movement
           </h2>
 
-          <p className="text-sm sm:text-lg text-slate-600 leading-relaxed">
-            Small actions, done together, create real change.
+          <p className="text-lg text-slate-600 leading-relaxed">
+            Every step counts. Every action matters. Together we can create cleaner communities and stronger impact.
           </p>
         </div>
 
