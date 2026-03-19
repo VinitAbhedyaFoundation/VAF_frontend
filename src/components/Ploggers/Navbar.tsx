@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
-const logo = "/images/Ploggers/sambhajinagar-logo-for-Website.png";
 import { Button } from "@/components/ui/button";
+
+const logo = "/images/Ploggers/sambhajinagar-logo-for-Website.png";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Scroll background effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -15,6 +17,31 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // 🔥 PROPER SCROLL FREEZE FIX (not basic overflow hack)
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      const scrollY = window.scrollY;
+
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+    } else {
+      const scrollY = document.body.style.top;
+
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || "0") * -1);
+      }
+    }
+  }, [isMobileMenuOpen]);
 
   const navLinks = [
     { label: "What is Plogging", href: "#what-is-plogging" },
@@ -33,8 +60,12 @@ const Navbar = () => {
       }`}
     >
       <div className="container-wide px-6 py-5">
-        <div className="flex items-center justify-between">
-
+        {/* Hide navbar content when menu is open */}
+        <div
+          className={`flex items-center justify-between transition-all duration-300 ${
+            isMobileMenuOpen ? "opacity-0 pointer-events-none" : ""
+          }`}
+        >
           {/* Logo */}
           <a
             href="/"
@@ -87,52 +118,55 @@ const Navbar = () => {
             className={`lg:hidden p-2 transition-colors duration-300 ${
               isScrolled ? "text-foreground" : "text-white"
             }`}
-            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            onClick={() =>
+              setIsMobileMenuOpen((prev) => !prev)
+            }
             aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            <Menu className="w-6 h-6" />
           </button>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-<div
-  className="
-  absolute top-full left-4 right-4
-  bg-white
-  rounded-2xl
-  p-6
-  shadow-xl
-  border border-emerald-100
-  max-w-[calc(100vw-2rem)]
-  "
->            <div className="flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-base font-medium text-muted-foreground hover:text-primary transition-colors duration-300"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </a>
-              ))}
-
-              <Button
-                variant="default"
-                className="w-fit mt-2 transition-all duration-300 hover:-translate-y-0.5"
-                asChild
-              >
-                <a href="#join">Join Us</a>
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* FULLSCREEN MOBILE MENU */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col px-6 py-6">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between mb-10">
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-12 w-auto object-contain"
+            />
+
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2 text-black"
+              aria-label="Close menu"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Links */}
+          <div className="flex flex-col gap-6">
+            {navLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className="text-lg font-medium text-gray-700 hover:text-black transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.label}
+              </a>
+            ))}
+
+            <Button className="mt-6 w-fit" asChild>
+              <a href="#join">Join Us</a>
+            </Button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

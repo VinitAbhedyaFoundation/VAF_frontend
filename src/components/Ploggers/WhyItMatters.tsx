@@ -34,7 +34,7 @@ const reasons = [
 ];
 
 const WhyItMatters = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -62,97 +62,90 @@ const WhyItMatters = () => {
     <section
       id="why-it-matters"
       ref={sectionRef}
-      className="relative scroll-mt-24 py-24 sm:py-32 px-4 bg-gradient-to-b from-white via-emerald-50/30 to-white overflow-hidden"
+      className="relative scroll-mt-24 py-16 sm:py-24 px-4 bg-gradient-to-b from-white via-emerald-50/30 to-white overflow-hidden"
     >
+      {/* glow */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-emerald-200/30 blur-[120px] rounded-full pointer-events-none"></div>
 
-      {/* 🌿 subtle organic glow */}
-      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-emerald-200/30 blur-[140px] rounded-full pointer-events-none"></div>
-
-      {/* floating particles */}
+      {/* particles */}
       <div className="absolute inset-0 pointer-events-none">
-        <span className="leaf left-[12%] top-[20%]" />
-        <span className="leaf left-[85%] top-[30%]" />
-        <span className="leaf left-[40%] top-[75%]" />
+        <span className="leaf left-[10%] top-[25%]" />
+        <span className="leaf left-[80%] top-[35%]" />
+        <span className="leaf left-[45%] top-[80%]" />
       </div>
 
-      <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative z-10">
+      <div className="max-w-6xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-12 sm:gap-16 items-start relative z-10">
 
-        {/* Left — editorial text */}
-        <div
-          className="left-col opacity-0 translate-y-6 transition-all duration-700 ease-out [&.animate-in]:opacity-100 [&.animate-in]:translate-y-0"
-        >
-          {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 text-xs font-medium tracking-widest uppercase text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full mb-6">
+        {/* LEFT */}
+        <div className="left-col opacity-0 translate-y-6 transition-all duration-700 ease-out [&.animate-in]:opacity-100 [&.animate-in]:translate-y-0">
+          
+          {/* tag */}
+          <div className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-medium tracking-widest uppercase text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full mb-5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Why It Matters
           </div>
 
-          <h2 className="font-serif text-4xl sm:text-5xl leading-[1.15] text-foreground mb-6 tracking-tight">
+          <h2 className="font-serif text-3xl sm:text-5xl leading-tight text-foreground mb-5 tracking-tight">
             Small actions.{" "}
-            <em className="not-italic text-emerald-600">Lasting change.</em>
+            <span className="text-emerald-600">Lasting change.</span>
           </h2>
 
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-5">
+          <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed mb-4">
             Plogging isn't about perfection — it's about participation. When
-            people come together to care for their surroundings, something
-            powerful happens: communities become more connected, spaces become
-            more valued, and change becomes visible.
+            people care for their surroundings, communities become stronger and
+            change becomes visible.
           </p>
 
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-            In Chh. Sambhajinagar, we believe that small actions, done
-            consistently and collectively, create the kind of change that lasts.
+          <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed">
+            Small, consistent actions create lasting impact — especially when
+            done together.
           </p>
 
-          <div className="mt-10 w-12 h-0.5 bg-emerald-500 rounded-full" />
+          <div className="mt-6 sm:mt-10 w-10 sm:w-12 h-0.5 bg-emerald-500 rounded-full" />
         </div>
 
-        {/* Right — reason cards */}
-        <div className="grid sm:grid-cols-2 gap-5">
+        {/* RIGHT */}
+        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4 sm:gap-5">
           {reasons.map((reason, i) => (
             <div
               key={reason.title}
               className={cn(
-                "reason-card group relative overflow-hidden rounded-2xl border border-border/40 bg-card p-6",
+                "reason-card group relative overflow-hidden rounded-xl sm:rounded-2xl border border-border/40 bg-card p-5 sm:p-6",
                 "opacity-0 translate-y-6 transition-all duration-700 ease-out",
                 "[&.animate-in]:opacity-100 [&.animate-in]:translate-y-0",
-                "hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_14px_38px_rgba(5,150,105,0.08)]"
+                "hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_10px_28px_rgba(5,150,105,0.08)]"
               )}
               style={{ transitionDelay: `${i * 100}ms` }}
             >
-
-              {/* glow hover */}
+              {/* hover glow */}
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_100%_0%,rgba(167,243,208,0.18),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-              {/* number */}
-              <span className="font-serif text-4xl text-emerald-100 dark:text-emerald-900/40 leading-none select-none mb-3 block">
+              <span className="font-serif text-3xl sm:text-4xl text-emerald-100 dark:text-emerald-900/40 mb-2 block">
                 {reason.number}
               </span>
 
-              {/* icon */}
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
-                <reason.icon className="w-[18px] h-[18px] text-emerald-600" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-emerald-50 flex items-center justify-center mb-3 sm:mb-4">
+                <reason.icon className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-emerald-600" />
               </div>
 
-              <h3 className="text-sm font-semibold text-foreground mb-2 tracking-tight">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 sm:mb-2">
                 {reason.title}
               </h3>
 
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 {reason.description}
               </p>
             </div>
           ))}
         </div>
-
       </div>
 
-      {/* leaf animation */}
+      {/* animation */}
       <style>{`
         .leaf{
           position:absolute;
-          width:10px;
-          height:10px;
+          width:8px;
+          height:8px;
           background:rgba(16,185,129,0.25);
           border-radius:3px 10px 3px 10px;
           transform:rotate(45deg);
@@ -161,11 +154,10 @@ const WhyItMatters = () => {
 
         @keyframes leafFloat{
           0%{transform:translateY(0) rotate(45deg);opacity:.4;}
-          50%{transform:translateY(-20px) rotate(60deg);opacity:.2;}
+          50%{transform:translateY(-15px) rotate(60deg);opacity:.2;}
           100%{transform:translateY(0) rotate(45deg);opacity:.4;}
         }
       `}</style>
-
     </section>
   );
 };
