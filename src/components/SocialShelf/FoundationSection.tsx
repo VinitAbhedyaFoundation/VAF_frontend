@@ -59,12 +59,6 @@ const foundationLogo = "/images/VinitAbhedya/Logo.png";
             social impact through education, awareness, and community
             empowerment.
           </p>
-
-          <p className="opacity-90">
-            Laal Bindi represents our commitment to addressing critical yet
-            overlooked issues with sensitivity, dignity, and sustainable
-            solutions.
-          </p>
         </div>
 
         {/* bottom divider */}

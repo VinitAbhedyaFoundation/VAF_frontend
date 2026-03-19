@@ -103,16 +103,6 @@ const Footer = () => {
               </a>
 
               <a
-                href="tel:+918856859643"
-                className="flex items-center gap-3 text-sm text-gray-500 hover:text-white transition-colors duration-200 group w-fit"
-              >
-                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors duration-200">
-                  <Phone className="w-4 h-4" />
-                </span>
-                +91 88568 59643
-              </a>
-
-              <a
                 href="https://maps.google.com/?q=Chh.+Sambhajinagar,+Maharashtra"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -139,7 +129,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="group w-fit">
                 <a
-                  href="/legal/Privacy-Policy-Update-with-Refund.pdf"
+                  href="/legal/Privacy Policy VAF.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={linkClass}
@@ -151,7 +141,7 @@ const Footer = () => {
 
               <li className="group w-fit">
                 <a
-                  href="/legal/terms-and-conditions.pdf"
+                  href="/legal/Terms and conditions VAF.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={linkClass}
