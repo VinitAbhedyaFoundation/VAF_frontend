@@ -9,15 +9,9 @@ export function WhatWeDo() {
   const initiatives = [
     {
       icon: MessageCircle,
-      title: "Awareness Sessions",
+      title: "Awareness & Menstrual Education",
       description:
-        "Interactive conversations in schools and communities, creating safe spaces for questions and dialogue."
-    },
-    {
-      icon: BookOpen,
-      title: "Menstrual Hygiene Education",
-      description:
-        "Comprehensive programs covering menstrual health, hygiene practices, and body literacy."
+        "Interactive sessions in schools and communities combining awareness and menstrual hygiene education to create safe spaces for learning and dialogue."
     },
     {
       icon: Heart,
@@ -30,6 +24,12 @@ export function WhatWeDo() {
       title: "Community Conversations",
       description:
         "Engaging families, educators, and community leaders to normalize menstrual health discussions."
+    },
+    {
+      icon: BookOpen,
+      title: "Making it Playful",
+      description:
+        "We make it simpler to understand by conducting various activities and games."
     }
   ];
 
@@ -102,7 +102,7 @@ export function WhatWeDo() {
                 {initiative.description}
               </p>
 
-              {/* subtle underline animation */}
+              {/* underline animation */}
               <div className="mt-6 w-10 h-[2px] bg-[#8B3A3A] transition-all duration-300 group-hover:w-16"></div>
             </motion.div>
           ))}

@@ -2,15 +2,14 @@ import { motion } from "framer-motion";
 
 export function Hero() {
   return (
-
-<section className="relative h-screen flex items-center justify-center overflow-hidden z-0">
+    <section className="relative h-screen flex items-center justify-center overflow-hidden z-0">
 
       {/* Hero Background Image */}
       <div className="absolute inset-0">
         <img
-          src="/images/Laalbindi/hero-bg2.jpeg"
+          src="/images/Laalbindi/laalbindi_bg.jpeg"
           alt="Laal Bindi awareness campaign"
-          className="w-full h-full object-cover scale-105"
+          className="w-full h-full object-cover scale-110 object-[center_8%]"
         />
 
         {/* Top gradient for navbar visibility */}
@@ -34,7 +33,7 @@ export function Hero() {
       >
 
         {/* Eyebrow */}
-        <p className="text-xs tracking-[0.45em] uppercase text-white/70 mb-8 font-medium">
+<p className="text-xs tracking-[0.45em] uppercase text-white/70 mb-8 font-medium mt-6 md:mt-8">
           A Menstrual Health Awareness Initiative
         </p>
 
