@@ -6,14 +6,14 @@ const HeroSection = () => {
   return (
     <section
       id="home"
-      className="relative h-screen w-full overflow-hidden flex items-center justify-center"
+      className="relative min-h-[100dvh] w-full overflow-hidden flex items-center justify-center"
     >
       {/* Background */}
       <div className="absolute inset-0">
         <img
           src="/images/VinitAbhedya/hero-bg.jpg"
           alt="Volunteers planting trees"
-          className="w-full h-full object-cover object-center md:object-cover  md:scale-105"
+          className="w-full h-full object-cover object-center md:object-cover md:scale-105"
         />
 
         {/* Clean SaaS-style overlay */}
@@ -29,7 +29,7 @@ const HeroSection = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="max-w-4xl mx-auto"
         >
-        
+
           {/* Heading */}
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6 tracking-tight">
             Vinit Abhedya

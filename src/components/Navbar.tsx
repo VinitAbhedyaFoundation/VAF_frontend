@@ -28,34 +28,20 @@ const Navbar = () => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 60);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 🔥 Proper scroll freeze
+  // ✅ Scroll lock using overflow:hidden — no layout reflow
   useEffect(() => {
     if (open) {
-      const scrollY = window.scrollY;
-
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
     } else {
-      const scrollY = document.body.style.top;
-
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || "0") * -1);
-      }
+      document.body.style.overflow = "";
     }
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
   // Reset dropdown when menu closes
@@ -96,7 +82,6 @@ const Navbar = () => {
             className="flex items-center gap-2 md:gap-3"
           >
             <img src={logo} alt="Logo" className="h-10 md:h-14" />
-
             <span
               className={`font-serif text-lg md:text-xl ${
                 scrolled ? "text-black" : "text-white"
@@ -196,7 +181,6 @@ const Navbar = () => {
             {/* Top */}
             <div className="flex items-center justify-between px-4 py-4 border-b">
               <img src={logo} className="h-10" />
-
               <button onClick={() => setOpen(false)}>
                 <X className="w-6 h-6 text-black" />
               </button>
@@ -204,7 +188,6 @@ const Navbar = () => {
 
             {/* Content */}
             <div className="flex flex-col px-6 py-8 gap-6">
-
               {navLinks.map((link) => (
                 <a
                   key={link.href}

@@ -43,10 +43,10 @@ const CommunityGallery = () => {
         </div>
 
         {/* MOBILE FIRST LAYOUT */}
-        <div className="flex flex-col gap-4 sm:grid sm:grid-cols-3 sm:gap-4">
+        <div className="flex flex-col gap-4 sm:grid sm:grid-cols-3 sm:grid-rows-2 sm:gap-4">
 
-          {/* Featured Image */}
-          <div className="group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-[4/3] sm:col-span-2 sm:row-span-2">
+          {/* Featured Image — spans 2 cols and 2 rows, no fixed aspect ratio on desktop */}
+          <div className="group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-[4/3] sm:aspect-auto sm:col-span-2 sm:row-span-2">
             <img
               src={images[0].src}
               alt={images[0].caption}
@@ -55,7 +55,6 @@ const CommunityGallery = () => {
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-            {/* Always visible caption (mobile fix) */}
             <div className="absolute bottom-4 left-4 right-4">
               <div className="bg-black/40 backdrop-blur-md rounded-lg px-3 py-2">
                 <p className="text-[10px] text-white/60 uppercase mb-1">Featured</p>
@@ -64,11 +63,11 @@ const CommunityGallery = () => {
             </div>
           </div>
 
-          {/* Small Images */}
+          {/* Small Images — each fills one grid cell */}
           {images.slice(1).map((image, index) => (
             <div
               key={index}
-              className="group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-square"
+              className="group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-square sm:aspect-auto"
             >
               <img
                 src={image.src}
@@ -78,7 +77,6 @@ const CommunityGallery = () => {
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
-              {/* ALWAYS visible caption (fix for mobile) */}
               <div className="absolute bottom-3 left-3 right-3">
                 <p className="text-xs text-white leading-snug">
                   {image.caption}
@@ -90,7 +88,7 @@ const CommunityGallery = () => {
           {/* CTA TILE */}
           <a
             href="/gallery"
-            className="group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-square"
+            className="group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-square sm:aspect-auto"
           >
             <img
               src={communityImage6}
