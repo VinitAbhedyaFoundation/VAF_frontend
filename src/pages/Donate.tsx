@@ -1,38 +1,33 @@
-import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Mail } from "lucide-react";
 
 const Donate = () => {
   return (
     <div className="min-h-screen bg-emerald-50 flex items-center justify-center px-6">
       <div className="bg-white rounded-2xl shadow-xl p-10 max-w-xl w-full text-center space-y-6">
 
-        <Heart className="w-10 h-10 text-emerald-600 mx-auto" />
+        <Mail className="w-10 h-10 text-emerald-600 mx-auto" />
 
         <h1 className="text-3xl font-bold text-slate-900">
-          Support Our Mission
+          Donations Coming Soon
         </h1>
 
         <p className="text-slate-600 leading-relaxed">
-          Your contribution helps us organize environmental drives,
-          empower communities, and support education initiatives.
+          We are currently setting up our donation system to ensure secure and transparent contributions.
         </p>
 
-        <div className="space-y-4">
-          <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-            Donate ₹100
-          </Button>
+        <p className="text-slate-700">
+          For any enquiries or to support us directly, reach out at:
+        </p>
 
-          <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-            Donate ₹500
-          </Button>
+        <a
+          href="mailto:admin@vinitabhedyafoundation.com"
+          className="inline-block text-lg font-semibold text-emerald-700 hover:underline"
+        >
+          admin@vinitabhedyafoundation.com
+        </a>
 
-          <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-            Donate ₹1000
-          </Button>
-        </div>
-
-        <p className="text-sm text-slate-500">
-          Secure payment • 100% transparent use of funds
+        <p className="text-sm text-slate-500 pt-4">
+          We appreciate your patience. Something better is coming.
         </p>
 
       </div>
