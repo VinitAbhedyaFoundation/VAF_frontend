@@ -3,10 +3,10 @@ import { motion } from "framer-motion";
 import { TreePine, Users, Clock, MapPin } from "lucide-react";
 
 const stats = [
-  { icon: TreePine, label: "Cleanup Drives", value: 120, suffix: "+" },
-  { icon: Users, label: "Volunteers", value: 3500, suffix: "+" },
-  { icon: Clock, label: "Hours of Service", value: 12000, suffix: "+" },
-  { icon: MapPin, label: "Areas Covered", value: 45, suffix: "+" },
+  { icon: TreePine, label: "Cleanup Drives", value: 250, suffix: "+" },
+  { icon: Users, label: "Volunteers", value: 10000, suffix: "+" },
+  { icon: Clock, label: "Hours of Service", value: 30000, suffix: "+" },
+  { icon: MapPin, label: "Areas Covered", value: 30, suffix: "+" },
 ];
 
 function useCountUp(target: number, inView: boolean) {
