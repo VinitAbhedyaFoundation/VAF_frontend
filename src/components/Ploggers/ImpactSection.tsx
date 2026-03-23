@@ -3,25 +3,25 @@ import { TrendingUp } from "lucide-react";
 
 const stats = [
   {
-    value: 120,
+    value: 200,
     suffix: "+",
     label: "Drives Conducted",
     description: "Weekly and monthly cleanup activities",
   },
   {
-    value: 45,
+    value: 25,
     suffix: "+",
     label: "Areas Covered",
     description: "Parks, streets, and neighborhoods",
   },
   {
-    value: 3500,
+    value: 8000,
     suffix: "+",
     label: "Volunteers",
     description: "Community members participated",
   },
   {
-    value: 2000,
+    value: 27000,
     suffix: "+",
     label: "Kg Waste Collected",
     description: "Litter removed from public spaces",
