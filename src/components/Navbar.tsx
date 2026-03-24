@@ -32,7 +32,7 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ✅ Scroll lock using overflow:hidden — no layout reflow
+  // Scroll lock
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -74,7 +74,7 @@ const Navbar = () => {
         }`}
       >
         <div className="container mx-auto flex items-center justify-between h-16 md:h-20 px-4 md:px-6">
-
+          
           {/* Logo */}
           <Link
             to="/"
@@ -152,11 +152,13 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            {/* CTA */}
-            <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6">
-              <Heart className="w-4 h-4 mr-2" />
-              Donate
-            </Button>
+            {/* ✅ FIXED Donate Button */}
+            <Link to="/donate">
+              <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6">
+                <Heart className="w-4 h-4 mr-2" />
+                Donate
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Toggle */}
@@ -164,7 +166,11 @@ const Navbar = () => {
             className={`${scrolled ? "text-black" : "text-white"} lg:hidden`}
             onClick={() => setOpen((prev) => !prev)}
           >
-            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {open ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
       </nav>
@@ -244,18 +250,19 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
 
-              {/* CTA */}
-              <Button
-                className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white"
-                onClick={(e) => {
-                  e.preventDefault();
+              {/* ✅ FIXED Mobile Donate */}
+              <Link
+                to="/donate"
+                onClick={() => {
                   setOpen(false);
-                  handleNavClick("#donate");
+                  scrollToTop();
                 }}
               >
-                <Heart className="w-4 h-4 mr-2" />
-                Donate
-              </Button>
+                <Button className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white">
+                  <Heart className="w-4 h-4 mr-2" />
+                  Donate
+                </Button>
+              </Link>
             </div>
           </motion.div>
         )}
