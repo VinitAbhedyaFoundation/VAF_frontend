@@ -11,19 +11,19 @@ export function Impact() {
       quote:
         "For the first time, I felt like my questions weren't shameful. I learned that periods are normal, and that understanding my body is my right.",
       author: "A student from a rural school session",
-      location: "Maharashtra"
+      location: "Chhatrapati Sambhajinagar"
     },
     {
       quote:
         "Laal Bindi didn't just teach us about hygiene—it gave us permission to speak. Now I can talk to my daughter openly about things my mother never discussed with me.",
       author: "A mother from a community workshop",
-      location: "Rajasthan"
+      location: "Chhatrapati Sambhajinagar"
     },
     {
       quote:
         "When girls learn about their bodies without fear, they grow with confidence. These conversations change lives.",
       author: "A teacher from an awareness program",
-      location: "Madhya Pradesh"
+      location: "Chhatrapati Sambhajinagar"
     }
   ];
 

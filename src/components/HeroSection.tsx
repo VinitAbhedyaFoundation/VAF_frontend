@@ -40,8 +40,8 @@ const HeroSection = () => {
 
           {/* Subtext */}
           <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-12 leading-relaxed">
-            Driving measurable impact through environmental action,
-            women empowerment, and community-led transformation.
+             A social impact NGO in Chhatrapati Sambhajinagar (Aurangabad) focused on 
+            environmental awareness, community initiatives, and local social impact programs.
           </p>
 
           {/* SaaS-Style CTA */}

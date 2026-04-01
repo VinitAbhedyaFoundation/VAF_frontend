@@ -27,24 +27,21 @@ const AboutSection = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="space-y-4 max-w-xl"
+            className="space-y-5 max-w-xl"
           >
             <p className="text-base md:text-lg text-foreground leading-relaxed">
-              Vinit Abhedya Foundation is a community-driven initiative working
-              at the grassroots level to create positive environmental and
-              social impact in Chh. Sambhajinagar.
+              Vinit Abhedya Foundation is an NGO in Chhatrapati Sambhajinagar (Aurangabad) 
+              working at the grassroots level to create environmental awareness and community impact through local initiatives.
             </p>
 
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-              Our work spans environmental conservation, public cleanliness,
-              women’s empowerment, and access to education through on-ground
-              drives, awareness programs, and volunteer-led initiatives.
+              Our work focuses on environmental conservation, public cleanliness drives, and awareness campaigns 
+              conducted through on-ground activities and volunteer-led initiatives across Sambhajinagar.
             </p>
 
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-              By collaborating with volunteers, local communities, and partner
-              organizations, we focus on sustainable action, transparency, and
-              long-term change rather than short-term outcomes.
+              By collaborating with volunteers, local communities, and partner organizations, we aim to build 
+              sustainable solutions and long-term impact through consistent and practical initiatives.
             </p>
           </motion.div>
 
@@ -58,7 +55,7 @@ const AboutSection = () => {
           >
             <img
               src="/images/VinitAbhedya/about-us.jpeg"
-              alt="Community initiatives by Vinit Abhedya Foundation"
+              alt="Environmental awareness and community initiatives by NGO in Chhatrapati Sambhajinagar"
               className="w-full h-[260px] sm:h-[320px] md:h-[420px] object-cover"
             />
           </motion.div>
