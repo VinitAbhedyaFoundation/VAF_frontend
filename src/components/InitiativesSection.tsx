@@ -151,9 +151,8 @@ const InitiativesSection = () => {
       >
         <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/20">
           <div
-            className={`relative ${
-              size === "w-[52%]" ? "aspect-[4/3]" : "aspect-[3/4]"
-            } overflow-hidden bg-slate-100`}
+            className={`relative ${size === "w-[52%]" ? "aspect-[4/3]" : "aspect-[3/4]"
+              } overflow-hidden bg-slate-100`}
           >
             <img
               src={currentInitiative.images[displayImageIndex]}
@@ -240,7 +239,7 @@ const InitiativesSection = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 p-4 sm:p-6 lg:p-12 items-center min-h-[520px] lg:min-h-[600px]">
                     {/* Photo Collage */}
                     <motion.div
-                     className="relative order-2 lg:order-1 h-[360px] sm:h-[420px] lg:h-[620px]"
+                      className="relative order-2 lg:order-1 h-[360px] sm:h-[420px] lg:h-[620px]"
                       initial={{ opacity: 0, x: -40 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2, duration: 0.6 }}
@@ -364,9 +363,8 @@ const InitiativesSection = () => {
               {initiatives.map((_, index) => (
                 <div
                   key={index}
-                  className={`rounded-full transition-all duration-300 ${
-                    index === current ? "w-8 h-2" : "w-2 h-2"
-                  }`}
+                  className={`rounded-full transition-all duration-300 ${index === current ? "w-8 h-2" : "w-2 h-2"
+                    }`}
                   style={{
                     backgroundColor: index === current ? currentInitiative.accentColor : "#cbd5e1",
                   }}
@@ -405,7 +403,7 @@ const InitiativesSection = () => {
                 transition={{ delay: 0.2, duration: 0.7 }}
                 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900"
               >
-                Be Part of the Change
+                Volunteer with Our NGO in Chhatrapati Sambhajinagar
               </motion.h2>
 
               <motion.p
@@ -415,8 +413,10 @@ const InitiativesSection = () => {
                 transition={{ delay: 0.4, duration: 0.7 }}
                 className="text-base md:text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed"
               >
-                Whether you want to volunteer on the ground or collaborate as an organization, there's a
-                meaningful role for you in our journey toward a more inclusive and responsible society.
+                Join Vinit Abhedya Foundation, an NGO in Chhatrapati Sambhajinagar (Aurangabad),
+                and be part of environmental awareness campaigns and community initiatives.
+                Whether you want to volunteer on the ground or collaborate as an organization,
+                you can contribute to meaningful local impact through our initiatives.
               </motion.p>
 
               <motion.div

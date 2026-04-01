@@ -10,7 +10,7 @@ const HeroSection = () => {
       <div className="absolute inset-0">
         <img
           src={heroImage}
-          alt="Community members plogging together"
+          alt="Plogging clean-up drive in Chhatrapati Sambhajinagar by volunteers"
           className="w-full h-full object-cover object-[center] scale-100"
         />
         <div className="absolute inset-0 bg-black/30" />
@@ -21,20 +21,27 @@ const HeroSection = () => {
       <div className="relative z-10 container-wide px-6 pt-40 pb-28 text-center">
         <div className="max-w-3xl mx-auto">
 
+          {/* Tagline */}
           <p className="text-xs tracking-[0.45em] uppercase text-white/70 mb-6 font-medium">
-            A Community Clean-Up Initiative
+            Plogging Initiative in Chhatrapati Sambhajinagar
           </p>
 
-          <h1 className="text-6xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
-            Clean streets{" "}
-            <span className="text-emerald-400">begin with us.</span>
+          {/* SEO H1 */}
+          <h1 className="text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
+            Plogging Clean-Up Drives{" "}
+            <span className="text-emerald-400">
+              in Sambhajinagar
+            </span>
           </h1>
 
+          {/* Subtext */}
           <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Plogging combines jogging with picking up litter — a simple act of
-            walking, cleaning, and caring for the places we call home.
+            Join our community-driven plogging initiative by Vinit Abhedya Foundation, 
+            an NGO in Chhatrapati Sambhajinagar (Aurangabad), combining jogging with 
+            cleaning streets to promote environmental awareness and local impact.
           </p>
 
+          {/* CTA */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
             <Button
               size="lg"
@@ -46,7 +53,7 @@ const HeroSection = () => {
               "
               asChild
             >
-              <a href="#join">Join a Drive</a>
+              <a href="#join">Join a Clean-Up Drive</a>
             </Button>
 
             <Button
@@ -60,7 +67,7 @@ const HeroSection = () => {
               "
               asChild
             >
-              <a href="#what-is-plogging">Learn More</a>
+              <a href="#what-is-plogging">What is Plogging?</a>
             </Button>
           </div>
 
@@ -81,8 +88,12 @@ const HeroSection = () => {
           </svg>
         </div>
         <div>
-          <p className="text-[.85rem] font-semibold text-white leading-tight">Drives Conducted  </p>
-          <p className="text-[.75rem] text-white/55 leading-tight"> Every Sunday Morning </p>
+          <p className="text-[.85rem] font-semibold text-white leading-tight">
+            Clean-Up Drives Conducted
+          </p>
+          <p className="text-[.75rem] text-white/55 leading-tight">
+            Every Sunday in Sambhajinagar
+          </p>
         </div>
       </div>
 

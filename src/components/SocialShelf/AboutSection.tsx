@@ -30,28 +30,25 @@ const AboutSection = () => {
               text-[#0F172A]
             "
             >
-              More than a book club —
-              <br />
+              Community Reading Circle in{" "}
               <span className="italic font-light text-[#C2410C]">
-                a space to be heard
+                Chhatrapati Sambhajinagar
               </span>
             </h2>
 
             <div className="space-y-5 text-[#111827] leading-relaxed text-base md:text-lg">
               <p>
-                Social Shelf is a gentle invitation to slow down. In a world of
-                endless scrolling and quick takes, we believe in the power of
-                sitting with a story and truly listening.
+                Social Shelf is a community reading circle initiative by Vinit Abhedya Foundation in Chhatrapati Sambhajinagar, 
+                focused on meaningful conversations, shared learning, and thoughtful reading experiences.
               </p>
 
               <p>
-                We are a conversation circle where every voice matters — a safe
-                space for expression, where vulnerability is welcomed and
-                differences are honored.
+                It creates a safe and open space where individuals can discuss books, share perspectives, 
+                and engage in conversations that go beyond reading — building connection, awareness, and understanding.
               </p>
 
               <p className="font-semibold text-[#92400E]">
-                Here, reading is not consumption — it’s connection.
+                A space where reading becomes conversation, and conversation builds community.
               </p>
             </div>
 
@@ -76,7 +73,7 @@ const AboutSection = () => {
 
               <img
                 src={eventReadingCircle}
-                alt="Community members gathered in a reading circle"
+                alt="Community reading circle and book discussion in Chhatrapati Sambhajinagar"
                 className="w-full rounded-2xl shadow-2xl object-cover"
               />
 
