@@ -36,19 +36,16 @@ const FoundationSection = () => {
           </h3>
 
           {/* description */}
-          <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-            Chh. Sambhajinagar Ploggers is a grassroots environmental initiative
-            under the Vinit Abhedya Foundation, working to create healthier,
-            cleaner, and more connected communities through collective action.
-          </p>
-
-        <p className="text-emerald-700 font-medium mt-6">
-  For more information
+<p className="text-lg md:text-xl text-[#2B2826]/80 leading-relaxed text-center mt-6">
+  <span className="block max-w-3xl mx-auto">
+    Chh. Sambhajinagar Ploggers is a community-driven environmental group under the
+    Vinit Abhedya Foundation that works to keep our surroundings clean and healthy
+  </span>
+  <span className="block max-w-2xl mx-auto mt-1">
+    by bringing people together and encouraging them to take action for the environment.
+  </span>
 </p>
-
-<p className="text-emerald-800 font-semibold">
-  Visit the official Vinit Abhedya Foundation website
-</p>
+    
         </div>
       </div>
     </section>

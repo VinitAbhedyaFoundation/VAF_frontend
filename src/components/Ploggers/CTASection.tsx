@@ -12,9 +12,10 @@ const CTASection = () => {
   const actions = [
     {
       icon: Users,
-      title: "Join a Drive or Collaborate",
-      description: "Walk, clean, and make a difference with our community.",
-      buttonText: "Join a Drive",
+      title: "Join a Drive",
+      description:
+        "Walk, clean, and make a difference with our community. Be part of real impact on ground.",
+      buttonText: "Join a Plogging Drive",
       link: VOLUNTEER_FORM,
       external: true,
     },
@@ -29,7 +30,8 @@ const CTASection = () => {
     {
       icon: HandHeart,
       title: "Support the Mission",
-      description: "Help us grow our impact through donations and support.",
+      description:
+        "Help us expand our impact through donations for drives, equipment, and awareness programs.",
       buttonText: "Donate Now",
       link: "/donate",
       external: false,
@@ -52,8 +54,9 @@ const CTASection = () => {
           <h2 className="text-3xl sm:text-5xl font-bold mb-4 text-green-900 leading-tight">
             Be Part of the Movement
           </h2>
-          <p className="text-sm sm:text-lg text-slate-600 leading-relaxed">
-            Small actions, done together, create real change.
+
+          <p className="text-lg text-slate-600 leading-relaxed">
+            Every step counts. Every action matters. Together we can create cleaner communities and stronger impact.
           </p>
         </div>
 
