@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 const volunteers = [
   {
-    name: "Teju Gaikwad",
+    name: "Tejaswini Gaikwad",
     image: "/images/VinitAbhedya/M4.jpeg",
     drives: 12,
     hours: 200,
