@@ -2,26 +2,26 @@ import { motion } from "framer-motion";
 
 const volunteers = [
   {
-    name: "Rajesh Wagh",
-    image: "https://i.pravatar.cc/200?img=68",
+    name: "Teju Gaikwad",
+    image: "/images/VinitAbhedya/M4.jpeg",
     drives: 12,
     hours: 200,
   },
   {
-    name: "Anita Sharma",
-    image: "https://i.pravatar.cc/200?img=32",
+    name: "Yash Ingle",
+    image: "images/VinitAbhedya/M2.jpeg",
     drives: 8,
     hours: 150,
   },
   {
-    name: "Karan Deshmukh",
-    image: "https://i.pravatar.cc/200?img=12",
+    name: "Avishkar Kamble",
+    image: "images/VinitAbhedya/M3.jpeg",
     drives: 15,
     hours: 240,
   },
   {
-    name: "Sneha Patil",
-    image: "https://i.pravatar.cc/200?img=45",
+    name: "Shruti Deshpande",
+    image: "images/VinitAbhedya/M1(1).jpeg",
     drives: 10,
     hours: 180,
   },
