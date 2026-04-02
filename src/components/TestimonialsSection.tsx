@@ -4,32 +4,32 @@ import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Priya Sharma",
+    name: "Yash Ingle",
     role: "Volunteer",
     quote:
       "Being part of Sambhajinagar Ploggers changed my perspective. Every morning run became a chance to make our city cleaner and greener.",
-    image: "https://i.pravatar.cc/150?img=32",
+    image: "images/VinitAbhedya/M2.jpeg",
   },
   {
-    name: "Rohit Deshmukh",
-    role: "Community Leader",
+    name: "Shreyas Kurallu",
+    role: "Community Volunteer",
     quote:
       "The Social Shelf initiative has transformed our neighborhood. Children now have access to books they could never afford. Knowledge truly is free now.",
-    image: "https://i.pravatar.cc/150?img=12",
+    image: "images/VinitAbhedya/M5(1).jpeg",
   },
   {
-    name: "Anita Jadhav",
-    role: "Laal Bindi Advocate",
+    name: "Alok Pande",
+    role: "Community Member",
     quote:
       "Laal Bindi gave me the courage to speak up. It's more than a symbol — it's a movement that unites women across communities.",
-    image: "https://i.pravatar.cc/150?img=23",
+    image: "images/VinitAbhedya/M6(1).jpg",
   },
   {
-    name: "Suresh Patil",
-    role: "Environmental Activist",
+    name: "Mayuresh Kahar",
+    role: "Volunteer",
     quote:
       "In two years, we've cleaned over 50 public spaces. The foundation's vision inspires ordinary people to do extraordinary things.",
-    image: "https://i.pravatar.cc/150?img=53",
+    image: "images/VinitAbhedya/M7(1).jpeg",
   },
 ];
 
