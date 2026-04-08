@@ -18,7 +18,7 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 🔥 PROPER SCROLL FREEZE FIX (not basic overflow hack)
+  // Scroll freeze fix
   useEffect(() => {
     if (isMobileMenuOpen) {
       const scrollY = window.scrollY;
@@ -43,6 +43,7 @@ const Navbar = () => {
     }
   }, [isMobileMenuOpen]);
 
+  // ❌ Blog removed here
   const navLinks = [
     { label: "What is Plogging", href: "#what-is-plogging" },
     { label: "Why It Matters", href: "#why-it-matters" },
@@ -60,7 +61,6 @@ const Navbar = () => {
       }`}
     >
       <div className="container-wide px-6 py-5">
-        {/* Hide navbar content when menu is open */}
         <div
           className={`flex items-center justify-between transition-all duration-300 ${
             isMobileMenuOpen ? "opacity-0 pointer-events-none" : ""
@@ -118,9 +118,7 @@ const Navbar = () => {
             className={`lg:hidden p-2 transition-colors duration-300 ${
               isScrolled ? "text-foreground" : "text-white"
             }`}
-            onClick={() =>
-              setIsMobileMenuOpen((prev) => !prev)
-            }
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             aria-label="Toggle menu"
           >
             <Menu className="w-6 h-6" />
@@ -128,16 +126,11 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* FULLSCREEN MOBILE MENU */}
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col px-6 py-6">
-          {/* Top Bar */}
           <div className="flex items-center justify-between mb-10">
-            <img
-              src={logo}
-              alt="Logo"
-              className="h-12 w-auto object-contain"
-            />
+            <img src={logo} alt="Logo" className="h-12 w-auto object-contain" />
 
             <button
               onClick={() => setIsMobileMenuOpen(false)}
@@ -148,7 +141,6 @@ const Navbar = () => {
             </button>
           </div>
 
-          {/* Links */}
           <div className="flex flex-col gap-6">
             {navLinks.map((link) => (
               <a

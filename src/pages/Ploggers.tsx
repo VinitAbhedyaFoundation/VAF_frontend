@@ -14,6 +14,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+
       <main>
         <HeroSection />
         <WhatIsPlogging />
@@ -22,8 +23,11 @@ const Index = () => {
         <CommunityGallery />
         <ImpactSection />
         <FoundationSection />
+
+        {/* CTA SECTION */}
         <CTASection />
       </main>
+
       <Footer />
     </div>
   );
