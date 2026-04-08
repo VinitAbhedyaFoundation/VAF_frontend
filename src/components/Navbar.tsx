@@ -10,6 +10,9 @@ const navLinks = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
+
+  // ✅ BLOG ADDED HERE
+  { label: "Blog", href: "/blog", isRoute: true },
 ];
 
 const initiatives = [
@@ -23,7 +26,6 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Scroll background
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 60);
@@ -32,30 +34,22 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Scroll lock
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = open ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
   }, [open]);
 
-  // Reset dropdown when menu closes
   useEffect(() => {
-    if (!open) {
-      setDropdownOpen(false);
-    }
+    if (!open) setDropdownOpen(false);
   }, [open]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleNavClick = (href) => {
+  const handleNavClick = (href: string) => {
     if (href.startsWith("#")) {
       const id = href.slice(1);
       const el = document.getElementById(id);
@@ -65,7 +59,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/* NAVBAR */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
@@ -74,59 +67,54 @@ const Navbar = () => {
         }`}
       >
         <div className="container mx-auto flex items-center justify-between h-16 md:h-20 px-4 md:px-6">
-          
+
           {/* Logo */}
-          <Link
-            to="/"
-            onClick={scrollToTop}
-            className="flex items-center gap-2 md:gap-3"
-          >
+          <Link to="/" onClick={scrollToTop} className="flex items-center gap-2 md:gap-3">
             <img src={logo} alt="Logo" className="h-10 md:h-14" />
-            <span
-              className={`font-serif text-lg md:text-xl ${
-                scrolled ? "text-black" : "text-white"
-              }`}
-            >
+            <span className={`font-serif text-lg md:text-xl ${scrolled ? "text-black" : "text-white"}`}>
               Vinit Abhedya Foundation
             </span>
           </Link>
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-10 relative">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavClick(link.href);
-                }}
-                className={`text-sm font-medium relative group ${
-                  scrolled ? "text-black" : "text-white"
-                }`}
-              >
-                {link.label}
-                <span
-                  className={`absolute left-0 -bottom-1 w-0 h-[2px] transition-all duration-300 group-hover:w-full ${
-                    scrolled ? "bg-black" : "bg-white"
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  onClick={scrollToTop}
+                  className={`text-sm font-medium ${
+                    scrolled ? "text-black" : "text-white"
                   }`}
-                />
-              </a>
-            ))}
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(link.href);
+                  }}
+                  className={`text-sm font-medium ${
+                    scrolled ? "text-black" : "text-white"
+                  }`}
+                >
+                  {link.label}
+                </a>
+              )
+            )}
 
-            {/* Desktop Dropdown */}
+            {/* Initiatives Dropdown */}
             <div
               className="relative"
               onMouseEnter={() => setDropdownOpen(true)}
               onMouseLeave={() => setDropdownOpen(false)}
             >
-              <button
-                className={`flex items-center gap-1 text-sm font-medium ${
-                  scrolled ? "text-black" : "text-white"
-                }`}
-              >
-                Initiatives
-                <ChevronDown className="w-4 h-4" />
+              <button className={`flex items-center gap-1 text-sm font-medium ${scrolled ? "text-black" : "text-white"}`}>
+                Initiatives <ChevronDown className="w-4 h-4" />
               </button>
 
               <AnimatePresence>
@@ -152,7 +140,7 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            {/* ✅ FIXED Donate Button */}
+            {/* Donate */}
             <Link to="/donate">
               <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6">
                 <Heart className="w-4 h-4 mr-2" />
@@ -166,25 +154,15 @@ const Navbar = () => {
             className={`${scrolled ? "text-black" : "text-white"} lg:hidden`}
             onClick={() => setOpen((prev) => !prev)}
           >
-            {open ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </nav>
 
-      {/* MOBILE FULLSCREEN MENU */}
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-white flex flex-col"
-          >
-            {/* Top */}
+          <motion.div className="fixed inset-0 z-[100] bg-white flex flex-col">
             <div className="flex items-center justify-between px-4 py-4 border-b">
               <img src={logo} className="h-10" />
               <button onClick={() => setOpen(false)}>
@@ -192,73 +170,69 @@ const Navbar = () => {
               </button>
             </div>
 
-            {/* Content */}
             <div className="flex flex-col px-6 py-8 gap-6">
-              {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="text-lg font-medium text-black"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpen(false);
-                    handleNavClick(link.href);
-                  }}
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) =>
+                link.isRoute ? (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    className="text-lg font-medium text-black"
+                    onClick={() => {
+                      setOpen(false);
+                      scrollToTop();
+                    }}
+                  >
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="text-lg font-medium text-black"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setOpen(false);
+                      handleNavClick(link.href);
+                    }}
+                  >
+                    {link.label}
+                  </a>
+                )
+              )}
 
-              {/* Mobile Dropdown */}
+              {/* Initiatives */}
               <div className="mt-4">
                 <button
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  className="flex items-center justify-between w-full text-left text-sm font-semibold text-gray-500 uppercase"
+                  className="flex justify-between w-full text-sm font-semibold text-gray-500 uppercase"
                 >
                   Initiatives
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-300 ${
-                      dropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
+                  <ChevronDown className={`w-4 h-4 ${dropdownOpen ? "rotate-180" : ""}`} />
                 </button>
 
-                <AnimatePresence>
-                  {dropdownOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden mt-2 flex flex-col gap-2"
-                    >
-                      {initiatives.map((item) => (
-                        <Link
-                          key={item.href}
-                          to={item.href}
-                          className="text-base text-black pl-3 py-1"
-                          onClick={() => {
-                            setOpen(false);
-                            setDropdownOpen(false);
-                            scrollToTop();
-                          }}
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {dropdownOpen && (
+                  <div className="mt-2 flex flex-col gap-2">
+                    {initiatives.map((item) => (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        className="text-base text-black pl-3 py-1"
+                        onClick={() => {
+                          setOpen(false);
+                          setDropdownOpen(false);
+                          scrollToTop();
+                        }}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* ✅ FIXED Mobile Donate */}
-              <Link
-                to="/donate"
-                onClick={() => {
-                  setOpen(false);
-                  scrollToTop();
-                }}
-              >
-                <Button className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white">
+              {/* Donate */}
+              <Link to="/donate" onClick={() => setOpen(false)}>
+                <Button className="w-full mt-6 bg-green-600 text-white">
                   <Heart className="w-4 h-4 mr-2" />
                   Donate
                 </Button>
