@@ -1,8 +1,9 @@
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster as UIToaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster as HotToaster } from "react-hot-toast";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -18,17 +19,53 @@ import NewsletterSuccess from "./pages/Newsletter";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 
+// AUTH
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+
+// DASHBOARD
+import Dashboard from "./pages/Dashboard";
+
 const queryClient = new QueryClient();
+
+// -------- FAKE AUTH (SaaS FEEL) --------
+function isLoggedIn() {
+  return !!localStorage.getItem("user");
+}
+
+function ProtectedRoute({ children }: { children: JSX.Element }) {
+  if (!isLoggedIn()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
+      {/* Toast Systems */}
+      <UIToaster />
       <Sonner />
+      <HotToaster position="top-right" />
 
-      {/* ✅ NO BrowserRouter HERE */}
+      {/* ROUTES */}
       <Routes>
+        {/* CORE */}
         <Route path="/" element={<Index />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* PROTECTED DASHBOARD */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* STATIC PAGES */}
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/ploggers" element={<PloggersPage />} />
         <Route path="/social-shelf" element={<SocialShelfPage />} />
@@ -41,9 +78,9 @@ const App = () => (
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
 
+        {/* FALLBACK */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-
     </TooltipProvider>
   </QueryClientProvider>
 );

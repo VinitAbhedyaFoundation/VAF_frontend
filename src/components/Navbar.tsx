@@ -10,8 +10,6 @@ const navLinks = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
-
-  // ✅ BLOG ADDED HERE
   { label: "Blog", href: "/blog", isRoute: true },
 ];
 
@@ -41,10 +39,6 @@ const Navbar = () => {
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!open) setDropdownOpen(false);
-  }, [open]);
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -59,6 +53,7 @@ const Navbar = () => {
 
   return (
     <>
+      {/* NAVBAR */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
@@ -68,7 +63,7 @@ const Navbar = () => {
       >
         <div className="container mx-auto flex items-center justify-between h-16 md:h-20 px-4 md:px-6">
 
-          {/* Logo */}
+          {/* LOGO */}
           <Link to="/" onClick={scrollToTop} className="flex items-center gap-2 md:gap-3">
             <img src={logo} alt="Logo" className="h-10 md:h-14" />
             <span className={`font-serif text-lg md:text-xl ${scrolled ? "text-black" : "text-white"}`}>
@@ -76,17 +71,18 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-10 relative">
+          {/* DESKTOP NAV */}
+          <div className="hidden lg:flex items-center gap-8 relative">
+
             {navLinks.map((link) =>
               link.isRoute ? (
                 <Link
                   key={link.label}
                   to={link.href}
                   onClick={scrollToTop}
-                  className={`text-sm font-medium ${
+                  className={`text-sm font-medium transition ${
                     scrolled ? "text-black" : "text-white"
-                  }`}
+                  } hover:opacity-80`}
                 >
                   {link.label}
                 </Link>
@@ -98,16 +94,16 @@ const Navbar = () => {
                     e.preventDefault();
                     handleNavClick(link.href);
                   }}
-                  className={`text-sm font-medium ${
+                  className={`text-sm font-medium transition ${
                     scrolled ? "text-black" : "text-white"
-                  }`}
+                  } hover:opacity-80`}
                 >
                   {link.label}
                 </a>
               )
             )}
 
-            {/* Initiatives Dropdown */}
+            {/* INITIATIVES */}
             <div
               className="relative"
               onMouseEnter={() => setDropdownOpen(true)}
@@ -123,7 +119,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute top-full mt-4 w-60 bg-white shadow-xl rounded-lg border"
+                    className="absolute top-full mt-4 w-60 bg-white shadow-xl rounded-lg border z-50"
                   >
                     {initiatives.map((item) => (
                       <Link
@@ -140,7 +136,17 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            {/* Donate */}
+            {/* LOGIN (TEXT ONLY) */}
+            <Link
+              to="/login"
+              className={`text-sm font-medium transition ${
+                scrolled ? "text-black" : "text-white"
+              } hover:opacity-70`}
+            >
+              Login
+            </Link>
+
+            {/* DONATE (PRIMARY) */}
             <Link to="/donate">
               <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6">
                 <Heart className="w-4 h-4 mr-2" />
@@ -149,7 +155,7 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Mobile Toggle */}
+          {/* MOBILE TOGGLE */}
           <button
             className={`${scrolled ? "text-black" : "text-white"} lg:hidden`}
             onClick={() => setOpen((prev) => !prev)}
@@ -162,7 +168,14 @@ const Navbar = () => {
       {/* MOBILE MENU */}
       <AnimatePresence>
         {open && (
-          <motion.div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100] bg-white flex flex-col"
+          >
+            {/* HEADER */}
             <div className="flex items-center justify-between px-4 py-4 border-b">
               <img src={logo} className="h-10" />
               <button onClick={() => setOpen(false)}>
@@ -170,7 +183,9 @@ const Navbar = () => {
               </button>
             </div>
 
+            {/* LINKS */}
             <div className="flex flex-col px-6 py-8 gap-6">
+
               {navLinks.map((link) =>
                 link.isRoute ? (
                   <Link
@@ -200,8 +215,8 @@ const Navbar = () => {
                 )
               )}
 
-              {/* Initiatives */}
-              <div className="mt-4">
+              {/* INITIATIVES */}
+              <div>
                 <button
                   onClick={() => setDropdownOpen((prev) => !prev)}
                   className="flex justify-between w-full text-sm font-semibold text-gray-500 uppercase"
@@ -211,7 +226,7 @@ const Navbar = () => {
                 </button>
 
                 {dropdownOpen && (
-                  <div className="mt-2 flex flex-col gap-2">
+                  <div className="mt-3 flex flex-col gap-2">
                     {initiatives.map((item) => (
                       <Link
                         key={item.href}
@@ -230,9 +245,16 @@ const Navbar = () => {
                 )}
               </div>
 
-              {/* Donate */}
+              {/* LOGIN (BUTTON FOR MOBILE) */}
+              <Link to="/login" onClick={() => setOpen(false)}>
+                <button className="w-full border border-black py-2 rounded-lg text-black">
+                  Login
+                </button>
+              </Link>
+
+              {/* DONATE */}
               <Link to="/donate" onClick={() => setOpen(false)}>
-                <Button className="w-full mt-6 bg-green-600 text-white">
+                <Button className="w-full mt-2 bg-green-600 text-white">
                   <Heart className="w-4 h-4 mr-2" />
                   Donate
                 </Button>
