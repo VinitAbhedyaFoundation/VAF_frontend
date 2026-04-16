@@ -28,9 +28,10 @@ import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
-// -------- FAKE AUTH (SaaS FEEL) --------
+// -------- FIXED AUTH --------
 function isLoggedIn() {
-  return !!localStorage.getItem("user");
+  const token = localStorage.getItem("token");
+  return token && token !== "undefined";
 }
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {

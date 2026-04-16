@@ -2,15 +2,28 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
+const inputStyle =
+  "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-100 outline-none transition text-sm";
+
 const Login = () => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    email: "",       // ✅ FIXED
+    password: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -21,24 +34,20 @@ const Login = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(form), // ✅ now sends { email, password }
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        if (data.error === "Not approved yet") {
-          setError("Your account is under review");
-        } else {
-          setError(data.error || "Login failed");
-        }
+        setError(data.message || "Invalid credentials");
         setLoading(false);
         return;
       }
 
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
       navigate("/dashboard");
-    } catch (err) {
+    } catch {
       setError("Server error");
     }
 
@@ -46,87 +55,76 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-6">
       <motion.div
-        initial={{ opacity: 0, y: 40, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg"
+        initial={{ opacity: 0, y: 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md bg-white p-8 rounded-3xl shadow-lg"
       >
+        {/* HEADER */}
+        <div className="mb-6 text-center">
+          <h2 className="text-xl font-semibold text-gray-800">
+            Welcome Back
+          </h2>
+          <p className="text-sm text-gray-500">
+            Login to continue
+          </p>
+        </div>
 
-        {/* Title */}
-        <motion.h2
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-2xl font-semibold text-center mb-6"
-        >
-          Login to your account
-        </motion.h2>
-
-        {/* Error */}
+        {/* ERROR */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mb-4 text-red-500 text-sm text-center"
-          >
+          <div className="mb-4 text-red-500 text-sm text-center">
             {error}
-          </motion.div>
+          </div>
         )}
 
-        {/* Form */}
+        {/* FORM */}
         <form onSubmit={handleLogin} className="space-y-4">
 
-          <motion.input
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            type="email"
-            placeholder="Email"
-            className="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Email</p>
+            <input
+              type="email"
+              name="email"              // ✅ matches state
+              placeholder="Enter your email"
+              value={form.email}        // ✅ matches state
+              onChange={handleChange}
+              className={inputStyle}
+              required
+            />
+          </div>
 
-          <motion.input
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            type="password"
-            placeholder="Password"
-            className="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Password</p>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter password"
+              value={form.password}
+              onChange={handleChange}
+              className={inputStyle}
+              required
+            />
+          </div>
 
           <motion.button
             whileTap={{ scale: 0.97 }}
             whileHover={{ scale: 1.02 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition"
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl transition text-sm"
           >
             {loading ? "Logging in..." : "Login"}
           </motion.button>
         </form>
 
-        {/* Footer */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-sm text-center mt-4"
-        >
+        {/* FOOTER */}
+        <p className="text-sm text-center mt-5 text-gray-500">
           Don’t have an account?{" "}
           <Link to="/signup" className="text-green-600 hover:underline">
             Sign up
           </Link>
-        </motion.p>
-
+        </p>
       </motion.div>
     </div>
   );
