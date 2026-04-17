@@ -671,10 +671,18 @@ export default function AdvancedDashboard() {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("user");
-        toast.success("Logged out successfully");
+    localStorage.removeItem("user");
+
+    toast.dismiss(); // 💥 clears old toasts
+
+    toast.success("Logged out successfully", {
+        duration: 2000,
+    });
+
+    setTimeout(() => {
         navigate("/login");
-    };
+    }, 500); // small delay so toast renders properly
+};
 
     const openDriveDetails = (drive: Drive) => {
         setDrivePanelMode("details");
@@ -715,7 +723,12 @@ export default function AdvancedDashboard() {
 
     return (
         <div className="flex min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-emerald-100 overflow-hidden">
-            <Toaster position="bottom-center" />
+            <Toaster
+  position="bottom-center"
+  toastOptions={{
+    duration: 2000,
+  }}
+/>
 
             <AnimatePresence>
                 {isMobileMenuOpen && (

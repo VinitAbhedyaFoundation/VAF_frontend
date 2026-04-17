@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
@@ -99,6 +99,13 @@ interface Certificate {
     drive: string;
     hours: number;
     type: "participation" | "excellence" | "milestone";
+}
+
+interface User {
+    name: string;
+    email: string;
+    createdAt?: string;
+    address?: string;
 }
 
 // --- MOCK DATA ---
@@ -235,28 +242,39 @@ const CERTIFICATES: Certificate[] = [
     { id: "c3", title: "10 Drives Milestone", issueDate: "Feb 2025", drive: "All Drives", hours: 24, type: "milestone" },
 ];
 
-const JOINED_DRIVES = new Set<string>();
-
 // --- UTILS ---
 
 const getStatusBadgeClass = (status: string) => {
     switch (status) {
-        case "Completed": case "Marked": return "bg-emerald-100 text-emerald-700";
-        case "Joined": case "Active": return "bg-blue-100 text-blue-700";
-        case "Pending": return "bg-orange-100 text-orange-700";
-        case "Upcoming": return "bg-slate-100 text-slate-600";
-        default: return "bg-slate-100 text-slate-600";
+        case "Completed":
+        case "Marked":
+            return "bg-emerald-100 text-emerald-700";
+        case "Joined":
+        case "Active":
+            return "bg-blue-100 text-blue-700";
+        case "Pending":
+            return "bg-orange-100 text-orange-700";
+        case "Upcoming":
+            return "bg-slate-100 text-slate-600";
+        default:
+            return "bg-slate-100 text-slate-600";
     }
 };
 
 const getDriveTypeColor = (type: string) => {
     switch (type) {
-        case "Cleanup": return "bg-emerald-100 text-emerald-700";
-        case "Plantation": return "bg-green-100 text-green-700";
-        case "Donation": return "bg-purple-100 text-purple-700";
-        case "Health": return "bg-red-100 text-red-700";
-        case "Food": return "bg-amber-100 text-amber-700";
-        default: return "bg-slate-100 text-slate-600";
+        case "Cleanup":
+            return "bg-emerald-100 text-emerald-700";
+        case "Plantation":
+            return "bg-green-100 text-green-700";
+        case "Donation":
+            return "bg-purple-100 text-purple-700";
+        case "Health":
+            return "bg-red-100 text-red-700";
+        case "Food":
+            return "bg-amber-100 text-amber-700";
+        default:
+            return "bg-slate-100 text-slate-600";
     }
 };
 
@@ -285,7 +303,8 @@ const StatCard: React.FC<{ metric: MetricData; loading: boolean }> = ({ metric, 
         ) : (
             <>
                 <h3 className="text-4xl font-black text-slate-900 tracking-tighter mb-1">
-                    <CountUp end={metric.value} duration={1.8} />{metric.unit && <span className="text-xl font-bold text-slate-400 ml-1">{metric.unit}</span>}
+                    <CountUp end={metric.value} duration={1.8} />
+                    {metric.unit && <span className="text-xl font-bold text-slate-400 ml-1">{metric.unit}</span>}
                 </h3>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{metric.label}</p>
             </>
@@ -298,11 +317,33 @@ export default function UserDashboard() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeNav, setActiveNav] = useState<SectionId>("overview");
     const [joinedDrives, setJoinedDrives] = useState<Set<string>>(new Set());
+    const [user, setUser] = useState<User | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         const t = setTimeout(() => setLoading(false), 1400);
         return () => clearTimeout(t);
+    }, []);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const token = localStorage.getItem("token");
+
+                const res = await fetch("http://localhost:3000/auth/me", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                const data = await res.json();
+                setUser(data);
+            } catch (err) {
+                console.error("User fetch failed", err);
+            }
+        };
+
+        fetchUser();
     }, []);
 
     const goToSection = (id: SectionId) => {
@@ -327,11 +368,12 @@ export default function UserDashboard() {
 
     const handleLogout = () => {
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
         toast.success("Logged out");
         navigate("/login");
     };
 
-    const totalHours = ATTENDANCE.filter(a => a.status === "Marked").reduce((s, a) => s + a.hours, 0);
+    const totalHours = ATTENDANCE.filter((a) => a.status === "Marked").reduce((s, a) => s + a.hours, 0);
     const streak = 4;
 
     const sectionLabel: Record<SectionId, string> = {
@@ -347,17 +389,20 @@ export default function UserDashboard() {
         <div className="flex min-h-screen bg-[#F4F7F5] text-slate-900 font-sans overflow-hidden">
             <Toaster position="bottom-center" />
 
-            {/* MOBILE DRAWER */}
             <AnimatePresence>
                 {isMobileMenuOpen && (
                     <>
                         <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 xl:hidden"
                         />
                         <motion.div
-                            initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }}
+                            initial={{ x: -300 }}
+                            animate={{ x: 0 }}
+                            exit={{ x: -300 }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             className="fixed top-0 left-0 h-full w-72 bg-white z-50 p-8 shadow-2xl xl:hidden"
                         >
@@ -373,10 +418,17 @@ export default function UserDashboard() {
                                 </button>
                             </div>
                             <nav className="space-y-1">
-                                {NAV_ITEMS.map(item => (
-                                    <button key={item.id} onClick={() => goToSection(item.id)}
-                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeNav === item.id ? "bg-emerald-50 text-emerald-700" : "text-slate-500 hover:bg-slate-50"}`}>
-                                        <div className="flex items-center gap-3"><item.icon size={18} />{item.label}</div>
+                                {NAV_ITEMS.map((item) => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => goToSection(item.id)}
+                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeNav === item.id ? "bg-emerald-50 text-emerald-700" : "text-slate-500 hover:bg-slate-50"
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <item.icon size={18} />
+                                            {item.label}
+                                        </div>
                                         {item.badge && <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">{item.badge}</span>}
                                     </button>
                                 ))}
@@ -386,7 +438,6 @@ export default function UserDashboard() {
                 )}
             </AnimatePresence>
 
-            {/* SIDEBAR */}
             <aside className="w-72 border-r border-slate-200 bg-white p-8 hidden xl:flex flex-col sticky top-0 h-screen">
                 <div className="flex items-center gap-2 mb-10">
                     <div className="w-10 h-10 bg-emerald-600 rounded-xl rotate-12 flex items-center justify-center shadow-lg shadow-emerald-200">
@@ -398,30 +449,42 @@ export default function UserDashboard() {
                     </div>
                 </div>
 
-                {/* User Mini Card */}
                 <div className="flex items-center gap-3 mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                     <div className="w-11 h-11 bg-emerald-100 rounded-full flex items-center justify-center">
                         <UserCircle size={28} className="text-emerald-600" />
                     </div>
                     <div>
-                        <p className="font-black text-sm text-slate-900">Mayuresh K.</p>
+                        <p className="font-black text-sm text-slate-900">{user?.name || "Loading..."}</p>
                         <p className="text-[11px] text-emerald-600 font-bold">🔥 {streak}-week streak</p>
                     </div>
                 </div>
 
                 <nav className="space-y-1 flex-1">
-                    {NAV_ITEMS.map(item => (
-                        <button key={item.id} onClick={() => goToSection(item.id)}
-                            className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all ${activeNav === item.id ? "bg-emerald-900 text-white shadow-xl shadow-emerald-200" : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"}`}>
-                            <div className="flex items-center gap-3"><item.icon size={18} />{item.label}</div>
+                    {NAV_ITEMS.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => goToSection(item.id)}
+                            className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all ${activeNav === item.id
+                                    ? "bg-emerald-900 text-white shadow-xl shadow-emerald-200"
+                                    : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"
+                                }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <item.icon size={18} />
+                                {item.label}
+                            </div>
                             {item.badge && (
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeNav === item.id ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"}`}>{item.badge}</span>
+                                <span
+                                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeNav === item.id ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"
+                                        }`}
+                                >
+                                    {item.badge}
+                                </span>
                             )}
                         </button>
                     ))}
                 </nav>
 
-                {/* Progress Card */}
                 <div className="bg-slate-950 p-5 rounded-[1.8rem] text-white relative overflow-hidden mt-4">
                     <div className="absolute -right-4 -bottom-4 text-emerald-500/20 rotate-45">
                         <Leaf size={100} />
@@ -437,10 +500,7 @@ export default function UserDashboard() {
                 </div>
             </aside>
 
-            {/* MAIN */}
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
-
-                {/* HEADER */}
                 <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-30">
                     <div className="flex items-center gap-4">
                         <button onClick={() => setIsMobileMenuOpen(true)} className="xl:hidden p-2 hover:bg-slate-100 rounded-full" aria-label="Open menu">
@@ -466,19 +526,14 @@ export default function UserDashboard() {
                     </div>
                 </header>
 
-                {/* CONTENT */}
                 <div id="top" className="flex-1 overflow-y-auto p-6 lg:p-10">
-
-                    {/* ===== OVERVIEW ===== */}
                     {activeNav === "overview" && (
                         <div className="space-y-8">
-                            {/* Welcome Banner */}
-                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                                className="bg-gradient-to-br from-emerald-900 to-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
+                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-emerald-900 to-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl -mr-20 -mt-20" />
                                 <div className="relative z-10">
                                     <p className="text-emerald-400 text-sm font-bold mb-1">Welcome back 👋</p>
-                                    <h2 className="text-3xl font-black tracking-tight mb-2">Mayuresh K.</h2>
+                                    <h2 className="text-3xl font-black tracking-tight mb-2">{user?.name || "Loading..."}</h2>
                                     <p className="text-slate-300 text-sm mb-5">You've contributed <strong className="text-white">{totalHours} hours</strong> and collected <strong className="text-white">120 kg</strong> of waste. Keep going!</p>
                                     <div className="flex gap-3 flex-wrap">
                                         <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
@@ -494,12 +549,10 @@ export default function UserDashboard() {
                                 </div>
                             </motion.div>
 
-                            {/* Stats */}
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                {USER_METRICS.map(m => <StatCard key={m.id} metric={m} loading={loading} />)}
+                                {USER_METRICS.map((m) => <StatCard key={m.id} metric={m} loading={loading} />)}
                             </div>
 
-                            {/* Chart + Recent */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm p-7">
                                     <h3 className="text-lg font-black text-slate-900 mb-1">My Activity</h3>
@@ -534,11 +587,10 @@ export default function UserDashboard() {
                                     </div>
                                 </div>
 
-                                {/* Recent Activity */}
                                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7">
                                     <h3 className="text-lg font-black text-slate-900 mb-4">Recent Drives</h3>
                                     <div className="space-y-3">
-                                        {MY_DRIVES.slice(0, 3).map(drive => (
+                                        {MY_DRIVES.slice(0, 3).map((drive) => (
                                             <div key={drive.id} className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
                                                 <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                                                     <Leaf size={14} className="text-emerald-600" />
@@ -557,7 +609,6 @@ export default function UserDashboard() {
                                 </div>
                             </div>
 
-                            {/* Upcoming CTA */}
                             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7">
                                 <div className="flex items-center justify-between mb-5">
                                     <div>
@@ -569,7 +620,7 @@ export default function UserDashboard() {
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {UPCOMING_DRIVES.slice(0, 3).map(drive => (
+                                    {UPCOMING_DRIVES.slice(0, 3).map((drive) => (
                                         <div key={drive.id} className="rounded-2xl border border-slate-100 p-4 hover:border-emerald-200 hover:shadow-sm transition">
                                             <div className="flex justify-between items-start mb-2">
                                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${getDriveTypeColor(drive.type)}`}>{drive.type}</span>
@@ -588,7 +639,6 @@ export default function UserDashboard() {
                         </div>
                     )}
 
-                    {/* ===== UPCOMING DRIVES ===== */}
                     {activeNav === "upcoming" && (
                         <div className="space-y-6">
                             <div>
@@ -596,7 +646,7 @@ export default function UserDashboard() {
                                 <p className="text-slate-500 text-sm mt-1">Find and join drives near you. Make an impact this week.</p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                {UPCOMING_DRIVES.map(drive => (
+                                {UPCOMING_DRIVES.map((drive) => (
                                     <motion.div key={drive.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                                         className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all">
                                         <div className="flex justify-between items-start mb-4">
@@ -625,7 +675,6 @@ export default function UserDashboard() {
                         </div>
                     )}
 
-                    {/* ===== MY DRIVES ===== */}
                     {activeNav === "drives" && (
                         <div className="space-y-6">
                             <div>
@@ -633,7 +682,7 @@ export default function UserDashboard() {
                                 <p className="text-slate-500 text-sm mt-1">All drives you've participated in.</p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                                {MY_DRIVES.map(drive => (
+                                {MY_DRIVES.map((drive) => (
                                     <motion.div key={drive.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                                         className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all">
                                         <div className="flex justify-between items-center mb-4">
@@ -660,7 +709,6 @@ export default function UserDashboard() {
                         </div>
                     )}
 
-                    {/* ===== ATTENDANCE ===== */}
                     {activeNav === "attendance" && (
                         <div className="space-y-6">
                             <div>
@@ -668,13 +716,12 @@ export default function UserDashboard() {
                                 <p className="text-slate-500 text-sm mt-1">Track your hours and attendance records.</p>
                             </div>
 
-                            {/* Summary Row */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {[
                                     { label: "Total Drives", value: ATTENDANCE.length, icon: Waves, color: "text-emerald-600", bg: "bg-emerald-50" },
                                     { label: "Hours Logged", value: totalHours, icon: Clock, color: "text-blue-600", bg: "bg-blue-50" },
                                     { label: "Points Earned", value: ATTENDANCE.reduce((s, a) => s + a.points, 0), icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
-                                    { label: "Pending", value: ATTENDANCE.filter(a => a.status === "Pending").length, icon: ShieldCheck, color: "text-orange-600", bg: "bg-orange-50" },
+                                    { label: "Pending", value: ATTENDANCE.filter((a) => a.status === "Pending").length, icon: ShieldCheck, color: "text-orange-600", bg: "bg-orange-50" },
                                 ].map((s, i) => (
                                     <div key={i} className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm">
                                         <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}><s.icon size={18} /></div>
@@ -700,7 +747,7 @@ export default function UserDashboard() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {ATTENDANCE.map(item => (
+                                            {ATTENDANCE.map((item) => (
                                                 <tr key={item.id} className="border-t border-slate-50 hover:bg-slate-50 transition">
                                                     <td className="p-4 font-semibold text-slate-900">{item.drive}</td>
                                                     <td className="p-4 text-slate-500">{item.date}</td>
@@ -724,7 +771,6 @@ export default function UserDashboard() {
                         </div>
                     )}
 
-                    {/* ===== CERTIFICATES ===== */}
                     {activeNav === "certificates" && (
                         <div className="space-y-6">
                             <div>
@@ -732,7 +778,7 @@ export default function UserDashboard() {
                                 <p className="text-slate-500 text-sm mt-1">Download and share your volunteer achievements.</p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {CERTIFICATES.map(cert => (
+                                {CERTIFICATES.map((cert) => (
                                     <motion.div key={cert.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                                         className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
                                         <div className={`h-2 w-full ${cert.type === "excellence" ? "bg-gradient-to-r from-yellow-400 to-amber-500" : cert.type === "milestone" ? "bg-gradient-to-r from-orange-400 to-red-500" : "bg-gradient-to-r from-emerald-400 to-teal-500"}`} />
@@ -758,7 +804,6 @@ export default function UserDashboard() {
                                     </motion.div>
                                 ))}
 
-                                {/* Locked upcoming cert */}
                                 <div className="bg-slate-50 rounded-3xl border border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center min-h-[220px]">
                                     <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
                                         <Award size={22} className="text-slate-400" />
@@ -770,7 +815,6 @@ export default function UserDashboard() {
                         </div>
                     )}
 
-                    {/* ===== PROFILE ===== */}
                     {activeNav === "profile" && (
                         <div className="space-y-6 max-w-2xl">
                             <div>
@@ -778,7 +822,6 @@ export default function UserDashboard() {
                                 <p className="text-slate-500 text-sm mt-1">Your volunteer identity and impact summary.</p>
                             </div>
 
-                            {/* Profile Card */}
                             <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
                                 <div className="relative z-10 flex items-center gap-5 mb-6">
@@ -786,8 +829,8 @@ export default function UserDashboard() {
                                         <UserCircle size={48} className="text-emerald-400" />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black">Mayuresh K.</h2>
-                                        <p className="text-slate-400 text-sm">mayuresh@gmail.com</p>
+                                        <h2 className="text-2xl font-black">{user?.name || "Loading..."}</h2>
+                                        <p className="text-slate-400 text-sm">{user?.email || "Loading..."}</p>
                                         <div className="flex items-center gap-1.5 mt-1">
                                             <CheckCircle2 size={14} className="text-emerald-400" />
                                             <span className="text-xs text-emerald-400 font-bold">Verified Volunteer</span>
@@ -799,7 +842,7 @@ export default function UserDashboard() {
                                         { label: "Drives", value: "8" },
                                         { label: "Hours", value: "24" },
                                         { label: "Points", value: "480" },
-                                    ].map(s => (
+                                    ].map((s) => (
                                         <div key={s.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
                                             <p className="text-2xl font-black">{s.value}</p>
                                             <p className="text-xs text-slate-400 font-bold mt-0.5">{s.label}</p>
@@ -808,16 +851,23 @@ export default function UserDashboard() {
                                 </div>
                             </div>
 
-                            {/* Info */}
                             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
                                 <h3 className="font-black text-slate-900 mb-2">Account Info</h3>
                                 {[
-                                    { label: "Full Name", value: "Mayuresh Kulkarni" },
-                                    { label: "Email", value: "mayuresh@gmail.com" },
-                                    { label: "City", value: "Aurangabad, Maharashtra" },
-                                    { label: "Joined", value: "January 2025" },
+                                    { label: "Full Name", value: user?.name || "Loading..." },
+                                    { label: "Email", value: user?.email || "Loading..." },
+                                    { label: "City", value: user?.address || "N/A" },
+                                    {
+                                        label: "Joined",
+                                        value: user?.createdAt
+                                            ? new Date(user.createdAt).toLocaleDateString("en-IN", {
+                                                month: "long",
+                                                year: "numeric",
+                                            })
+                                            : "Loading...",
+                                    }, 
                                     { label: "Role", value: "Field Volunteer" },
-                                ].map(row => (
+                                ].map((row) => (
                                     <div key={row.label} className="flex justify-between items-center py-3 border-b border-slate-50 last:border-0">
                                         <span className="text-sm font-bold text-slate-400">{row.label}</span>
                                         <span className="text-sm font-bold text-slate-900">{row.value}</span>
@@ -831,7 +881,6 @@ export default function UserDashboard() {
                             </button>
                         </div>
                     )}
-
                 </div>
             </main>
         </div>
