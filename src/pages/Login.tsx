@@ -9,7 +9,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    email: "",       // ✅ FIXED
+    email: "",
     password: "",
   });
 
@@ -34,20 +34,38 @@ const Login = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form), // ✅ now sends { email, password }
+        body: JSON.stringify(form),
       });
 
       const data = await res.json();
 
-      if (!res.ok) {
+      console.log("LOGIN RESPONSE:", data);
+
+      // ❗ Proper validation
+      if (!res.ok || !data.token) {
         setError(data.message || "Invalid credentials");
         setLoading(false);
         return;
       }
 
+      // ✅ Clear old data (VERY IMPORTANT)
+      localStorage.clear();
+
+      // ✅ Store fresh auth data
       localStorage.setItem("token", data.token);
-      navigate("/dashboard");
-    } catch {
+      localStorage.setItem("role", data.role);
+
+      console.log("STORED ROLE:", data.role);
+
+      // 🔥 ROLE-BASED NAVIGATION
+      if (data.role === "Admin") {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+
+    } catch (err) {
+      console.error(err);
       setError("Server error");
     }
 
@@ -85,9 +103,9 @@ const Login = () => {
             <p className="text-xs text-gray-500 mb-1">Email</p>
             <input
               type="email"
-              name="email"              // ✅ matches state
+              name="email"
               placeholder="Enter your email"
-              value={form.email}        // ✅ matches state
+              value={form.email}
               onChange={handleChange}
               className={inputStyle}
               required

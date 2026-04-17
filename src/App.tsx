@@ -23,17 +23,19 @@ import BlogPost from "./pages/BlogPost";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
-// DASHBOARD
-import Dashboard from "./pages/Dashboard";
+// DASHBOARDS
+import Dashboard from "./pages/UserDashboard";
+import AdminDashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
-// -------- FIXED AUTH --------
+// ✅ AUTH CHECK
 function isLoggedIn() {
   const token = localStorage.getItem("token");
   return token && token !== "undefined";
 }
 
+// ✅ BASIC PROTECTION
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   if (!isLoggedIn()) {
     return <Navigate to="/login" replace />;
@@ -41,22 +43,31 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   return children;
 }
 
+// 🔥 ADMIN PROTECTION (CRITICAL)
+function AdminRoute({ children }: { children: JSX.Element }) {
+  const role = localStorage.getItem("role");
+
+  if (role !== "Admin") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      {/* Toast Systems */}
       <UIToaster />
       <Sonner />
       <HotToaster position="top-right" />
 
-      {/* ROUTES */}
       <Routes>
         {/* CORE */}
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* PROTECTED DASHBOARD */}
+        {/* USER DASHBOARD */}
         <Route
           path="/dashboard"
           element={
@@ -66,7 +77,19 @@ const App = () => (
           }
         />
 
-        {/* STATIC PAGES */}
+        {/* 🔥 ADMIN DASHBOARD */}
+        <Route
+          path="/admin-dashboard"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* STATIC */}
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/ploggers" element={<PloggersPage />} />
         <Route path="/social-shelf" element={<SocialShelfPage />} />

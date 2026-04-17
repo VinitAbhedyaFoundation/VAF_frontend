@@ -67,7 +67,7 @@ interface MetricData {
 interface ChartDataPoint {
     name: string;
     waste: number;
-    impact: number;
+    volunteers: number;
 }
 
 interface LeaderboardUser {
@@ -133,7 +133,7 @@ const NAV_ITEMS: NavItem[] = [
 const METRICS: MetricData[] = [
     {
         id: "m1",
-        label: "Active Drives",
+        label: "Drives Conducted",
         value: 124,
         icon: Calendar,
         trend: "+12%",
@@ -164,7 +164,7 @@ const METRICS: MetricData[] = [
     {
         id: "m4",
         label: "Active Volunteers",
-        value: 14,
+        value: 3500,
         icon: TrendingUp,
         trend: "#4",
         trendValue: "positions up",
@@ -398,7 +398,7 @@ const ImpactChart: React.FC<{ loading: boolean }> = ({ loading }) => (
             <div>
                 <h3 className="text-xl font-black text-slate-900">Weekly Velocity</h3>
                 <p className="text-sm text-slate-400 font-medium mt-1">
-                    Waste collection vs Impact Score
+                    Waste collection vs Volunteers
                 </p>
             </div>
 
@@ -411,7 +411,7 @@ const ImpactChart: React.FC<{ loading: boolean }> = ({ loading }) => (
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-blue-500" />
-                    <span className="text-xs font-bold text-slate-600">Impact</span>
+                    <span className="text-xs font-bold text-slate-600">Volunteers</span>
                 </div>
             </div>
         </div>
