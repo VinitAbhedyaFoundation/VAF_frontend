@@ -112,63 +112,11 @@ interface User {
 
 const NAV_ITEMS: NavItem[] = [
     { label: "Home", icon: LayoutDashboard, id: "overview" },
-    { label: "Upcoming Drives", icon: Calendar, id: "upcoming", badge: "5" },
+    { label: "Upcoming Drives", icon: Calendar, id: "upcoming" },
     { label: "My Drives", icon: Waves, id: "drives" },
     { label: "My Attendance", icon: ShieldCheck, id: "attendance" },
     { label: "Certificates", icon: Award, id: "certificates", badge: "New" },
     { label: "Profile", icon: UserCircle, id: "profile" },
-];
-
-const USER_METRICS: MetricData[] = [
-    { id: "m1", label: "Drives Joined", value: 8, icon: Waves, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { id: "m2", label: "Hours Volunteered", value: 24, unit: "hrs", icon: Clock, color: "text-blue-600", bg: "bg-blue-50" },
-    { id: "m3", label: "Waste Collected", value: 120, unit: "kg", icon: Droplets, color: "text-purple-600", bg: "bg-purple-50" },
-    { id: "m4", label: "Impact Points", value: 480, icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
-];
-
-const CHART_DATA = [
-    { name: "Jan", hours: 4, waste: 15 },
-    { name: "Feb", hours: 6, waste: 22 },
-    { name: "Mar", hours: 3, waste: 10 },
-    { name: "Apr", hours: 8, waste: 30 },
-    { name: "May", hours: 3, waste: 12 },
-    { name: "Jun", hours: 0, waste: 0 },
-];
-
-const MY_DRIVES: Drive[] = [
-    {
-        id: "d1",
-        title: "Plogging Drive",
-        location: "Aurangabad",
-        date: "Apr 13, 2025",
-        status: "Completed",
-        volunteers: 25,
-        hoursLogged: 2,
-        description: "Weekly city cleanup focusing on public roads and parks.",
-        type: "Cleanup",
-    },
-    {
-        id: "d2",
-        title: "Beach Cleanup",
-        location: "Mumbai",
-        date: "Apr 6, 2025",
-        status: "Completed",
-        volunteers: 18,
-        hoursLogged: 3,
-        description: "Coastal cleanup to reduce plastic waste along the shoreline.",
-        type: "Cleanup",
-    },
-    {
-        id: "d3",
-        title: "Tree Plantation",
-        location: "Pune",
-        date: "Mar 30, 2025",
-        status: "Completed",
-        volunteers: 30,
-        hoursLogged: 1.5,
-        description: "Urban reforestation initiative planting native saplings.",
-        type: "Plantation",
-    },
 ];
 
 const UPCOMING_DRIVES: UpcomingDrive[] = [
@@ -284,7 +232,7 @@ const getCertIcon = (type: Certificate["type"]) => {
     return <Heart size={28} className="text-emerald-500" />;
 };
 
-// --- COMPONENTS ---
+/// --- COMPONENTS ---
 
 const StatCard: React.FC<{ metric: MetricData; loading: boolean }> = ({ metric, loading }) => (
     <motion.div
@@ -318,6 +266,8 @@ export default function UserDashboard() {
     const [activeNav, setActiveNav] = useState<SectionId>("overview");
     const [joinedDrives, setJoinedDrives] = useState<Set<string>>(new Set());
     const [user, setUser] = useState<User | null>(null);
+    const [data, setdata] = useState<any>(null);
+    const [upcomingDrives, setUpcomingDrives] = useState<UpcomingDrive[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -346,6 +296,56 @@ export default function UserDashboard() {
         fetchUser();
     }, []);
 
+    useEffect(() => {
+  const fetchDashboard = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch("http://localhost:3000/dashboard/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      setdata(data);
+    } catch (err) {
+      console.error("Dashboard fetch failed", err);
+    }
+  };
+
+  fetchDashboard();
+}, []);
+
+useEffect(() => {
+  const fetchUpcoming = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/drive/upcoming");
+      const data = await res.json();
+
+      console.log("UPCOMING API:", data);
+
+      const formatted = data.map((d: any) => ({
+        id: d.id.toString(),
+        title: d.title,
+        location: d.location,
+        date: new Date(d.date).toLocaleDateString(),
+        time: d.time,
+        slots: d.slots,
+        slotsLeft: d.slots,
+        type: d.type || "General",
+        organizer: "VAF",
+      }));
+
+      setUpcomingDrives(formatted);
+    } catch (err) {
+      console.error("Upcoming fetch failed", err);
+    }
+  };
+
+  fetchUpcoming();
+}, []);
+
     const goToSection = (id: SectionId) => {
         setActiveNav(id);
         setIsMobileMenuOpen(false);
@@ -360,8 +360,7 @@ export default function UserDashboard() {
                 toast("Left the drive", { icon: "👋" });
             } else {
                 next.add(drive.id);
-                toast.success(`Joined "${drive.title}" 🎉`);
-            }
+                toast.success(`Joined "${drive.title}" 🎉`);            }
             return next;
         });
     };
@@ -373,8 +372,62 @@ export default function UserDashboard() {
         navigate("/login");
     };
 
-    const totalHours = ATTENDANCE.filter((a) => a.status === "Marked").reduce((s, a) => s + a.hours, 0);
-    const streak = 4;
+const totalHours = data?.stats?.hoursVolunteered || 0;
+const streak = 4;
+
+/* 🔥 ADD HERE (exactly here) */
+
+const USER_METRICS: MetricData[] = [
+  {
+    id: "m1",
+    label: "Drives Joined",
+    value: data?.stats?.drivesJoined || 0,
+    icon: Waves,
+    color: "text-emerald-600",
+    bg: "bg-emerald-50",
+  },
+  {
+    id: "m2",
+    label: "Hours Volunteered",
+    value: data?.stats?.hoursVolunteered || 0,
+    unit: "hrs",
+    icon: Clock,
+    color: "text-blue-600",
+    bg: "bg-blue-50",
+  },
+  {
+    id: "m3",
+    label: "Waste Collected",
+    value: data?.stats?.wasteCollected || 0,
+    unit: "kg",
+    icon: Droplets,
+    color: "text-purple-600",
+    bg: "bg-purple-50",
+  },
+  {
+    id: "m4",
+    label: "Impact Points",
+    value: data?.stats?.impactPoints || 0,
+    icon: Star,
+    color: "text-amber-600",
+    bg: "bg-amber-50",
+  },
+];
+
+const CHART_DATA = data?.activity || [];
+
+const MY_DRIVES: Drive[] =
+  data?.recentDrives?.map((d: any, i: number) => ({
+    id: i.toString(),
+    title: d.title,
+    location: d.location,
+    date: d.date,
+    status: "Completed",
+    volunteers: 0,
+    hoursLogged: d.hours,
+    description: "",
+    type: "Cleanup",
+  })) || [];
 
     const sectionLabel: Record<SectionId, string> = {
         overview: "My Dashboard",
@@ -534,7 +587,7 @@ export default function UserDashboard() {
                                 <div className="relative z-10">
                                     <p className="text-emerald-400 text-sm font-bold mb-1">Welcome back 👋</p>
                                     <h2 className="text-3xl font-black tracking-tight mb-2">{user?.name || "Loading..."}</h2>
-                                    <p className="text-slate-300 text-sm mb-5">You've contributed <strong className="text-white">{totalHours} hours</strong> and collected <strong className="text-white">120 kg</strong> of waste. Keep going!</p>
+                                    <p className="text-slate-300 text-sm mb-5">You've contributed <strong className="text-white">{data?.stats?.hoursVolunteered || 0} hours</strong> and collected <strong className="text-white">120 kg</strong> of waste. Keep going!</p>
                                     <div className="flex gap-3 flex-wrap">
                                         <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
                                             <Flame size={16} className="text-orange-400" /> {streak}-Week Streak
@@ -620,11 +673,10 @@ export default function UserDashboard() {
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {UPCOMING_DRIVES.slice(0, 3).map((drive) => (
+                                    {upcomingDrives.slice(0, 3).map((drive) => (
                                         <div key={drive.id} className="rounded-2xl border border-slate-100 p-4 hover:border-emerald-200 hover:shadow-sm transition">
                                             <div className="flex justify-between items-start mb-2">
-                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${getDriveTypeColor(drive.type)}`}>{drive.type}</span>
-                                                <span className="text-[10px] text-slate-400 font-medium">{drive.slotsLeft} slots left</span>
+                                               
                                             </div>
                                             <h4 className="font-bold text-sm text-slate-900 mb-1">{drive.title}</h4>
                                             <p className="text-xs text-slate-400 flex items-center gap-1 mb-3"><MapPin size={11} /> {drive.location}</p>
@@ -639,250 +691,320 @@ export default function UserDashboard() {
                         </div>
                     )}
 
-                    {activeNav === "upcoming" && (
-                        <div className="space-y-6">
-                            <div>
-                                <h1 className="text-2xl font-black">Upcoming Drives</h1>
-                                <p className="text-slate-500 text-sm mt-1">Find and join drives near you. Make an impact this week.</p>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                {UPCOMING_DRIVES.map((drive) => (
-                                    <motion.div key={drive.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                                        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase ${getDriveTypeColor(drive.type)}`}>{drive.type}</span>
-                                            <span className={`text-xs font-bold px-3 py-1 rounded-full ${drive.slotsLeft <= 5 ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-600"}`}>
-                                                {drive.slotsLeft} / {drive.slots} slots
-                                            </span>
-                                        </div>
-                                        <h3 className="text-lg font-black text-slate-900 mb-1">{drive.title}</h3>
-                                        <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1"><MapPin size={13} />{drive.location}</p>
-                                        <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1"><Calendar size={13} />{drive.date}</p>
-                                        <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-4"><Clock size={13} />{drive.time}</p>
-                                        <div className="w-full bg-slate-100 h-1.5 rounded-full mb-4 overflow-hidden">
-                                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${((drive.slots - drive.slotsLeft) / drive.slots) * 100}%` }} />
-                                        </div>
-                                        <div className="flex gap-3">
-                                            <button onClick={() => handleJoin(drive)}
-                                                className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition ${joinedDrives.has(drive.id) ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-100"}`}>
-                                                {joinedDrives.has(drive.id) ? "✓ Joined — Leave?" : "Join Drive"}
-                                            </button>
-                                        </div>
-                                        <p className="text-xs text-slate-400 mt-3 font-medium">by {drive.organizer}</p>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+{activeNav === "upcoming" && (
+  <div className="space-y-6">
+    <div>
+      <h1 className="text-2xl font-black">Upcoming Drives</h1>
+      <p className="text-slate-500 text-sm mt-1">
+        Find and join drives near you. Make an impact this week.
+      </p>
+    </div>
 
-                    {activeNav === "drives" && (
-                        <div className="space-y-6">
-                            <div>
-                                <h1 className="text-2xl font-black">My Drives</h1>
-                                <p className="text-slate-500 text-sm mt-1">All drives you've participated in.</p>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                                {MY_DRIVES.map((drive) => (
-                                    <motion.div key={drive.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                                        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase ${getDriveTypeColor(drive.type)}`}>{drive.type}</span>
-                                            <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${getStatusBadgeClass(drive.status)}`}>{drive.status}</span>
-                                        </div>
-                                        <h3 className="text-lg font-black text-slate-900 mb-1">{drive.title}</h3>
-                                        <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1"><MapPin size={13} />{drive.location}</p>
-                                        <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-3"><Calendar size={13} />{drive.date}</p>
-                                        <p className="text-xs text-slate-400 mb-4 leading-relaxed">{drive.description}</p>
-                                        <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-                                            <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700">
-                                                <Clock size={14} className="text-emerald-500" />
-                                                {drive.hoursLogged} hrs logged
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-sm text-slate-400">
-                                                <UserCircle size={14} />
-                                                {drive.volunteers} volunteers
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {upcomingDrives.map((drive) => (
+        <motion.div
+          key={drive.id}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all"
+        >
+          {/* removed type + slots */}
 
-                    {activeNav === "attendance" && (
-                        <div className="space-y-6">
-                            <div>
-                                <h1 className="text-2xl font-black">My Attendance</h1>
-                                <p className="text-slate-500 text-sm mt-1">Track your hours and attendance records.</p>
-                            </div>
+          <h3 className="text-lg font-black text-slate-900 mb-1">
+            {drive.title}
+          </h3>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {[
-                                    { label: "Total Drives", value: ATTENDANCE.length, icon: Waves, color: "text-emerald-600", bg: "bg-emerald-50" },
-                                    { label: "Hours Logged", value: totalHours, icon: Clock, color: "text-blue-600", bg: "bg-blue-50" },
-                                    { label: "Points Earned", value: ATTENDANCE.reduce((s, a) => s + a.points, 0), icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
-                                    { label: "Pending", value: ATTENDANCE.filter((a) => a.status === "Pending").length, icon: ShieldCheck, color: "text-orange-600", bg: "bg-orange-50" },
-                                ].map((s, i) => (
-                                    <div key={i} className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm">
-                                        <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}><s.icon size={18} /></div>
-                                        <p className="text-2xl font-black text-slate-900">{s.value}</p>
-                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">{s.label}</p>
-                                    </div>
-                                ))}
-                            </div>
+          <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
+            <MapPin size={13} /> {drive.location}
+          </p>
 
-                            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-slate-100">
-                                    <h2 className="font-black text-slate-900">Attendance Log</h2>
-                                </div>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-slate-50 text-slate-500">
-                                            <tr>
-                                                <th className="p-4 text-left font-bold">Drive</th>
-                                                <th className="p-4 text-left font-bold">Date</th>
-                                                <th className="p-4 text-left font-bold">Hours</th>
-                                                <th className="p-4 text-left font-bold">Points</th>
-                                                <th className="p-4 text-left font-bold">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {ATTENDANCE.map((item) => (
-                                                <tr key={item.id} className="border-t border-slate-50 hover:bg-slate-50 transition">
-                                                    <td className="p-4 font-semibold text-slate-900">{item.drive}</td>
-                                                    <td className="p-4 text-slate-500">{item.date}</td>
-                                                    <td className="p-4 font-bold text-slate-700">{item.hours} hrs</td>
-                                                    <td className="p-4">
-                                                        {item.points > 0 ? (
-                                                            <span className="text-amber-600 font-bold flex items-center gap-1"><Star size={13} />{item.points}</span>
-                                                        ) : (
-                                                            <span className="text-slate-300 font-bold">—</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="p-4">
-                                                        <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${getStatusBadgeClass(item.status)}`}>{item.status}</span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+          <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
+            <Calendar size={13} /> {drive.date}
+          </p>
 
-                    {activeNav === "certificates" && (
-                        <div className="space-y-6">
-                            <div>
-                                <h1 className="text-2xl font-black">My Certificates</h1>
-                                <p className="text-slate-500 text-sm mt-1">Download and share your volunteer achievements.</p>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {CERTIFICATES.map((cert) => (
-                                    <motion.div key={cert.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                                        className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
-                                        <div className={`h-2 w-full ${cert.type === "excellence" ? "bg-gradient-to-r from-yellow-400 to-amber-500" : cert.type === "milestone" ? "bg-gradient-to-r from-orange-400 to-red-500" : "bg-gradient-to-r from-emerald-400 to-teal-500"}`} />
-                                        <div className="p-6">
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                                                    {getCertIcon(cert.type)}
-                                                </div>
-                                                <div>
-                                                    <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${cert.type === "excellence" ? "bg-yellow-100 text-yellow-700" : cert.type === "milestone" ? "bg-orange-100 text-orange-700" : "bg-emerald-100 text-emerald-700"}`}>
-                                                        {cert.type}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <h3 className="text-lg font-black text-slate-900 mb-1">{cert.title}</h3>
-                                            <p className="text-sm text-slate-500 mb-1">{cert.drive}</p>
-                                            <p className="text-xs text-slate-400 mb-4">{cert.hours} hours · Issued {cert.issueDate}</p>
-                                            <button onClick={() => toast.success("Certificate download started!")}
-                                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border-2 border-slate-200 text-sm font-bold text-slate-700 hover:border-emerald-300 hover:text-emerald-700 hover:bg-emerald-50 transition">
-                                                <Download size={15} /> Download PDF
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                ))}
+          <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-4">
+            <Clock size={13} /> {drive.time}
+          </p>
 
-                                <div className="bg-slate-50 rounded-3xl border border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center min-h-[220px]">
-                                    <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
-                                        <Award size={22} className="text-slate-400" />
-                                    </div>
-                                    <p className="font-bold text-slate-400 mb-1">Next Certificate</p>
-                                    <p className="text-xs text-slate-400">Complete 4 more drives to unlock <strong>"Super Volunteer"</strong></p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+          <div className="w-full bg-slate-100 h-1.5 rounded-full mb-4 overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 rounded-full"
+              style={{
+                width: `${((drive.slots - drive.slotsLeft) / drive.slots) * 100}%`,
+              }}
+            />
+          </div>
 
-                    {activeNav === "profile" && (
-                        <div className="space-y-6 max-w-2xl">
-                            <div>
-                                <h1 className="text-2xl font-black">My Profile</h1>
-                                <p className="text-slate-500 text-sm mt-1">Your volunteer identity and impact summary.</p>
-                            </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleJoin(drive)}
+              className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition ${
+                joinedDrives.has(drive.id)
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                  : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-100"
+              }`}
+            >
+              {joinedDrives.has(drive.id)
+                ? "✓ Joined — Leave?"
+                : "Join Drive"}
+            </button>
+          </div>
 
-                            <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
-                                <div className="relative z-10 flex items-center gap-5 mb-6">
-                                    <div className="w-20 h-20 rounded-full bg-emerald-600/30 border-2 border-emerald-500/50 flex items-center justify-center">
-                                        <UserCircle size={48} className="text-emerald-400" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black">{user?.name || "Loading..."}</h2>
-                                        <p className="text-slate-400 text-sm">{user?.email || "Loading..."}</p>
-                                        <div className="flex items-center gap-1.5 mt-1">
-                                            <CheckCircle2 size={14} className="text-emerald-400" />
-                                            <span className="text-xs text-emerald-400 font-bold">Verified Volunteer</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    {[
-                                        { label: "Drives", value: "8" },
-                                        { label: "Hours", value: "24" },
-                                        { label: "Points", value: "480" },
-                                    ].map((s) => (
-                                        <div key={s.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                                            <p className="text-2xl font-black">{s.value}</p>
-                                            <p className="text-xs text-slate-400 font-bold mt-0.5">{s.label}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+          <p className="text-xs text-slate-400 mt-3 font-medium">
+            by {drive.organizer}
+          </p>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+)}
 
-                            <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
-                                <h3 className="font-black text-slate-900 mb-2">Account Info</h3>
-                                {[
-                                    { label: "Full Name", value: user?.name || "Loading..." },
-                                    { label: "Email", value: user?.email || "Loading..." },
-                                    { label: "City", value: user?.address || "N/A" },
-                                    {
-                                        label: "Joined",
-                                        value: user?.createdAt
-                                            ? new Date(user.createdAt).toLocaleDateString("en-IN", {
-                                                month: "long",
-                                                year: "numeric",
-                                            })
-                                            : "Loading...",
-                                    }, 
-                                    { label: "Role", value: "Field Volunteer" },
-                                ].map((row) => (
-                                    <div key={row.label} className="flex justify-between items-center py-3 border-b border-slate-50 last:border-0">
-                                        <span className="text-sm font-bold text-slate-400">{row.label}</span>
-                                        <span className="text-sm font-bold text-slate-900">{row.value}</span>
-                                    </div>
-                                ))}
-                            </div>
+{activeNav === "drives" && (
+  <div className="space-y-6">
+    <div>
+      <h1 className="text-2xl font-black">My Drives</h1>
+      <p className="text-slate-500 text-sm mt-1">
+        All drives you've participated in.
+      </p>
+    </div>
 
-                            <button onClick={handleLogout}
-                                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-red-50 text-red-600 font-bold border border-red-100 hover:bg-red-100 transition">
-                                <LogOut size={16} /> Logout
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </main>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {MY_DRIVES.map((drive) => (
+        <motion.div
+          key={drive.id}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all"
+        >
+          <div className="flex justify-end items-center mb-4">
+            <span
+              className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${getStatusBadgeClass(
+                drive.status
+              )}`}
+            >
+              {drive.status}
+            </span>
+          </div>
+
+          <h3 className="text-lg font-black text-slate-900 mb-1">
+            {drive.title}
+          </h3>
+
+          <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
+            <MapPin size={13} /> {drive.location}
+          </p>
+
+          <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-3">
+            <Calendar size={13} /> {drive.date}
+          </p>
+
+          <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+            {drive.description}
+          </p>
+
+          <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700">
+              <Clock size={14} className="text-emerald-500" />
+              {drive.hoursLogged} hrs logged
+            </div>
+
+            <div className="flex items-center gap-1.5 text-sm text-slate-400">
+              <UserCircle size={14} />
+              {drive.volunteers} volunteers
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+)}
+
+{activeNav === "attendance" && (
+    <div className="space-y-6">
+        <div>
+            <h1 className="text-2xl font-black">My Attendance</h1>
+            <p className="text-slate-500 text-sm mt-1">Track your hours and attendance records.</p>
         </div>
-    );
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+                { label: "Total Drives", value: ATTENDANCE.length, icon: Waves, color: "text-emerald-600", bg: "bg-emerald-50" },
+                { label: "Hours Logged", value: totalHours, icon: Clock, color: "text-blue-600", bg: "bg-blue-50" },
+                { label: "Points Earned", value: ATTENDANCE.reduce((s, a) => s + a.points, 0), icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
+                { label: "Pending", value: ATTENDANCE.filter((a) => a.status === "Pending").length, icon: ShieldCheck, color: "text-orange-600", bg: "bg-orange-50" },
+            ].map((s, i) => (
+                <div key={i} className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm">
+                    <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}>
+                        <s.icon size={18} />
+                    </div>
+                    <p className="text-2xl font-black text-slate-900">{s.value}</p>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">{s.label}</p>
+                </div>
+            ))}
+        </div>
+
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100">
+                <h2 className="font-black text-slate-900">Attendance Log</h2>
+            </div>
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-slate-500">
+                        <tr>
+                            <th className="p-4 text-left font-bold">Drive</th>
+                            <th className="p-4 text-left font-bold">Date</th>
+                            <th className="p-4 text-left font-bold">Hours</th>
+                            <th className="p-4 text-left font-bold">Points</th>
+                            <th className="p-4 text-left font-bold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {ATTENDANCE.map((item) => (
+                            <tr key={item.id} className="border-t border-slate-50 hover:bg-slate-50 transition">
+                                <td className="p-4 font-semibold text-slate-900">{item.drive}</td>
+                                <td className="p-4 text-slate-500">{item.date}</td>
+                                <td className="p-4 font-bold text-slate-700">{item.hours} hrs</td>
+                                <td className="p-4">
+                                    {item.points > 0 ? (
+                                        <span className="text-amber-600 font-bold flex items-center gap-1">
+                                            <Star size={13} />
+                                            {item.points}
+                                        </span>
+                                    ) : (
+                                        <span className="text-slate-300 font-bold">—</span>
+                                    )}
+                                </td>
+                                <td className="p-4">
+                                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${getStatusBadgeClass(item.status)}`}>
+                                        {item.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+)}
+{activeNav === "certificates" && (
+    <div className="space-y-6">
+        <div>
+            <h1 className="text-2xl font-black">My Certificates</h1>
+            <p className="text-slate-500 text-sm mt-1">Download and share your volunteer achievements.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {CERTIFICATES.map((cert) => (
+                <motion.div key={cert.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
+                    
+                    <div className={`h-2 w-full ${cert.type === "excellence" ? "bg-gradient-to-r from-yellow-400 to-amber-500" : cert.type === "milestone" ? "bg-gradient-to-r from-orange-400 to-red-500" : "bg-gradient-to-r from-emerald-400 to-teal-500"}`} />
+                    
+                    <div className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                                {getCertIcon(cert.type)}
+                            </div>
+                            <div>
+                                <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${cert.type === "excellence" ? "bg-yellow-100 text-yellow-700" : cert.type === "milestone" ? "bg-orange-100 text-orange-700" : "bg-emerald-100 text-emerald-700"}`}>
+                                    {cert.type}
+                                </span>
+                            </div>
+                        </div>
+
+                        <h3 className="text-lg font-black text-slate-900 mb-1">{cert.title}</h3>
+                        <p className="text-sm text-slate-500 mb-1">{cert.drive}</p>
+                        <p className="text-xs text-slate-400 mb-4">{cert.hours} hours · Issued {cert.issueDate}</p>
+
+                        <button
+                            onClick={() => toast.success("Certificate download started!")}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border-2 border-slate-200 text-sm font-bold text-slate-700 hover:border-emerald-300 hover:text-emerald-700 hover:bg-emerald-50 transition"
+                        >
+                            <Download size={15} /> Download PDF
+                        </button>
+                    </div>
+                </motion.div>
+            ))}
+        </div>
+    </div>
+)}
+
+ {activeNav === "profile" && (
+    <div className="space-y-6 max-w-2xl">
+        <div>
+            <h1 className="text-2xl font-black">My Profile</h1>
+            <p className="text-slate-500 text-sm mt-1">Your volunteer identity and impact summary.</p>
+        </div>
+
+        <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
+            <div className="relative z-10 flex items-center gap-5 mb-6">
+                <div className="w-20 h-20 rounded-full bg-emerald-600/30 border-2 border-emerald-500/50 flex items-center justify-center">
+                    <UserCircle size={48} className="text-emerald-400" />
+                </div>
+                <div>
+                    <h2 className="text-2xl font-black">{user?.name || "Loading..."}</h2>
+                    <p className="text-slate-400 text-sm">{user?.email || "Loading..."}</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                        <CheckCircle2 size={14} className="text-emerald-400" />
+                        <span className="text-xs text-emerald-400 font-bold">Verified Volunteer</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+                {[
+                    { label: "Drives", value: "8" },
+                    { label: "Hours", value: "24" },
+                    { label: "Points", value: "480" },
+                ].map((s) => (
+                    <div key={s.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                        <p className="text-2xl font-black">{s.value}</p>
+                        <p className="text-xs text-slate-400 font-bold mt-0.5">{s.label}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
+            <h3 className="font-black text-slate-900 mb-2">Account Info</h3>
+            {[
+                { label: "Full Name", value: user?.name || "Loading..." },
+                { label: "Email", value: user?.email || "Loading..." },
+                { label: "City", value: user?.address || "N/A" },
+                {
+                    label: "Joined",
+                    value: user?.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString("en-IN", {
+                              month: "long",
+                              year: "numeric",
+                          })
+                        : "Loading...",
+                },
+                { label: "Role", value: "Field Volunteer" },
+            ].map((row) => (
+                <div
+                    key={row.label}
+                    className="flex justify-between items-center py-3 border-b border-slate-50 last:border-0"
+                >
+                    <span className="text-sm font-bold text-slate-400">{row.label}</span>
+                    <span className="text-sm font-bold text-slate-900">
+                        {row.value ?? "N/A"}
+                    </span>
+                </div>
+            ))}
+        </div>
+
+        <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-red-50 text-red-600 font-bold border border-red-100 hover:bg-red-100 transition"
+        >
+            <LogOut size={16} /> Logout
+        </button>
+    </div>
+)}
+    </div>
+</main>
+</div>
+);
 }
