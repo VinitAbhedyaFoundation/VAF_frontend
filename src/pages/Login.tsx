@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import API from "../../../VAF_backend/ploggers-attendance-system/src/api/api"; // ✅ IMPORTANT
 
 const inputStyle =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-100 outline-none transition text-sm";
@@ -29,44 +30,37 @@ const Login = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:3000/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
+      // ✅ USING AXIOS INSTANCE (FIXED)
+      const res = await API.post("/auth/login", form);
+      const data = res.data;
 
       console.log("LOGIN RESPONSE:", data);
 
-      // ❗ Proper validation
-      if (!res.ok || !data.token) {
-        setError(data.message || "Invalid credentials");
+      if (!data.token) {
+        setError("Invalid credentials");
         setLoading(false);
         return;
       }
 
-      // ✅ Clear old data (VERY IMPORTANT)
+      // ✅ Clear old data
       localStorage.clear();
 
-      // ✅ Store fresh auth data
+      // ✅ Store new auth data
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
 
       console.log("STORED ROLE:", data.role);
 
-      // 🔥 ROLE-BASED NAVIGATION
+      // ✅ Role-based navigation
       if (data.role === "Admin") {
         navigate("/admin-dashboard");
       } else {
         navigate("/dashboard");
       }
 
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Server error");
+      setError(err.response?.data?.message || "Server error");
     }
 
     setLoading(false);
