@@ -5,15 +5,6 @@ import toast, { Toaster } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
 import {
-    AreaChart,
-    Area,
-    XAxis,
-    YAxis,
-    Tooltip,
-    ResponsiveContainer,
-    CartesianGrid,
-} from "recharts";
-import {
     LayoutDashboard,
     Waves,
     ShieldCheck,
@@ -114,81 +105,23 @@ const NAV_ITEMS: NavItem[] = [
     { label: "Home", icon: LayoutDashboard, id: "overview" },
     { label: "Upcoming Drives", icon: Calendar, id: "upcoming" },
     { label: "My Drives", icon: Waves, id: "drives" },
-    { label: "My Attendance", icon: ShieldCheck, id: "attendance" },
+    { label: "My Activity", icon: ShieldCheck, id: "attendance" },
     { label: "Certificates", icon: Award, id: "certificates", badge: "New" },
     { label: "Profile", icon: UserCircle, id: "profile" },
 ];
 
 const UPCOMING_DRIVES: UpcomingDrive[] = [
-    {
-        id: "u1",
-        title: "Sunday Plogging Drive",
-        location: "Aurangabad Riverfront",
-        date: "Apr 20, 2025",
-        time: "6:00 AM",
-        slots: 30,
-        slotsLeft: 12,
-        type: "Cleanup",
-        organizer: "VAF Team",
-    },
-    {
-        id: "u2",
-        title: "Cloth Donation Camp",
-        location: "Pune, Ward 4",
-        date: "Apr 26, 2025",
-        time: "10:00 AM",
-        slots: 20,
-        slotsLeft: 7,
-        type: "Donation",
-        organizer: "Social Shelf",
-    },
-    {
-        id: "u3",
-        title: "Blood Donation Drive",
-        location: "Mumbai General Hospital",
-        date: "May 3, 2025",
-        time: "9:00 AM",
-        slots: 50,
-        slotsLeft: 23,
-        type: "Health",
-        organizer: "LifeLine Foundation",
-    },
-    {
-        id: "u4",
-        title: "Park Beautification",
-        location: "Nashik City Park",
-        date: "May 10, 2025",
-        time: "7:30 AM",
-        slots: 25,
-        slotsLeft: 18,
-        type: "Cleanup",
-        organizer: "GreenCity",
-    },
-    {
-        id: "u5",
-        title: "Food Distribution",
-        location: "Pune Shelter Home",
-        date: "May 17, 2025",
-        time: "11:00 AM",
-        slots: 15,
-        slotsLeft: 5,
-        type: "Food",
-        organizer: "Annadaan Trust",
-    },
+    
 ];
 
 const ATTENDANCE: AttendanceRecord[] = [
-    { id: "a1", drive: "Plogging Drive", hours: 2, date: "Apr 13", status: "Marked", points: 40 },
-    { id: "a2", drive: "Beach Cleanup", hours: 3, date: "Apr 6", status: "Marked", points: 60 },
-    { id: "a3", drive: "Tree Plantation", hours: 1.5, date: "Mar 30", status: "Marked", points: 30 },
-    { id: "a4", drive: "Food Drive", hours: 2.5, date: "Mar 16", status: "Pending", points: 0 },
+
 ];
 
 const CERTIFICATES: Certificate[] = [
-    { id: "c1", title: "Volunteer of the Month", issueDate: "Apr 2025", drive: "Plogging Drive", hours: 8, type: "excellence" },
-    { id: "c2", title: "Beach Guardian", issueDate: "Mar 2025", drive: "Beach Cleanup", hours: 3, type: "participation" },
-    { id: "c3", title: "10 Drives Milestone", issueDate: "Feb 2025", drive: "All Drives", hours: 24, type: "milestone" },
+  
 ];
+
 
 // --- UTILS ---
 
@@ -204,23 +137,6 @@ const getStatusBadgeClass = (status: string) => {
             return "bg-orange-100 text-orange-700";
         case "Upcoming":
             return "bg-slate-100 text-slate-600";
-        default:
-            return "bg-slate-100 text-slate-600";
-    }
-};
-
-const getDriveTypeColor = (type: string) => {
-    switch (type) {
-        case "Cleanup":
-            return "bg-emerald-100 text-emerald-700";
-        case "Plantation":
-            return "bg-green-100 text-green-700";
-        case "Donation":
-            return "bg-purple-100 text-purple-700";
-        case "Health":
-            return "bg-red-100 text-red-700";
-        case "Food":
-            return "bg-amber-100 text-amber-700";
         default:
             return "bg-slate-100 text-slate-600";
     }
@@ -267,6 +183,37 @@ export default function UserDashboard() {
     const [joinedDrives, setJoinedDrives] = useState<Set<string>>(new Set());
     const [user, setUser] = useState<User | null>(null);
     const [data, setdata] = useState<any>(null);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [openNotif, setOpenNotif] = useState(false);
+    const drives = data?.stats?.drivesJoined ?? 0;
+
+const getLevel = (drives: number) => {
+  if (drives >= 20) return "Elite";
+  if (drives >= 12) return "Platinum";
+  if (drives >= 8) return "Gold";
+  if (drives >= 4) return "Silver";
+  return "Bronze";
+};
+
+const getNextLevelTarget = (drives: number) => {
+  if (drives >= 20) return 20;
+  if (drives >= 12) return 20;
+  if (drives >= 8) return 12;
+  if (drives >= 4) return 8;
+  return 4;
+};
+
+const level = getLevel(drives);
+const total = getNextLevelTarget(drives);
+
+const levelStyles: any = {
+  Bronze: "text-orange-400",
+  Silver: "text-gray-300",
+  Gold: "text-yellow-400",
+  Platinum: "text-emerald-400",
+  Elite: "text-purple-400",
+};
+    const [certificates, setCertificates] = useState<Certificate[]>([]);
     const [upcomingDrives, setUpcomingDrives] = useState<UpcomingDrive[]>([]);
     const navigate = useNavigate();
 
@@ -275,31 +222,50 @@ export default function UserDashboard() {
         return () => clearTimeout(t);
     }, []);
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const token = localStorage.getItem("token");
+// ✅ 1. Fetch user
+useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-                const res = await fetch("http://localhost:3000/auth/me", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+      const res = await fetch("http://localhost:3000/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-                const data = await res.json();
-                setUser(data);
-            } catch (err) {
-                console.error("User fetch failed", err);
-            }
-        };
+      if (!res.ok) {
+        console.error("User API failed");
+        return;
+      }
 
-        fetchUser();
-    }, []);
+      const data = await res.json();
 
-    useEffect(() => {
+      console.log("USER API 👉", data); // 🔥 DEBUG
+
+      // ✅ HANDLE BOTH CASES
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        setUser(data);
+      }
+
+    } catch (err) {
+      console.error("User fetch failed", err);
+    }
+  };
+
+  fetchUser();
+}, []);
+
+// ✅ 2. Fetch dashboard
+useEffect(() => {
   const fetchDashboard = async () => {
     try {
       const token = localStorage.getItem("token");
+
+      if (!token) return;
 
       const res = await fetch("http://localhost:3000/dashboard/me", {
         headers: {
@@ -307,16 +273,20 @@ export default function UserDashboard() {
         },
       });
 
+      if (!res.ok) return;
+
       const data = await res.json();
+
       setdata(data);
+      setCertificates(data?.certificates || []);
+
     } catch (err) {
-      console.error("Dashboard fetch failed", err);
+      console.error(err);
     }
   };
 
   fetchDashboard();
 }, []);
-
 useEffect(() => {
   const fetchUpcoming = async () => {
     try {
@@ -365,6 +335,42 @@ useEffect(() => {
         });
     };
 
+    const fetchNotifications = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch("http://localhost:3000/dashboard/notifications", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    setNotifications(data);
+
+  } catch (err) {
+    console.error("Notification fetch error", err);
+  }
+};
+
+useEffect(() => {
+  const handleClickOutside = (e: any) => {
+    if (!e.target.closest(".notification-wrapper")) {
+      setOpenNotif(false);
+    }
+  };
+
+  document.addEventListener("click", handleClickOutside);
+  return () => document.removeEventListener("click", handleClickOutside);
+}, []);
+
+const handleBellClick = () => {
+  setOpenNotif((prev) => !prev);
+
+  if (!openNotif) {
+    fetchNotifications();
+  }
+};
     const handleLogout = () => {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
@@ -373,8 +379,64 @@ useEffect(() => {
     };
 
 const totalHours = data?.stats?.hoursVolunteered || 0;
-const streak = 4;
 
+/* 🔥 WEEKLY STREAK LOGIC START */
+
+const calculateWeeklyStreak = (activity: any[]) => {
+  if (!activity || activity.length === 0) return 0;
+
+  const weeks = new Set();
+
+  activity.forEach((a) => {
+    const date = new Date(a.date);
+
+    const firstDay = new Date(date.getFullYear(), 0, 1);
+    const pastDays = Math.floor(
+      (date.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    const week = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+
+    weeks.add(`${date.getFullYear()}-${week}`);
+  });
+
+  return weeks.size;
+};
+
+const streak = calculateWeeklyStreak(data?.activity || []);
+const getWeeklyHeatmapData = (activity: any[]) => {
+  const weeks = Array.from({ length: 53 }, () => ({
+    hours: 0,
+    waste: 0,
+    location: "",
+    date: "",
+  }));
+
+  activity?.forEach((a) => {
+    const date = new Date(a.date);
+
+    const firstDay = new Date(date.getFullYear(), 0, 1);
+    const pastDays = Math.floor(
+      (date.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    const week = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+    const index = Math.min(week - 1, 52);
+
+    weeks[index].hours += a.hours || 0;
+    weeks[index].waste += a.waste || 0;
+    weeks[index].location = a.location || "Unknown";
+    weeks[index].date = date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+    });
+  });
+
+  return weeks;
+};
+const HEATMAP_DATA = getWeeklyHeatmapData(data?.activity || []);
+
+/* 🔥 WEEKLY STREAK LOGIC END */
 /* 🔥 ADD HERE (exactly here) */
 
 const USER_METRICS: MetricData[] = [
@@ -433,7 +495,7 @@ const MY_DRIVES: Drive[] =
         overview: "My Dashboard",
         upcoming: "Upcoming Drives",
         drives: "My Drives",
-        attendance: "My Attendance",
+        attendance: "My Activity",
         certificates: "Certificates",
         profile: "My Profile",
     };
@@ -508,7 +570,7 @@ const MY_DRIVES: Drive[] =
                     </div>
                     <div>
                         <p className="font-black text-sm text-slate-900">{user?.name || "Loading..."}</p>
-                        <p className="text-[11px] text-emerald-600 font-bold">🔥 {streak}-week streak</p>
+                        <p className="text-[11px] text-emerald-600 font-bold">🔥 {streak > 0 ? `${streak}-week streak` : "No streak yet"}</p>
                     </div>
                 </div>
 
@@ -539,19 +601,36 @@ const MY_DRIVES: Drive[] =
                 </nav>
 
                 <div className="bg-slate-950 p-5 rounded-[1.8rem] text-white relative overflow-hidden mt-4">
-                    <div className="absolute -right-4 -bottom-4 text-emerald-500/20 rotate-45">
-                        <Leaf size={100} />
-                    </div>
-                    <div className="relative z-10">
-                        <p className="text-[10px] font-bold text-emerald-400 uppercase mb-1">Next Milestone</p>
-                        <h4 className="text-base font-black mb-3">Platinum Status</h4>
-                        <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                            <motion.div initial={{ width: 0 }} animate={{ width: "65%" }} transition={{ delay: 0.5, duration: 1 }} className="h-full bg-emerald-400 rounded-full" />
-                        </div>
-                        <p className="text-[10px] mt-2 text-slate-400 font-medium">8 / 12 drives completed</p>
-                    </div>
-                </div>
-            </aside>
+  <div className="absolute -right-4 -bottom-4 text-emerald-500/20 rotate-45">
+    <Leaf size={100} />
+  </div>
+
+  <div className="relative z-10">
+    <p className="text-[10px] font-bold text-emerald-400 uppercase mb-1">
+      Next Milestone
+    </p>
+
+    <h3 className={`text-lg font-black mt-1 ${levelStyles[level]}`}>
+      {level} 
+    </h3>
+
+    {/* ✅ FIXED PROGRESS BAR */}
+    <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden mt-2">
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{
+          width: `${total ? (drives / total) * 100 : 0}%`,
+        }}
+        transition={{ delay: 0.5, duration: 1 }}
+        className="h-full bg-emerald-400 rounded-full"
+      />
+    </div>
+
+    <p className="text-xs text-white/70">
+  {drives} drives completed
+</p>
+  </div>
+</div>            </aside>
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
                 <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-30">
@@ -569,10 +648,59 @@ const MY_DRIVES: Drive[] =
                             <Calendar size={16} /> Find Drives
                         </button>
                         <div className="h-8 w-px bg-slate-200" />
-                        <button className="relative p-2 hover:bg-slate-100 rounded-full" aria-label="Notifications">
-                            <Bell size={20} className="text-slate-600" />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-                        </button>
+                        <div className="relative notification-wrapper">
+
+  {/* 🔔 Bell */}
+  <button
+    onClick={handleBellClick}
+    className="relative p-2 hover:bg-slate-100 rounded-full"
+  >
+    <Bell size={20} className="text-slate-600" />
+
+    {notifications.length > 0 && (
+      <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+    )}
+  </button>
+
+  {/* 🔽 DROPDOWN */}
+  {openNotif && (
+    <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
+
+      <div className="px-4 py-3 border-b font-bold text-sm">
+        Notifications
+      </div>
+
+      <div className="max-h-80 overflow-y-auto">
+        {notifications.length === 0 ? (
+          <p className="p-4 text-sm text-slate-500 text-center">
+            No notifications
+          </p>
+        ) : (
+          notifications.map((n) => (
+            <div
+              key={n.id}
+              className="p-3 border-b hover:bg-slate-50 transition"
+            >
+              <p className="text-sm font-semibold text-slate-900">
+                {n.subject || "Update"}
+              </p>
+
+              <p className="text-xs text-slate-500 mt-1">
+                {n.content}
+              </p>
+
+              <p className="text-[10px] text-slate-400 mt-1">
+               {n?.createdAt
+  ? new Date(n.createdAt).toLocaleString()
+  : "Just now"}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )}
+</div>
                         <button onClick={handleLogout} className="p-2 hover:bg-slate-100 rounded-full" aria-label="Logout">
                             <LogOut size={20} className="text-slate-600" />
                         </button>
@@ -587,13 +715,15 @@ const MY_DRIVES: Drive[] =
                                 <div className="relative z-10">
                                     <p className="text-emerald-400 text-sm font-bold mb-1">Welcome back 👋</p>
                                     <h2 className="text-3xl font-black tracking-tight mb-2">{user?.name || "Loading..."}</h2>
-                                    <p className="text-slate-300 text-sm mb-5">You've contributed <strong className="text-white">{data?.stats?.hoursVolunteered || 0} hours</strong> and collected <strong className="text-white">120 kg</strong> of waste. Keep going!</p>
-                                    <div className="flex gap-3 flex-wrap">
+<p className="text-slate-300 text-sm mb-5">
+  You've contributed <strong className="text-white">{data?.stats?.hoursVolunteered || 0} hours</strong> 
+  and collected <strong className="text-white">{data?.stats?.wasteCollected || 0} kg</strong> of waste. Keep going!
+</p>                                    <div className="flex gap-3 flex-wrap">
                                         <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
-                                            <Flame size={16} className="text-orange-400" /> {streak}-Week Streak
+                                            <Flame size={16} className="text-orange-400" /> {streak > 0 ? `${streak}-week streak` : "No streak yet"}
                                         </div>
                                         <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
-                                            <Trophy size={16} className="text-yellow-400" /> {CERTIFICATES.length} Certificates
+                                            <Trophy size={16} className="text-yellow-400" /> {certificates.length} Certificates
                                         </div>
                                         <button onClick={() => goToSection("upcoming")} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 px-4 py-2 rounded-xl text-sm font-bold transition">
                                             <Calendar size={16} /> Join Next Drive
@@ -606,8 +736,8 @@ const MY_DRIVES: Drive[] =
                                 {USER_METRICS.map((m) => <StatCard key={m.id} metric={m} loading={loading} />)}
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm p-7">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7 flex flex-col justify-between">
                                     <h3 className="text-lg font-black text-slate-900 mb-1">My Activity</h3>
                                     <p className="text-sm text-slate-400 mb-6">Hours volunteered vs waste collected</p>
                                     <div className="h-52">
@@ -616,27 +746,42 @@ const MY_DRIVES: Drive[] =
                                                 <span className="text-slate-400 font-bold animate-pulse">Loading...</span>
                                             </div>
                                         ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <AreaChart data={CHART_DATA} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                                                    <defs>
-                                                        <linearGradient id="gh" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
-                                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                                        </linearGradient>
-                                                        <linearGradient id="gw" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25} />
-                                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                                        </linearGradient>
-                                                    </defs>
-                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 700 }} dy={8} />
-                                                    <YAxis hide />
-                                                    <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", padding: 14 }} />
-                                                    <Area type="monotone" dataKey="hours" name="Hours" stroke="#10b981" strokeWidth={2.5} fill="url(#gh)" />
-                                                    <Area type="monotone" dataKey="waste" name="Waste (kg)" stroke="#6366f1" strokeWidth={2.5} fill="url(#gw)" />
-                                                </AreaChart>
-                                            </ResponsiveContainer>
-                                        )}
+<div className="flex flex-col justify-center py-4">
+        <div className="space-y-1 flex flex-col items-start justify-center">
+<div className="flex justify-center">
+  <div className="grid grid-cols-10 gap-2">
+    {Array.from({ length: 53 }).map((_, index) => {
+const item = HEATMAP_DATA[index] || {
+  hours: 0,
+  waste: 0,
+  location: "",
+  date: "",
+};
+
+const value = item.hours + item.waste;
+      let color = "bg-slate-100";
+      if (value > 0 && value < 5) color = "bg-emerald-200";
+      else if (value < 10) color = "bg-emerald-400";
+      else if (value < 20) color = "bg-emerald-600";
+      else if (value >= 20) color = "bg-emerald-800";
+
+      return (
+        <div
+          key={index}
+          title={`📅 ${item.date || "No activity"}
+📍 ${item.location || "N/A"}
+⏱ ${item.hours} hrs
+♻️ ${item.waste} kg`}
+          className={`w-6 h-6 rounded-md ${color}`}
+        />
+      );
+    })}
+  </div>
+</div>
+
+  </div>
+</div>
+ )}
                                     </div>
                                 </div>
 
@@ -661,7 +806,6 @@ const MY_DRIVES: Drive[] =
                                     </div>
                                 </div>
                             </div>
-
                             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7">
                                 <div className="flex items-center justify-between mb-5">
                                     <div>
@@ -818,74 +962,127 @@ const MY_DRIVES: Drive[] =
     </div>
   </div>
 )}
-
 {activeNav === "attendance" && (
-    <div className="space-y-6">
-        <div>
-            <h1 className="text-2xl font-black">My Attendance</h1>
-            <p className="text-slate-500 text-sm mt-1">Track your hours and attendance records.</p>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-                { label: "Total Drives", value: ATTENDANCE.length, icon: Waves, color: "text-emerald-600", bg: "bg-emerald-50" },
-                { label: "Hours Logged", value: totalHours, icon: Clock, color: "text-blue-600", bg: "bg-blue-50" },
-                { label: "Points Earned", value: ATTENDANCE.reduce((s, a) => s + a.points, 0), icon: Star, color: "text-amber-600", bg: "bg-amber-50" },
-                { label: "Pending", value: ATTENDANCE.filter((a) => a.status === "Pending").length, icon: ShieldCheck, color: "text-orange-600", bg: "bg-orange-50" },
-            ].map((s, i) => (
-                <div key={i} className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm">
-                    <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}>
-                        <s.icon size={18} />
-                    </div>
-                    <p className="text-2xl font-black text-slate-900">{s.value}</p>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">{s.label}</p>
-                </div>
-            ))}
-        </div>
-
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100">
-                <h2 className="font-black text-slate-900">Attendance Log</h2>
-            </div>
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                    <thead className="bg-slate-50 text-slate-500">
-                        <tr>
-                            <th className="p-4 text-left font-bold">Drive</th>
-                            <th className="p-4 text-left font-bold">Date</th>
-                            <th className="p-4 text-left font-bold">Hours</th>
-                            <th className="p-4 text-left font-bold">Points</th>
-                            <th className="p-4 text-left font-bold">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {ATTENDANCE.map((item) => (
-                            <tr key={item.id} className="border-t border-slate-50 hover:bg-slate-50 transition">
-                                <td className="p-4 font-semibold text-slate-900">{item.drive}</td>
-                                <td className="p-4 text-slate-500">{item.date}</td>
-                                <td className="p-4 font-bold text-slate-700">{item.hours} hrs</td>
-                                <td className="p-4">
-                                    {item.points > 0 ? (
-                                        <span className="text-amber-600 font-bold flex items-center gap-1">
-                                            <Star size={13} />
-                                            {item.points}
-                                        </span>
-                                    ) : (
-                                        <span className="text-slate-300 font-bold">—</span>
-                                    )}
-                                </td>
-                                <td className="p-4">
-                                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${getStatusBadgeClass(item.status)}`}>
-                                        {item.status}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  <div className="space-y-6">
+    <div>
+      <h1 className="text-2xl font-black">My Activity</h1>
+      <p className="text-slate-500 text-sm mt-1">
+        Track your hours and attendance records.
+      </p>
     </div>
+
+    {/* STATS */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {[
+        {
+          label: "TOTAL DRIVES",
+          value: data?.stats?.drivesJoined || 0,
+          bg: "bg-emerald-50",
+          color: "text-emerald-600",
+        },
+        {
+          label: "HOURS LOGGED",
+          value: data?.stats?.hoursVolunteered || 0,
+          bg: "bg-blue-50",
+          color: "text-blue-600",
+        },
+        {
+          label: "POINTS EARNED",
+          value: data?.stats?.impactPoints || 0,
+          bg: "bg-amber-50",
+          color: "text-amber-600",
+        },
+        {
+          label: "PENDING",
+          value: 0,
+          bg: "bg-orange-50",
+          color: "text-orange-600",
+        },
+      ].map((s, i) => (
+        <div
+          key={i}
+          className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm"
+        >
+          <div
+            className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}
+          >
+            {/* simple dot icon instead of s.icon */}
+            <div className="w-2 h-2 bg-current rounded-full" />
+          </div>
+
+          <p className="text-2xl font-black text-slate-900">
+            {s.value}
+          </p>
+          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+            {s.label}
+          </p>
+        </div>
+      ))}
+    </div>
+
+    {/* TABLE */}
+    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="p-6 border-b border-slate-100">
+        <h2 className="font-black text-slate-900">Attendance Log</h2>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-slate-500">
+            <tr>
+              <th className="p-4 text-left font-bold">Drive</th>
+              <th className="p-4 text-left font-bold">Date</th>
+              <th className="p-4 text-left font-bold">Hours</th>
+              <th className="p-4 text-left font-bold">Waste</th>
+              <th className="p-4 text-left font-bold">Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {!data?.activity?.length ? (
+              <tr>
+                <td colSpan={5} className="text-center py-6 text-slate-400">
+                  No attendance yet
+                </td>
+              </tr>
+            ) : (
+              data.activity.map((a: any, index: number) => (
+                <tr
+                  key={index}
+                  className="border-t border-slate-50 hover:bg-slate-50 transition"
+                >
+                  <td className="p-4 font-semibold text-slate-900">
+                    Drive #{index + 1}
+                  </td>
+
+                  <td className="p-4 text-slate-500">
+                    {new Date(a.date).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </td>
+
+                  <td className="p-4 font-bold text-slate-700">
+                    {a.hours} hrs
+                  </td>
+
+                  <td className="p-4 font-bold text-emerald-600">
+                    {a.waste} kg
+                  </td>
+
+                  <td className="p-4">
+                    <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-green-100 text-green-600">
+                      Marked
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 )}
 {activeNav === "certificates" && (
     <div className="space-y-6">
@@ -894,8 +1091,8 @@ const MY_DRIVES: Drive[] =
             <p className="text-slate-500 text-sm mt-1">Download and share your volunteer achievements.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {CERTIFICATES.map((cert) => (
-                <motion.div key={cert.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+{certificates.map((cert) => (
+                    <motion.div key={cert.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                     className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
                     
                     <div className={`h-2 w-full ${cert.type === "excellence" ? "bg-gradient-to-r from-yellow-400 to-amber-500" : cert.type === "milestone" ? "bg-gradient-to-r from-orange-400 to-red-500" : "bg-gradient-to-r from-emerald-400 to-teal-500"}`} />
@@ -943,8 +1140,8 @@ const MY_DRIVES: Drive[] =
                     <UserCircle size={48} className="text-emerald-400" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-black">{user?.name || "Loading..."}</h2>
-                    <p className="text-slate-400 text-sm">{user?.email || "Loading..."}</p>
+                    <h2 className="text-2xl font-black">{user ? user.name : "—"}</h2>
+                    <p className="text-slate-400 text-sm">{user ? user.email : "—"}</p>
                     <div className="flex items-center gap-1.5 mt-1">
                         <CheckCircle2 size={14} className="text-emerald-400" />
                         <span className="text-xs text-emerald-400 font-bold">Verified Volunteer</span>
@@ -954,9 +1151,9 @@ const MY_DRIVES: Drive[] =
 
             <div className="grid grid-cols-3 gap-4">
                 {[
-                    { label: "Drives", value: "8" },
-                    { label: "Hours", value: "24" },
-                    { label: "Points", value: "480" },
+                    { label: "Drives", value: data?.stats?.drivesJoined || 0 },
+{ label: "Hours", value: data?.stats?.hoursVolunteered || 0 },
+{ label: "Points", value: data?.stats?.impactPoints || 0 },
                 ].map((s) => (
                     <div key={s.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
                         <p className="text-2xl font-black">{s.value}</p>
