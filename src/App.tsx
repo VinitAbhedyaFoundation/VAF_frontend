@@ -12,7 +12,6 @@ import PloggersPage from "./pages/Ploggers";
 import SocialShelfPage from "./pages/SocialShelf";
 import LaalBindiPage from "./pages/LaalBindi";
 import GalleryPage from "./components/Ploggers/GalleryPage";
-import Donate from "./pages/Donate";
 import NewsletterSuccess from "./pages/Newsletter";
 
 // BLOG
@@ -95,7 +94,6 @@ const App = () => (
         <Route path="/social-shelf" element={<SocialShelfPage />} />
         <Route path="/laal-bindi" element={<LaalBindiPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/donate" element={<Donate />} />
         <Route path="/newsletter-success" element={<NewsletterSuccess />} />
 
         {/* BLOG */}

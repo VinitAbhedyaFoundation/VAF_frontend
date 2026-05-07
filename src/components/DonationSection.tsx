@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { Heart, Gift, Sparkles, HandHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useState } from "react";
 
 const reasons = [
   {
@@ -22,11 +23,27 @@ const reasons = [
 ];
 
 const DonationSection = () => {
+  const [amount, setAmount] = useState("");
 
-  const navigate = useNavigate(); // navigation hook
+  const handleDonate = async () => {
+    if (!amount || Number(amount) <= 0) {
+      alert("Please enter a valid amount");
+      return;
+    }
 
-  const handleDonate = () => {
-    navigate("/donate"); // redirect to donation page
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/payment/checkout",
+        {
+          amount: Number(amount),
+        }
+      );
+
+      window.location.href = response.data.url;
+    } catch (error) {
+      console.error(error);
+      alert("Payment failed");
+    }
   };
 
   return (
@@ -34,7 +51,7 @@ const DonationSection = () => {
       id="donate"
       className="relative py-24 bg-gradient-to-b from-emerald-50 via-green-50 to-emerald-100 text-slate-900 overflow-hidden"
     >
-      {/* 🌿 organic nature lighting blobs — matching CTASection exactly */}
+      {/* Background blobs */}
       <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-emerald-300/30 blur-[140px] rounded-full" />
       <div className="absolute bottom-[-200px] right-[-150px] w-[500px] h-[500px] bg-green-400/20 blur-[140px] rounded-full" />
 
@@ -83,13 +100,15 @@ const DonationSection = () => {
                 hover:-translate-y-2 hover:shadow-xl
               "
             >
-              <div className="
-                inline-flex items-center justify-center
-                w-16 h-16 rounded-2xl mb-6
-                bg-emerald-100 text-emerald-700
-                transition-transform duration-300
-                group-hover:scale-110
-              ">
+              <div
+                className="
+                  inline-flex items-center justify-center
+                  w-16 h-16 rounded-2xl mb-6
+                  bg-emerald-100 text-emerald-700
+                  transition-transform duration-300
+                  group-hover:scale-110
+                "
+              >
                 <r.icon className="w-7 h-7" />
               </div>
 
@@ -102,6 +121,28 @@ const DonationSection = () => {
               </p>
             </motion.div>
           ))}
+        </div>
+
+        {/* Donation Input */}
+        <div className="max-w-md mx-auto mb-6">
+          <input
+            type="number"
+            placeholder="Enter donation amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="
+              w-full
+              rounded-2xl
+              border
+              border-emerald-200
+              px-5
+              py-4
+              text-lg
+              outline-none
+              focus:ring-2
+              focus:ring-emerald-500
+            "
+          />
         </div>
 
         {/* CTA */}
