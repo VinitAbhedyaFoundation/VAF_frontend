@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import CountUp from "react-countup";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AnimatePresence } from 'framer-motion';
 
 // ─── AXIOS INSTANCE ──────────────────────────────────────────────────────────
 
@@ -390,23 +391,23 @@ export default function AdvancedDashboard() {
 
   // Fetch section data when navigating to it
   useEffect(() => {
-  if (activeNav === "drives") fetchDrives();
+    if (activeNav === "drives") fetchDrives();
 
-  if (activeNav === "attendance") {
-    fetchAttendance();
-    if (drives.length === 0) fetchDrives();
-  }
+    if (activeNav === "attendance") {
+      fetchAttendance();
+      if (drives.length === 0) fetchDrives();
+    }
 
-  if (activeNav === "volunteers") fetchVolunteers();
-  if (activeNav === "messages") fetchMessages();
-}, [
-  activeNav,
-  drives.length,
-  fetchDrives,
-  fetchAttendance,
-  fetchVolunteers,
-  fetchMessages
-]);
+    if (activeNav === "volunteers") fetchVolunteers();
+    if (activeNav === "messages") fetchMessages();
+  }, [
+    activeNav,
+    drives.length,
+    fetchDrives,
+    fetchAttendance,
+    fetchVolunteers,
+    fetchMessages
+  ]);
 
   // ─── NAV ─────────────────────────────────────────────────────────────────
 
@@ -627,11 +628,11 @@ export default function AdvancedDashboard() {
 
     try {
       let user = null;
-try {
-  user = JSON.parse(localStorage.getItem("user") || "{}");
-} catch {
-  user = null;
-}
+      try {
+        user = JSON.parse(localStorage.getItem("user") || "{}");
+      } catch {
+        user = null;
+      }
 
       if (!user?.id) {
         toast.error("User not logged in");
