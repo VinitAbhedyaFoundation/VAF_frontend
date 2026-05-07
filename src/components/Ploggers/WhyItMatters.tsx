@@ -2,34 +2,37 @@ import { useEffect, useRef } from "react";
 import { TreePine, Users, Sparkles, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// 👉 IMPORTANT: Replace this with your actual poster path
+const poster = "/images/Posters/poster1.jpeg";
+
 const reasons = [
   {
     number: "01",
     icon: TreePine,
     title: "Cleaner Public Spaces",
     description:
-      "Plogging drives help clean streets, parks, and public areas in Sambhajinagar.",
+      "Clean streets, parks, and public areas through consistent plogging drives.",
   },
   {
     number: "02",
     icon: Users,
     title: "Healthy Lifestyle",
     description:
-      "Combine walking or jogging with cleaning for fitness and environmental action.",
+      "Stay active while contributing to the environment.",
   },
   {
     number: "03",
     icon: Sparkles,
     title: "Community Awareness",
     description:
-      "Clean-up drives build awareness about waste management and responsibility.",
+      "Build responsibility and awareness around waste management.",
   },
   {
     number: "04",
     icon: MapPin,
     title: "Local Impact",
     description:
-      "Volunteer-led initiatives create visible impact across Sambhajinagar.",
+      "Make visible change in Chhatrapati Sambhajinagar.",
   },
 ];
 
@@ -49,76 +52,103 @@ const WhyItMatters = () => {
       { threshold: 0.15 }
     );
 
-    const cards = sectionRef.current?.querySelectorAll(".reason-card");
-    const left = sectionRef.current?.querySelector(".left-col");
-
-    if (left) observer.observe(left);
-    cards?.forEach((card) => observer.observe(card));
+    const items = sectionRef.current?.querySelectorAll(".animate-item");
+    items?.forEach((item) => observer.observe(item));
 
     return () => observer.disconnect();
   }, []);
 
   return (
     <section
-      id="why-it-matters"
       ref={sectionRef}
-      className="relative scroll-mt-24 py-16 sm:py-24 px-4 bg-gradient-to-b from-white via-emerald-50/30 to-white"
+      className="relative py-16 sm:py-24 px-4 bg-gradient-to-b from-white via-emerald-50/30 to-white"
     >
       <div className="max-w-6xl mx-auto flex flex-col gap-16">
 
-        {/* ===== WHY IT MATTERS ===== */}
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 items-start">
+        {/* 🚨 HERO EVENT BLOCK (POSTER + URGENCY) */}
+        <div className="grid lg:grid-cols-2 gap-10 items-center">
 
-          {/* LEFT */}
-          <div className="left-col opacity-0 translate-y-6 transition-all duration-700 [&.animate-in]:opacity-100 [&.animate-in]:translate-y-0">
-
-            <div className="text-xs font-medium uppercase text-emerald-600 mb-4">
-              Why It Matters
-            </div>
-
-            <h2 className="text-3xl sm:text-5xl font-bold mb-4">
-              Plogging in{" "}
+          {/* LEFT - TEXT */}
+          <div className="animate-item opacity-0 translate-y-6 transition-all duration-700 [&.animate-in]:opacity-100 [&.animate-in]:translate-y-0">
+            <h2 className="text-3xl sm:text-5xl font-bold mb-4 leading-tight">
+              This Sunday, Don’t Just Show Up —{" "}
               <span className="text-emerald-600">
-                Chhatrapati Sambhajinagar
+                Make an Impact
               </span>
             </h2>
 
-            <p className="text-base sm:text-lg text-muted-foreground mb-3">
-              Plogging clean-up drives in Sambhajinagar improve public cleanliness
-              and promote environmental awareness through simple community action.
+            <p className="text-base sm:text-lg text-muted-foreground mb-6">
+              Be part of a real on-ground clean-up drive in
+              <span className="text-emerald-600 font-medium">
+                {" "}Chhatrapati Sambhajinagar
+              </span>.
+              Show up, take action, and make an actual difference.
             </p>
 
-            <p className="text-base sm:text-lg text-muted-foreground">
-              These volunteer-led initiatives create visible impact and encourage
-              responsible habits across local neighborhoods.
+            {/* 🔥 STRONG CTA BUTTONS */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLScrmxN2cjHbjJs8vBSqrRIyhlioUrAsiq8ufqvg7B_3G3efUg/viewform"
+                className="px-6 py-3 rounded-full bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition text-center"
+              >
+                Register Now
+              </a>
+
+              <a
+                href="#details"
+                className="px-6 py-3 rounded-full border border-emerald-500 text-emerald-600 font-semibold hover:bg-emerald-50 transition text-center"
+              >
+                View Details
+              </a>
+            </div>
+
+            <p className="text-sm text-muted-foreground mt-4">
+              Small effort. Visible impact.
             </p>
           </div>
 
-          {/* RIGHT */}
-          <div className="grid sm:grid-cols-2 gap-4">
+          {/* RIGHT - POSTER */}
+          <div className="animate-item opacity-0 translate-y-6 transition-all duration-700 delay-200 [&.animate-in]:opacity-100 [&.animate-in]:translate-y-0">
+            <img
+              src={poster}
+              alt="Plogging Drive Poster"
+              className="rounded-xl shadow-lg w-full object-cover"
+            />
+          </div>
+        </div>
+
+        {/* WHY IT MATTERS (SECONDARY NOW) */}
+        <div id="details" className="flex flex-col gap-10">
+
+          <div className="text-center max-w-2xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+              Why It Matters
+            </h2>
+            <p className="text-muted-foreground">
+              This isn’t just a walk — it’s direct action for a cleaner city.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {reasons.map((reason, i) => (
               <div
                 key={reason.title}
                 className={cn(
-                  "reason-card group relative rounded-xl border bg-card p-5 overflow-hidden",
-                  "opacity-0 translate-y-6 transition-all duration-700",
+                  "animate-item opacity-0 translate-y-6 transition-all duration-700",
                   "[&.animate-in]:opacity-100 [&.animate-in]:translate-y-0",
-                  "hover:-translate-y-1 hover:border-emerald-200",
-                  "hover:shadow-[0_10px_25px_rgba(16,185,129,0.12)]"
+                  "rounded-xl border bg-card p-5 hover:shadow-md"
                 )}
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.15),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-                <span className="text-2xl text-emerald-300 block mb-2">
+                <span className="text-emerald-400 text-xl">
                   {reason.number}
                 </span>
 
-                <div className="w-8 h-8 bg-emerald-50 flex items-center justify-center mb-3 rounded transition-all duration-300 group-hover:scale-110 group-hover:bg-emerald-100">
+                <div className="w-8 h-8 bg-emerald-50 flex items-center justify-center my-3 rounded">
                   <reason.icon className="w-4 h-4 text-emerald-600" />
                 </div>
 
-                <h3 className="text-sm font-semibold mb-1">
+                <h3 className="font-semibold mb-1">
                   {reason.title}
                 </h3>
 
@@ -130,39 +160,53 @@ const WhyItMatters = () => {
           </div>
         </div>
 
-        {/* ===== JOIN NEXT DRIVE ===== */}
-        <div
-          id="join"
-          className="rounded-2xl border bg-emerald-50 p-8 sm:p-10 text-center max-w-3xl mx-auto"
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-            Register For Next Plogging Drive
-          </h2>
+        {/* 🔥 FINAL CTA - CLEAN GREEN BLOCK */}
+        <div className="rounded-2xl bg-emerald-600 text-white p-8 sm:p-12">
 
-          <p className="text-base sm:text-lg text-muted-foreground mb-6">
-            Be part of a clean-up drive in{" "}
-            <span className="text-emerald-600 font-medium">
-              Chhatrapati Sambhajinagar
-            </span>{" "}
-            and help create a cleaner, healthier environment.
-          </p>
+          <div className="max-w-4xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8">
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLScrmxN2cjHbjJs8vBSqrRIyhlioUrAsiq8ufqvg7B_3G3efUg/viewform"
-              className="px-6 py-3 rounded-full bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition"
-            >
-              Register For Next Drive
-            </a>
+            {/* LEFT CONTENT */}
+            <div className="text-center lg:text-left">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+                Be Part of the Plogging Drive
+              </h2>
+
+              <p className="text-emerald-100 max-w-md">
+                Step out this Sunday and contribute to a cleaner
+                Chhatrapati Sambhajinagar. Real impact starts with showing up.
+              </p>
+            </div>
+
+            {/* RIGHT ACTION */}
+            <div className="flex flex-col sm:flex-row gap-4">
+
+              {/* PRIMARY BUTTON */}
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLScrmxN2cjHbjJs8vBSqrRIyhlioUrAsiq8ufqvg7B_3G3efUg/viewform"
+                className="px-8 py-3 rounded-full bg-white text-emerald-700 font-semibold hover:bg-emerald-50 transition"
+              >
+                Register Now
+              </a>
+
+              {/* SECONDARY BUTTON */}
+              <a
+                href="#details"
+                className="px-8 py-3 rounded-full border border-white text-white font-semibold hover:bg-white/10 transition"
+              >
+                Learn More
+              </a>
+            </div>
+
           </div>
 
-          <p className="text-sm text-muted-foreground mt-4">
-            Drives are conducted every Sunday in Sambhajinagar.
-          </p>
+          {/* SUBTEXT */}
+          <div className="mt-6 text-center text-sm text-emerald-200">
+            Show up. Take action. Make it count.
+          </div>
         </div>
 
-      </div>
-    </section>
+      </div >
+    </section >
   );
 };
 
