@@ -20,8 +20,14 @@ import axios from "axios";
 
 // ─── AXIOS INSTANCE ──────────────────────────────────────────────────────────
 
+const baseURL = import.meta.env.VITE_API_URL;
+
+if (!baseURL) {
+  throw new Error("API URL not configured");
+}
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
+  baseURL: baseURL,
   withCredentials: true,
 });
 
@@ -50,9 +56,14 @@ interface DashboardStats {
 interface Drive {
   id: number;
   date: string;
-  locationId: number;
   totalHours: number;
   expiryDate: string;
+
+  location?: string;
+
+  driveLocation?: {
+    location: string;
+  };
 }
 
 interface AttendanceRecord {
@@ -66,11 +77,11 @@ interface AttendanceRecord {
   };
   hours: number;
   createdAt: string;
+  status?: "Marked" | "Pending";
 }
 
 interface Volunteer {
-  _id: string;
-  id?: string;
+  id: number;
   name: string;
   email: string;
   drives: number;
@@ -82,13 +93,21 @@ interface Volunteer {
 }
 
 interface MessageItem {
-  _id: string;
-  id?: string;
+  id: number;
   title: string;
   content: string;
   date: string;
-  status: "Sent" | "Draft";
+  status: "Sent",
   recipients: number;
+}
+
+interface ApiMessage {
+  id: number;
+  subject?: string;
+  title?: string;
+  content?: string;
+  createdAt?: string;
+  recipients?: number;
 }
 
 // ─── NAV ITEMS ───────────────────────────────────────────────────────────────
@@ -263,7 +282,7 @@ export default function AdvancedDashboard() {
   const [driveForm, setDriveForm] = useState({ date: "", locationId: "", totalHours: "", expiryDate: "" });
   const [attendanceForm, setAttendanceForm] = useState({ name: "", email: "", drive: "", hours: "" });
   const [volunteerForm, setVolunteerForm] = useState({ name: "", email: "", city: "", age: "", password: "" });
-  const [messageForm, setMessageForm] = useState({ title: "", content: "", sendNow: true });
+  const [messageForm, setMessageForm] = useState({ title: "", content: "" });
 
   // ── Search / filter ──
   const [volunteerSearch, setVolunteerSearch] = useState("");
@@ -309,7 +328,22 @@ export default function AdvancedDashboard() {
     setLoadingVolunteers(true);
     try {
       const res = await API.get("/user/all");
-      setVolunteers(res.data.users ?? res.data);
+      const data = res.data.users ?? res.data;
+
+      const mapped = data.map((v: any) => ({
+        id: v.id,
+        name: v.name,
+        email: v.email,
+        city: v.city ?? "Unknown",
+        age: v.age ?? 0,
+        drives: v.drives ?? 0,
+        status: v.status ?? "Pending",
+        joined: new Date(v.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" }),
+        isNew: v.isNew ?? false,
+      }));
+
+      setVolunteers(mapped);
+
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to load volunteers");
     } finally {
@@ -321,7 +355,22 @@ export default function AdvancedDashboard() {
     setLoadingMessages(true);
     try {
       const res = await API.get("/message/all");
-      setMessages(res.data.messages ?? res.data);
+
+      const data = res.data.messages ?? res.data;
+
+      const mapped: MessageItem[] = data.map((msg: ApiMessage) => ({
+        id: msg.id,
+        title: msg.subject ?? msg.title ?? "Untitled",
+        content: msg.content ?? "",
+        date: msg.createdAt
+          ? new Date(msg.createdAt).toLocaleDateString()
+          : new Date().toLocaleDateString(),
+        status: "Sent",
+        recipients: msg.recipients ?? 0,
+      }));
+
+      setMessages(mapped);
+
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to load messages");
     } finally {
@@ -341,11 +390,23 @@ export default function AdvancedDashboard() {
 
   // Fetch section data when navigating to it
   useEffect(() => {
-    if (activeNav === "drives") fetchDrives();
-    if (activeNav === "attendance") { fetchAttendance(); fetchDrives(); }
-    if (activeNav === "volunteers") fetchVolunteers();
-    if (activeNav === "messages") fetchMessages();
-  }, [activeNav]);
+  if (activeNav === "drives") fetchDrives();
+
+  if (activeNav === "attendance") {
+    fetchAttendance();
+    if (drives.length === 0) fetchDrives();
+  }
+
+  if (activeNav === "volunteers") fetchVolunteers();
+  if (activeNav === "messages") fetchMessages();
+}, [
+  activeNav,
+  drives.length,
+  fetchDrives,
+  fetchAttendance,
+  fetchVolunteers,
+  fetchMessages
+]);
 
   // ─── NAV ─────────────────────────────────────────────────────────────────
 
@@ -411,9 +472,17 @@ export default function AdvancedDashboard() {
     }
     setSubmitting(true);
     try {
+      const locationId = Number(driveForm.locationId);
+
+      if (!locationId) {
+        toast.error("Invalid location ID");
+        setSubmitting(false);
+        return;
+      }
+
       const res = await API.post("/drive/newdrive", {
         date: new Date(driveForm.date).toISOString(),
-        locationId: Number(driveForm.locationId),
+        locationId: locationId,
         totalHours: Number(driveForm.totalHours),
         expiryDate: new Date(driveForm.expiryDate).toISOString(),
       });
@@ -430,37 +499,54 @@ export default function AdvancedDashboard() {
   };
 
   const handleMarkAttendance = async () => {
-    if (!attendanceForm.drive) {
-      toast.error("Select a drive");
+    // 🔴 Basic validation
+    if (!attendanceForm.name || !attendanceForm.hours || !attendanceForm.drive) {
+      toast.error("Name, hours and drive are required");
       return;
     }
 
     setSubmitting(true);
 
     try {
+      // 🔍 Find selected drive
       const selectedDrive = drives.find(
         (d) => d.id === Number(attendanceForm.drive)
       );
 
-      // ✅ VALIDATION FIRST
       if (!selectedDrive || !selectedDrive.id) {
         toast.error("Invalid drive selected");
+        setSubmitting(false);
         return;
       }
 
-      // ✅ THEN API CALL
+      // 📡 API call
       const res = await API.post("/user/attendance", {
         driveId: selectedDrive.id,
+        name: attendanceForm.name,
+        email: attendanceForm.email,
+        hours: Number(attendanceForm.hours),
       });
 
-      // ✅ ADD THIS HERE
-      setAttendance((prev) => [
-        res.data.record ?? res.data,
-        ...prev,
-      ]);
+      // 🧠 Safe mapping (don’t trust backend blindly)
+      const raw = res.data.record ?? res.data;
 
-      setShowAttendanceModal(false);
+      const safeRecord: AttendanceRecord = {
+        id: raw.id,
+        user: {
+          name: raw.user?.name ?? attendanceForm.name,
+          email: raw.user?.email ?? attendanceForm.email,
+        },
+        drive: {
+          date: raw.drive?.date ?? selectedDrive.date,
+        },
+        hours: raw.hours ?? Number(attendanceForm.hours),
+        createdAt: raw.createdAt ?? new Date().toISOString(),
+        status: raw.status ?? "Marked",
+      };
 
+      setAttendance((prev) => [safeRecord, ...prev]);
+
+      // 🧹 Reset form
       setAttendanceForm({
         name: "",
         email: "",
@@ -468,8 +554,13 @@ export default function AdvancedDashboard() {
         hours: "",
       });
 
+      setShowAttendanceModal(false);
+
       toast.success("Attendance marked ✅");
+
+      // 🔄 Refresh stats
       fetchDashboardStats();
+
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to mark attendance");
     } finally {
@@ -491,7 +582,7 @@ export default function AdvancedDashboard() {
         password: volunteerForm.password || "Volunteer@123",
       });
       const newVol: Volunteer = res.data.user ?? {
-        _id: `v${Date.now()}`,
+        id: res.data?.user?.id || Date.now(), // ✅ force number
         name: volunteerForm.name,
         email: volunteerForm.email,
         drives: 0,
@@ -515,8 +606,8 @@ export default function AdvancedDashboard() {
 
   const handleApproveVolunteer = async (vol: Volunteer) => {
     try {
-      await API.patch(`/user/approve/${vol._id ?? vol.id}`);
-      setVolunteers(prev => prev.map(v => (v._id === vol._id || v.id === vol.id) ? { ...v, status: "Approved" as const } : v));
+      await API.patch(`/user/approve/${vol.id}`);
+      setVolunteers(prev => prev.map(v => (v.id === vol.id) ? { ...v, status: "Approved" as const } : v));
       setSelectedVolunteer(null);
       toast.success(`${vol.name} approved ✅`);
     } catch (err: any) {
@@ -524,20 +615,54 @@ export default function AdvancedDashboard() {
     }
   };
 
+
   const handleSendMessage = async () => {
-    if (!messageForm.title || !messageForm.content) { toast.error("Fill all fields"); return; }
+    if (!messageForm.title || !messageForm.content) {
+      toast.error("Fill all fields");
+      return;
+    }
+
     setSubmitting(true);
+
+
     try {
+      let user = null;
+try {
+  user = JSON.parse(localStorage.getItem("user") || "{}");
+} catch {
+  user = null;
+}
+
+      if (!user?.id) {
+        toast.error("User not logged in");
+        setSubmitting(false);
+        return;
+      }
+
       const res = await API.post("/message/send", {
-        title: messageForm.title,
+        subject: messageForm.title,
         content: messageForm.content,
-        sendNow: messageForm.sendNow,
+        senderId: user.id, // ✅ dynamic sender
       });
-      setMessages(prev => [res.data.message ?? res.data, ...prev]);
+
+      const msg = res.data.message ?? res.data;
+
+      const newMsg: MessageItem = {
+        id: msg.id,
+        title: msg.subject ?? msg.title ?? "Untitled",
+        content: msg.content,
+        date: new Date(msg.createdAt).toLocaleDateString(),
+        status: "Sent",
+        recipients: msg.recipients ?? 0,
+      };
+
+      setMessages(prev => [newMsg, ...prev]);
+
       setShowMessageModal(false);
-      setMessageForm({ title: "", content: "", sendNow: true });
-      if (messageForm.sendNow) toast.success(`Message sent to volunteers 📧`);
-      else toast.success("Message saved as draft 📝");
+      setMessageForm({ title: "", content: "" });
+
+      toast.success("Message sent 📧");
+
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to send message");
     } finally {
@@ -633,9 +758,6 @@ export default function AdvancedDashboard() {
             <div className="h-8 w-px bg-slate-200 mx-1" />
             <button onClick={() => goTo("messages")} className="relative p-2 hover:bg-slate-100 rounded-full transition">
               <Bell size={20} className="text-slate-600" />
-              {messages.some(m => m.status === "Draft") && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-              )}
             </button>
             <button onClick={() => goTo("settings")} className="p-2 hover:bg-slate-100 rounded-full transition"><Settings size={20} className="text-slate-600" /></button>
             <button onClick={handleLogout} className="p-2 hover:bg-slate-100 rounded-full transition"><LogOut size={20} className="text-slate-600" /></button>
@@ -748,7 +870,7 @@ export default function AdvancedDashboard() {
                         <div className="mt-3 space-y-1.5">
                           <p className="text-sm text-gray-500 flex items-center gap-2">
                             <MapPin size={14} className="text-emerald-500 shrink-0" />
-                            Location #{drive.locationId}
+                            {drive.location ?? "Unknown Location"}
                           </p>
                           <p className="text-sm text-gray-500 flex items-center gap-2">
                             <Clock size={14} className="text-blue-500 shrink-0" />
@@ -830,7 +952,7 @@ export default function AdvancedDashboard() {
 
                           <td className="p-4">
                             <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">
-                              Marked
+                              {item.status ?? "Marked"}
                             </span>
                           </td>
 
@@ -930,7 +1052,7 @@ export default function AdvancedDashboard() {
                       </thead>
                       <tbody>
                         {filteredVolunteers.map(v => (
-                          <tr key={v._id ?? v.id} className="border-t hover:bg-slate-50 transition cursor-pointer" onClick={() => setSelectedVolunteer(v)}>
+                          <tr key={v.id} className="border-t hover:bg-slate-50 transition cursor-pointer" onClick={() => setSelectedVolunteer(v)}>
                             <td className="p-4 font-semibold">{v.name}</td>
                             <td className="p-4 text-slate-400 text-xs">{v.email}</td>
                             <td className="p-4 text-slate-500">{v.city}</td>
@@ -968,7 +1090,6 @@ export default function AdvancedDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {[
                   { label: "Sent", val: messages.filter(m => m.status === "Sent").length, icon: "✉️" },
-                  { label: "Drafts", val: messages.filter(m => m.status === "Draft").length, icon: "📝" },
                   { label: "Total Reach", val: messages.filter(m => m.status === "Sent").reduce((sum, m) => sum + m.recipients, 0), icon: "👥" },
                 ].map(s => (
                   <div key={s.label} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
@@ -981,11 +1102,13 @@ export default function AdvancedDashboard() {
               {loadingMessages ? <SectionLoader /> : (
                 <div className="space-y-4">
                   {messages.map(msg => (
-                    <div key={msg._id ?? msg.id} className="bg-white p-5 rounded-2xl shadow-sm border hover:shadow-md transition">
+                    <div key={msg.id} className="bg-white p-5 rounded-2xl shadow-sm border hover:shadow-md transition">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h2 className="font-bold text-lg">{msg.title}</h2>
-                          {msg.status === "Sent" && <p className="text-xs text-slate-400">Sent to {msg.recipients} volunteers</p>}
+                          {msg.status === "Sent" && <p className="text-xs text-slate-400">
+                            Sent to all volunteers
+                          </p>}
                         </div>
                         <span className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusClass(msg.status)}`}>{msg.status}</span>
                       </div>
@@ -1096,18 +1219,12 @@ export default function AdvancedDashboard() {
           <textarea value={messageForm.content} onChange={e => setMessageForm(p => ({ ...p, content: e.target.value }))} placeholder="Write your message here..."
             className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 transition h-28 resize-none" />
         </div>
-        <div className="flex items-center gap-3 mb-5 p-3 bg-slate-50 rounded-xl">
-          <button onClick={() => setMessageForm(p => ({ ...p, sendNow: true }))}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${messageForm.sendNow ? "bg-emerald-600 text-white" : "text-slate-500 hover:bg-slate-100"}`}>Send Now</button>
-          <button onClick={() => setMessageForm(p => ({ ...p, sendNow: false }))}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${!messageForm.sendNow ? "bg-slate-700 text-white" : "text-slate-500 hover:bg-slate-100"}`}>Save as Draft</button>
-        </div>
         <div className="flex justify-end gap-3">
           <button onClick={() => setShowMessageModal(false)} className="px-4 py-2 text-sm bg-slate-100 rounded-xl font-semibold">Cancel</button>
           <button onClick={handleSendMessage} disabled={submitting}
             className="px-5 py-2 text-sm bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition flex items-center gap-2 disabled:opacity-60">
             {submitting ? <Spinner size={16} /> : <Send size={14} />}
-            {messageForm.sendNow ? "Send Message" : "Save Draft"}
+            Send Message
           </button>
         </div>
       </Modal>

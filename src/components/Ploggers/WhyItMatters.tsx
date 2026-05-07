@@ -3,7 +3,7 @@ import { TreePine, Users, Sparkles, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // 👉 IMPORTANT: Replace this with your actual poster path
-import poster from "../../../public/images/Posters/WhatsApp Image 2026-05-02 at 10.36.26 AM.jpeg";
+const poster = "/images/Posters/poster1.jpeg";
 
 const reasons = [
   {
@@ -70,15 +70,10 @@ const WhyItMatters = () => {
 
           {/* LEFT - TEXT */}
           <div className="animate-item opacity-0 translate-y-6 transition-all duration-700 [&.animate-in]:opacity-100 [&.animate-in]:translate-y-0">
-
-            <div className="text-red-500 font-semibold mb-3 text-sm uppercase">
-              🚨 This Sunday
-            </div>
-
-            <h2 className="text-3xl sm:text-5xl font-bold mb-4">
-              Join the{" "}
+            <h2 className="text-3xl sm:text-5xl font-bold mb-4 leading-tight">
+              This Sunday, Don’t Just Show Up —{" "}
               <span className="text-emerald-600">
-                Plogging Drive
+                Make an Impact
               </span>
             </h2>
 
@@ -166,52 +161,52 @@ const WhyItMatters = () => {
         </div>
 
         {/* 🔥 FINAL CTA - CLEAN GREEN BLOCK */}
-<div className="rounded-2xl bg-emerald-600 text-white p-8 sm:p-12">
+        <div className="rounded-2xl bg-emerald-600 text-white p-8 sm:p-12">
 
-  <div className="max-w-4xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8">
+          <div className="max-w-4xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8">
 
-    {/* LEFT CONTENT */}
-    <div className="text-center lg:text-left">
-      <h2 className="text-2xl sm:text-3xl font-bold mb-3">
-        Be Part of the Plogging Drive
-      </h2>
+            {/* LEFT CONTENT */}
+            <div className="text-center lg:text-left">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+                Be Part of the Plogging Drive
+              </h2>
 
-      <p className="text-emerald-100 max-w-md">
-        Step out this Sunday and contribute to a cleaner 
-        Chhatrapati Sambhajinagar. Real impact starts with showing up.
-      </p>
-    </div>
+              <p className="text-emerald-100 max-w-md">
+                Step out this Sunday and contribute to a cleaner
+                Chhatrapati Sambhajinagar. Real impact starts with showing up.
+              </p>
+            </div>
 
-    {/* RIGHT ACTION */}
-    <div className="flex flex-col sm:flex-row gap-4">
+            {/* RIGHT ACTION */}
+            <div className="flex flex-col sm:flex-row gap-4">
 
-      {/* PRIMARY BUTTON */}
-      <a
-        href="https://docs.google.com/forms/d/e/1FAIpQLScrmxN2cjHbjJs8vBSqrRIyhlioUrAsiq8ufqvg7B_3G3efUg/viewform"
-        className="px-8 py-3 rounded-full bg-white text-emerald-700 font-semibold hover:bg-emerald-50 transition"
-      >
-        Register Now
-      </a>
+              {/* PRIMARY BUTTON */}
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLScrmxN2cjHbjJs8vBSqrRIyhlioUrAsiq8ufqvg7B_3G3efUg/viewform"
+                className="px-8 py-3 rounded-full bg-white text-emerald-700 font-semibold hover:bg-emerald-50 transition"
+              >
+                Register Now
+              </a>
 
-      {/* SECONDARY BUTTON */}
-      <a
-        href="#details"
-        className="px-8 py-3 rounded-full border border-white text-white font-semibold hover:bg-white/10 transition"
-      >
-        Learn More
-      </a>
-    </div>
+              {/* SECONDARY BUTTON */}
+              <a
+                href="#details"
+                className="px-8 py-3 rounded-full border border-white text-white font-semibold hover:bg-white/10 transition"
+              >
+                Learn More
+              </a>
+            </div>
 
-  </div>
+          </div>
 
-  {/* SUBTEXT */}
-  <div className="mt-6 text-center text-sm text-emerald-200">
-    Show up. Take action. Make it count.
-  </div>
-</div>
+          {/* SUBTEXT */}
+          <div className="mt-6 text-center text-sm text-emerald-200">
+            Show up. Take action. Make it count.
+          </div>
+        </div>
 
-      </div>
-    </section>
+      </div >
+    </section >
   );
 };
 
