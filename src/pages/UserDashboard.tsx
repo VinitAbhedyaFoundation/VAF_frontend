@@ -229,7 +229,7 @@ useEffect(() => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await fetch("http://localhost:3000/auth/me", {
+      const res = await fetch("http://localhost:3000/api/auth/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -267,7 +267,7 @@ useEffect(() => {
 
       if (!token) return;
 
-      const res = await fetch("http://localhost:3000/dashboard/me", {
+      const res = await fetch("http://localhost:3000/api/dashboard/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -290,7 +290,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchUpcoming = async () => {
     try {
-      const res = await fetch("http://localhost:3000/drive/upcoming");
+      const res = await fetch("http://localhost:3000/api/drive/upcoming");
       const data = await res.json();
 
       console.log("UPCOMING API:", data);
