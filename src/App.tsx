@@ -25,6 +25,7 @@ import Signup from "./pages/Signup";
 // DASHBOARDS
 import Dashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/Dashboard";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,27 @@ function AdminRoute({ children }: { children: JSX.Element }) {
 
   if (role !== "Admin") {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+function SuperAdminRoute({
+  children,
+}: {
+  children: JSX.Element;
+}) {
+
+  const role =
+    localStorage.getItem("role");
+
+  if (role !== "SuperAdmin") {
+
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+      />
+    );
   }
 
   return children;
@@ -84,6 +106,17 @@ const App = () => (
               <AdminRoute>
                 <AdminDashboard />
               </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+        {/* 🔥 SUPER ADMIN DASHBOARD */}
+        <Route
+          path="/superadmin-dashboard"
+          element={
+            <ProtectedRoute>
+              <SuperAdminRoute>
+                <SuperAdminDashboard />
+              </SuperAdminRoute>
             </ProtectedRoute>
           }
         />

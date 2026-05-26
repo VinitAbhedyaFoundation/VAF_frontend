@@ -752,10 +752,6 @@ export default function AdvancedDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => { setShowAttendanceModal(true); }}
-              className="hidden sm:flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all">
-              <Plus size={18} /> Quick Attendance
-            </button>
             <div className="h-8 w-px bg-slate-200 mx-1" />
             <button onClick={() => goTo("messages")} className="relative p-2 hover:bg-slate-100 rounded-full transition">
               <Bell size={20} className="text-slate-600" />
