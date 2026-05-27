@@ -1322,7 +1322,6 @@ export default function AdvancedDashboard() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <div><h1 className="text-2xl font-bold themed-text">Attendance</h1><p className="themed-secondary text-sm">Mark and track volunteer attendance across drives.</p></div>
-                  <button onClick={() => setShowAttendanceModal(true)} className="accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition accent-shadow flex items-center gap-2"><Plus size={16} /> Mark Attendance</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {[
@@ -1538,20 +1537,6 @@ export default function AdvancedDashboard() {
             <button onClick={handleCreateDrive} disabled={submitting}
               className="px-5 py-2 text-sm accent-bg accent-bg-hover text-white rounded-xl font-bold transition flex items-center gap-2 disabled:opacity-60">
               {submitting ? <Spinner size={16} /> : null} Create Drive 🚀
-            </button>
-          </div>
-        </Modal>
-
-        <Modal open={showAttendanceModal} onClose={() => setShowAttendanceModal(false)} title="Mark Attendance">
-          <InputField label="Volunteer Name *" value={attendanceForm.name} onChange={v => setAttendanceForm(p => ({ ...p, name: v }))} placeholder="e.g. Mayuresh" />
-          <InputField label="Email" value={attendanceForm.email} onChange={v => setAttendanceForm(p => ({ ...p, email: v }))} placeholder="volunteer@gmail.com" />
-          <SelectField label="Drive *" value={attendanceForm.drive} onChange={v => setAttendanceForm(p => ({ ...p, drive: v }))} options={drives.map(d => String(d.id))} />
-          <InputField label="Hours Volunteered *" type="number" value={attendanceForm.hours} onChange={v => setAttendanceForm(p => ({ ...p, hours: v }))} placeholder="e.g. 2.5" />
-          <div className="flex justify-end gap-3 pt-2">
-            <button onClick={() => setShowAttendanceModal(false)} className="px-4 py-2 text-sm themed-subtle rounded-xl font-semibold themed-secondary">Cancel</button>
-            <button onClick={handleMarkAttendance} disabled={submitting}
-              className="px-5 py-2 text-sm accent-bg accent-bg-hover text-white rounded-xl font-bold transition flex items-center gap-2 disabled:opacity-60">
-              {submitting ? <Spinner size={16} /> : null} Mark Attendance ✅
             </button>
           </div>
         </Modal>
