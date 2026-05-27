@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import api from "@/api/api";
 
 type FormData = {
   name: string;
@@ -61,8 +62,14 @@ const Signup = () => {
   };
 
   const validateStep3 = () => {
-    if (!form.address || !form.parentNumber)
+    if (!form.address || !form.parentNumber) {
       return "Fill remaining fields";
+    }
+
+    if (!/^\d{10}$/.test(form.parentNumber)) {
+      return "Parent number must be 10 digits";
+    }
+
     return "";
   };
 
@@ -76,35 +83,42 @@ const Signup = () => {
     setStep(step + 1);
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (
+    e: React.FormEvent
+  ) => {
+
     e.preventDefault();
+
     const err = validateStep3();
+
     if (err) return setError(err);
 
     setLoading(true);
+
     setError("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message?.[0] || "Signup failed");
-        setLoading(false);
-        return;
-      }
+      await api.post(
+        "/auth/register",
+        form
+      );
 
       navigate("/login");
-    } catch {
-      setError("Server error");
-    }
 
-    setLoading(false);
+    } catch (err: any) {
+
+      const message = Array.isArray(err.response?.data?.message)
+        ? err.response.data.message[0]
+        : err.response?.data?.message || "Signup failed";
+
+      setError(message);
+
+    } finally {
+
+      setLoading(false);
+
+    }
   };
 
   return (
@@ -146,7 +160,13 @@ const Signup = () => {
 
               <div>
                 <p className="text-xs text-gray-500 mb-1">Email</p>
-                <input name="email" type="email" onChange={handleChange} className={inputStyle} />
+                <input
+                  name="email"
+                  type="email"
+                  className={inputStyle}
+                  value={form.email}
+                  onChange={handleChange}
+                />
               </div>
 
               <div className="col-span-2">
