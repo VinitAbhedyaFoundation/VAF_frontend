@@ -62,8 +62,14 @@ const Signup = () => {
   };
 
   const validateStep3 = () => {
-    if (!form.address || !form.parentNumber)
+    if (!form.address || !form.parentNumber) {
       return "Fill remaining fields";
+    }
+
+    if (!/^\d{10}$/.test(form.parentNumber)) {
+      return "Parent number must be 10 digits";
+    }
+
     return "";
   };
 
@@ -102,11 +108,11 @@ const Signup = () => {
 
     } catch (err: any) {
 
-      setError(
-        err.response?.data?.message?.[0] ||
-        err.response?.data?.message ||
-        "Signup failed"
-      );
+      const message = Array.isArray(err.response?.data?.message)
+        ? err.response.data.message[0]
+        : err.response?.data?.message || "Signup failed";
+
+      setError(message);
 
     } finally {
 
@@ -154,7 +160,13 @@ const Signup = () => {
 
               <div>
                 <p className="text-xs text-gray-500 mb-1">Email</p>
-                <input name="email" type="email" onChange={handleChange} className={inputStyle} />
+                <input
+                  name="email"
+                  type="email"
+                  className={inputStyle}
+                  value={form.email}
+                  onChange={handleChange}
+                />
               </div>
 
               <div className="col-span-2">
