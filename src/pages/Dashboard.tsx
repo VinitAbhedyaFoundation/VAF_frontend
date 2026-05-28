@@ -32,12 +32,10 @@ type ThemeMode = "light" | "dark" | "system";
 interface AccentPalette {
   hex: string;
   name: string;
-  // tailwind-equivalent shades we inject as CSS vars
   50: string; 100: string; 200: string; 400: string;
   500: string; 600: string; 700: string; 900: string;
-  shadow: string; // rgba for shadow-colored effects
+  shadow: string;
 }
-
 
 const DARK_TOKENS = {
   "--bg-base": "#0f172a",
@@ -75,7 +73,6 @@ function applyTheme(mode: ThemeMode, accent: AccentPalette) {
   const tokens = isDark ? DARK_TOKENS : LIGHT_TOKENS;
   Object.entries(tokens).forEach(([k, v]) => root.style.setProperty(k, v));
 
-  // accent vars
   root.style.setProperty("--accent-50", accent[50]);
   root.style.setProperty("--accent-100", accent[100]);
   root.style.setProperty("--accent-200", accent[200]);
@@ -100,8 +97,10 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "light", accent: { hex: "#10b981", name: "Emerald", 50: "#ecfdf5", 100: "#d1fae5", 200: "#a7f3d0", 400: "#34d399", 500: "#10b981", 600: "#059669", 700: "#047857", 900: "#064e3b", shadow: "rgba(16,185,129,0.25)" },
-  setTheme: () => { }, setAccent: () => { },
+  theme: "light",
+  accent: { hex: "#10b981", name: "Emerald", 50: "#ecfdf5", 100: "#d1fae5", 200: "#a7f3d0", 400: "#34d399", 500: "#10b981", 600: "#059669", 700: "#047857", 900: "#064e3b", shadow: "rgba(16,185,129,0.25)" },
+  setTheme: () => { },
+  setAccent: () => { },
 });
 
 const useTheme = () => useContext(ThemeContext);
@@ -110,7 +109,6 @@ const useTheme = () => useContext(ThemeContext);
 
 const GlobalThemeStyle = () => (
   <style>{`
-    /* Map CSS vars to utility-like classes used throughout the dashboard */
     body { background: var(--bg-base); color: var(--text-primary); }
 
     .themed-card      { background: var(--bg-card); border-color: var(--border-color); }
@@ -125,7 +123,6 @@ const GlobalThemeStyle = () => (
     .themed-border    { border-color: var(--border-color); }
     .themed-divide > * + * { border-color: var(--border-color); }
 
-    /* Accent utility classes */
     .accent-bg        { background: var(--accent-600); }
     .accent-bg-hover:hover { background: var(--accent-700); }
     .accent-text      { color: var(--accent-600); }
@@ -139,10 +136,8 @@ const GlobalThemeStyle = () => (
     .accent-nav-active { background: var(--accent-900); color: #fff; }
     .accent-shadow    { box-shadow: 0 10px 30px -5px var(--accent-shadow); }
 
-    /* Table row hover */
     .table-row-hover:hover { background: var(--bg-hover); }
 
-    /* Input focus ring using accent */
     .input-themed {
       background: var(--bg-input);
       border-color: var(--border-color);
@@ -157,7 +152,6 @@ const GlobalThemeStyle = () => (
 
     select.input-themed option { background: var(--bg-card); color: var(--text-primary); }
 
-    /* Milestone card */
     .milestone-card { background: var(--accent-900); }
     .milestone-progress { background: var(--accent-400); }
   `}</style>
@@ -178,14 +172,28 @@ API.interceptors.request.use((config) => {
 // ─── TYPES ──────────────────────────────────────────────────────────────────
 
 type SectionId = "overview" | "drives" | "attendance" | "volunteers" | "messages" | "settings";
-type SettingsTab = "account" | "security" | "appearance" | "data" | "system" 
+type SettingsTab = "account" | "security" | "appearance" | "data" | "system";
 
 interface NavItem { label: string; icon: React.ElementType; id: SectionId; badge?: string; }
 interface DashboardStats {
   totalDrives: number; totalHours: number; wasteCollected: number; totalVolunteers: number;
   chartData: { name: string; waste: number; volunteers: number }[];
 }
-interface Drive { id: number; date: string; totalHours: number; expiryDate: string; location?: string; driveLocation?: { location: string; }; }
+interface Drive {
+  id: number;
+
+  title?: string;
+
+  date: string;
+
+  totalHours: number;
+
+  location?: string;
+
+  driveLocation?: {
+    location: string;
+  };
+}
 interface AttendanceRecord { id: number; user: { name: string; email: string; }; drive: { date: string; }; hours: number; createdAt: string; status?: "Marked" | "Pending"; }
 interface Volunteer { id: number; name: string; email: string; drives: number; status: "Approved" | "Pending"; city: string; age: number; joined: string; isNew: boolean; }
 interface MessageItem { id: number; title: string; content: string; date: string; status: "Sent"; recipients: number; }
@@ -203,6 +211,8 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const PIE_COLORS = ["#10b981", "#6366f1", "#f59e0b", "#ef4444", "#8b5cf6"];
+
+
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -360,6 +370,93 @@ const VolunteerDrawer: React.FC<{ volunteer: Volunteer | null; onClose: () => vo
     </AnimatePresence>
   );
 
+const DriveDetailsModal: React.FC<{
+  drive: Drive | null;
+  onClose: () => void;
+}> = ({ drive, onClose }) => (
+  <AnimatePresence>
+    {drive && (
+      <>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={onClose}
+        />
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.92, y: 30 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 flex items-center justify-center z-50 px-4"
+        >
+          <div className="themed-card w-full max-w-lg rounded-3xl border themed-border shadow-2xl p-6">
+
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-black themed-text">
+                {drive.title || "Cleanup Drive"}
+              </h2>
+
+              <button
+                onClick={onClose}
+                className="p-2 rounded-full themed-hover"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+
+              <div className="themed-subtle rounded-2xl p-4">
+                <p className="text-xs themed-muted uppercase font-bold mb-1">
+                  Location
+                </p>
+
+                <p className="font-semibold themed-text">
+                  {drive.location ??
+                    drive.driveLocation?.location ??
+                    "Unknown Location"}
+                </p>
+              </div>
+
+              <div className="themed-subtle rounded-2xl p-4">
+                <p className="text-xs themed-muted uppercase font-bold mb-1">
+                  Date
+                </p>
+
+                <p className="font-semibold themed-text">
+                  {new Date(drive.date).toLocaleString()}
+                </p>
+              </div>
+
+              <div className="themed-subtle rounded-2xl p-4">
+                <p className="text-xs themed-muted uppercase font-bold mb-1">
+                  Planned Hours
+                </p>
+
+                <p className="font-semibold themed-text">
+                  {drive.totalHours} hours
+                </p>
+              </div>
+
+              <div className="themed-subtle rounded-2xl p-4">
+                <p className="text-xs themed-muted uppercase font-bold mb-1">
+                  Registration Ends
+                </p>
+
+                <p className="font-semibold themed-text">
+                </p>
+              </div>
+
+            </div>
+          </div>
+        </motion.div>
+      </>
+    )}
+  </AnimatePresence>
+);
 // ─── SETTINGS SECTION ─────────────────────────────────────────────────────────
 
 const SettingsSection: React.FC<{
@@ -369,428 +466,291 @@ const SettingsSection: React.FC<{
   messages: MessageItem[];
   onLogout: () => void;
   onNavigate: (s: SectionId) => void;
-}> =
-  ({ volunteers, drives, attendance, messages, onLogout, onNavigate }) => {
-    const { theme, accent, setTheme, setAccent } = useTheme();
-    const [activeTab, setActiveTab] = useState<SettingsTab>("account");
-    const [saving, setSaving] = useState(false);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+}> = ({ volunteers, drives, attendance, messages, onLogout, onNavigate }) => {
+  const { theme, accent, setTheme, setAccent } = useTheme();
+  const [activeTab, setActiveTab] = useState<SettingsTab>("account");
+  const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    // Account
-    const [orgName, setOrgName] = useState("Volunteer Action Foundation");
-    const [adminEmail, setAdminEmail] = useState("admin@vaf.org");
-    const [adminName, setAdminName] = useState("Admin User");
+  const [orgName, setOrgName] = useState("Volunteer Action Foundation");
+  const [adminEmail, setAdminEmail] = useState("admin@vaf.org");
+  const [adminName, setAdminName] = useState("Admin User");
 
-    // Notifications
-    const [notifEmail, setNotifEmail] = useState(true);
-    const [notifNewVolunteer, setNotifNewVolunteer] = useState(true);
-    const [notifDriveReminder, setNotifDriveReminder] = useState(true);
-    const [notifAttendance, setNotifAttendance] = useState(false);
-    const [notifWeeklyReport, setNotifWeeklyReport] = useState(true);
-    const [notifSystemAlerts, setNotifSystemAlerts] = useState(true);
-    const [slackEnabled, setSlackEnabled] = useState(false);
+  const [notifEmail, setNotifEmail] = useState(true);
+  const [notifNewVolunteer, setNotifNewVolunteer] = useState(true);
+  const [notifDriveReminder, setNotifDriveReminder] = useState(true);
+  const [notifAttendance, setNotifAttendance] = useState(false);
+  const [notifWeeklyReport, setNotifWeeklyReport] = useState(true);
+  const [notifSystemAlerts, setNotifSystemAlerts] = useState(true);
+  const [slackEnabled, setSlackEnabled] = useState(false);
 
-    // Security
-    const [twoFactor, setTwoFactor] = useState(false);
-    const [currentPassword, setCurrentPassword] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-    // Appearance — wired to context
-    const [compactMode, setCompactMode] = useState(false);
-    const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [compactMode, setCompactMode] = useState(false);
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
-    // Data
-    const [autoBackup, setAutoBackup] = useState(true);
-    const [backupFrequency, setBackupFrequency] = useState("Weekly");
-    const [retentionDays, setRetentionDays] = useState("90");
-    const [exportFormat, setExportFormat] = useState("CSV");
+  const [autoBackup, setAutoBackup] = useState(true);
+  const [backupFrequency, setBackupFrequency] = useState("Weekly");
+  const [retentionDays, setRetentionDays] = useState("90");
+  const [exportFormat, setExportFormat] = useState("CSV");
 
-    // System
-    const [maintenanceMode, setMaintenanceMode] = useState(false);
-    const [debugMode, setDebugMode] = useState(false);
-    const [apiRateLimit, setApiRateLimit] = useState("100");
-    const [cacheEnabled, setCacheEnabled] = useState(true);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
+  const [apiRateLimit, setApiRateLimit] = useState("100");
+  const [cacheEnabled, setCacheEnabled] = useState(true);
 
-    const mockLogs = [
-      { id: 1, action: "Volunteer Approved", user: "Admin", time: "2 min ago", type: "success" },
-      { id: 2, action: "Drive Created", user: "Admin", time: "1 hr ago", type: "info" },
-      { id: 3, action: "Message Sent", user: "Admin", time: "3 hrs ago", type: "info" },
-      { id: 4, action: "Failed Login Attempt", user: "unknown@ip", time: "5 hrs ago", type: "warning" },
-      { id: 5, action: "Attendance Marked", user: "Admin", time: "6 hrs ago", type: "success" },
-      { id: 6, action: "Volunteer Registered", user: "System", time: "1 day ago", type: "info" },
-      { id: 7, action: "Backup Completed", user: "System", time: "1 day ago", type: "success" },
-    ];
+  const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
+    { id: "account", label: "Account", icon: UserCircle },
+    { id: "security", label: "Security", icon: Shield },
+    { id: "appearance", label: "Appearance", icon: Palette },
+    { id: "data", label: "Data & Backup", icon: Database },
+    { id: "system", label: "System", icon: Server },
+  ];
 
-    const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
-      { id: "account", label: "Account", icon: UserCircle },
-      { id: "security", label: "Security", icon: Shield },
-      { id: "appearance", label: "Appearance", icon: Palette },
-      { id: "data", label: "Data & Backup", icon: Database },
-      { id: "system", label: "System", icon: Server },
-    ];
-
-    const handleSave = () => {
-      setSaving(true);
-      setTimeout(() => { setSaving(false); toast.success("Settings saved successfully ✅"); }, 900);
-    };
-    const exportItems = [
-      {
-        label: "Volunteers",
-        count: volunteers.length,
-        icon: "👥",
-        data: volunteers,
-      },
-
-      {
-        label: "Drives",
-        count: drives.length,
-        icon: "🌊",
-        data: drives,
-      },
-
-      {
-        label: "Attendance",
-        count: attendance.length,
-        icon: "📋",
-        data: attendance,
-      },
-
-      {
-        label: "Messages",
-        count: messages.length,
-        icon: "📧",
-        data: messages,
-      },
-    ];
-    const handleExport = (
-      label: string,
-      data: any[],
-    ) => {
-
-      if (!data?.length) {
-        toast.error("No data available");
-        return;
-      }
-
-      // JSON EXPORT
-      if (exportFormat === "JSON") {
-
-        const blob = new Blob(
-          [JSON.stringify(data, null, 2)],
-          {
-            type: "application/json",
-          }
-        );
-
-        const url =
-          URL.createObjectURL(blob);
-
-        const a =
-          document.createElement("a");
-
-        a.href = url;
-
-        a.download =
-          `${label}.json`;
-
-        a.click();
-
-        URL.revokeObjectURL(url);
-
-        toast.success(
-          `${label} exported`
-        );
-
-        return;
-      }
-
-      // CSV EXPORT
-      if (exportFormat === "CSV") {
-
-        const headers =
-          Object.keys(data[0]);
-
-        const rows =
-          data.map((row) =>
-            headers.map(
-              (h) => row[h]
-            )
-          );
-
-        const csv =
-          [
-            headers.join(","),
-            ...rows.map((r) =>
-              r.join(",")
-            ),
-          ].join("\n");
-
-        const blob = new Blob(
-          [csv],
-          { type: "text/csv" }
-        );
-
-        const url =
-          URL.createObjectURL(blob);
-
-        const a =
-          document.createElement("a");
-
-        a.href = url;
-
-        a.download =
-          `${label}.csv`;
-
-        a.click();
-
-        URL.revokeObjectURL(url);
-
-        toast.success(
-          `${label} exported`
-        );
-
-        return;
-      }
-
-      toast("Excel export coming soon");
-    };
-
-    return (
-      <div>
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold themed-text">Settings</h1>
-          <p className="themed-secondary mt-1">Manage your organization's configuration, security, and integrations.</p>
-        </div>
-
-        <div className="flex gap-6">
-          {/* Sidebar Tabs */}
-          <div className="w-52 flex-shrink-0">
-            <nav className="space-y-1 sticky top-4">
-              {TABS.map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left ${activeTab === tab.id ? "accent-nav-active shadow-md" : "themed-secondary themed-hover"}`}>
-                  <tab.icon size={16} />{tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0 space-y-5">
-
-            {/* ── ACCOUNT ── */}
-            {activeTab === "account" && (
-              <SettingsCard title="Organization Profile" description="Basic details about your organization" icon={UserCircle}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  {[
-                    { label: "Organization Name", val: orgName, set: setOrgName, type: "text" },
-                    { label: "Admin Name", val: adminName, set: setAdminName, type: "text" },
-                    { label: "Admin Email", val: adminEmail, set: setAdminEmail, type: "email" },
-                  ].map(f => (
-                    <div key={f.label}>
-                      <label className="block text-xs font-bold themed-muted uppercase tracking-widest mb-1.5">{f.label}</label>
-                      <input type={f.type} value={f.val} onChange={e => f.set(e.target.value)}
-                        className="w-full border rounded-xl px-4 py-2.5 text-sm transition input-themed" />
-                    </div>
-                  ))}
-                </div>
-                <button onClick={handleSave} disabled={saving}
-                  className="flex items-center gap-2 accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-60">
-                  {saving ? <Spinner size={14} /> : <Save size={14} />} Save Changes
-                </button>
-              </SettingsCard>
-            )}
-
-            {/* ── SECURITY ── */}
-            {activeTab === "security" && (
-              <>
-                <SettingsCard title="Change Password" description="Update your admin account password" icon={Key}>
-                  <div className="space-y-3">
-                    {[
-                      { label: "Current Password", val: currentPassword, set: setCurrentPassword },
-                      { label: "New Password", val: newPassword, set: setNewPassword },
-                      { label: "Confirm New Password", val: confirmPassword, set: setConfirmPassword },
-                    ].map(f => (
-                      <div key={f.label}>
-                        <label className="block text-xs font-bold themed-muted uppercase tracking-widest mb-1.5">{f.label}</label>
-                        <input type="password" value={f.val} onChange={e => f.set(e.target.value)} placeholder="••••••••"
-                          className="w-full border rounded-xl px-4 py-2.5 text-sm transition input-themed" />
-                      </div>
-                    ))}
-                    {newPassword && confirmPassword && newPassword !== confirmPassword && (
-                      <p className="text-xs text-red-500 flex items-center gap-1"><AlertTriangle size={12} /> Passwords do not match</p>
-                    )}
-                    <button onClick={() => { toast.success("Password updated!"); setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); }}
-                      disabled={!currentPassword || !newPassword || newPassword !== confirmPassword}
-                      className="flex items-center gap-2 accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-40">
-                      <Lock size={14} /> Update Password
-                    </button>
-                  </div>
-                </SettingsCard>
-
-                <SettingsCard title="Two-Factor Authentication" description="Add an extra layer of security" icon={Shield}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <p className="font-semibold text-sm themed-text">Authenticator App (TOTP)</p>
-                      <p className="text-xs themed-muted mt-0.5">Use Google Authenticator or Authy to generate codes</p>
-                    </div>
-                    <button onClick={() => { setTwoFactor(v => !v); toast.success(twoFactor ? "2FA disabled" : "2FA enabled!"); }}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${twoFactor ? "accent-bg" : "bg-slate-200 dark:bg-slate-600"}`}>
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-200 ${twoFactor ? "translate-x-6" : "translate-x-1"}`} />
-                    </button>
-                  </div>
-                  {twoFactor && (
-                    <div className="accent-bg-soft rounded-xl p-3 flex items-center gap-2 accent-text text-sm font-medium">
-                      <CheckCircle2 size={16} /> 2FA is active — your account is secure
-                    </div>
-                  )}
-                </SettingsCard>
-              </>
-            )}
-
-            {/* ── APPEARANCE ── */}
-            {activeTab === "appearance" && (
-              <>
-                <SettingsCard title="Theme" description="Choose how the portal looks" icon={Palette}>
-                  {/* Theme picker */}
-                  <div className="flex gap-3 mb-6">
-                    {([
-                      { val: "light", label: "Light", icon: Sun },
-                      { val: "dark", label: "Dark", icon: Moon },
-                      { val: "system", label: "System", icon: Monitor },
-                    ] as const).map(t => (
-                      <button key={t.val} onClick={() => setTheme(t.val)}
-                        className={`flex-1 flex flex-col items-center gap-2 py-4 rounded-2xl border-2 transition font-semibold text-sm ${theme === t.val ? "accent-border accent-bg-soft accent-text" : "border-slate-200 themed-secondary themed-hover"}`}>
-                        <t.icon size={22} />
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                </SettingsCard>
-              </>
-            )}
-
-            {/* ── DATA & BACKUP ── */}
-            {activeTab === "data" && (
-              <>
-                <SettingsCard title="Automated Backups" description="Configure scheduled data backups" icon={Cloud}>
-                  <Toggle enabled={autoBackup} onChange={setAutoBackup} label="Enable Auto Backup" description="Automatically backup all data on schedule" />
-                  <div className={`mt-4 grid grid-cols-2 gap-3 transition-opacity ${autoBackup ? "" : "opacity-40 pointer-events-none"}`}>
-                    <div>
-                      <label className="block text-xs font-bold themed-muted uppercase tracking-widest mb-1.5">Frequency</label>
-                      <select value={backupFrequency} onChange={e => setBackupFrequency(e.target.value)} className="w-full border rounded-xl px-4 py-2.5 text-sm transition input-themed">
-                        <option>Daily</option><option>Weekly</option><option>Monthly</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold themed-muted uppercase tracking-widest mb-1.5">Retention (days)</label>
-                      <input type="number" value={retentionDays} onChange={e => setRetentionDays(e.target.value)} className="w-full border rounded-xl px-4 py-2.5 text-sm transition input-themed" />
-                    </div>
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <button onClick={() => toast.success("Manual backup started!")} className="flex items-center gap-1.5 text-sm font-semibold accent-text px-4 py-2 accent-bg-soft rounded-xl hover:accent-bg-soft-dark transition">
-                      <HardDrive size={14} /> Backup Now
-                    </button>
-                    <button onClick={handleSave} disabled={saving} className="flex items-center gap-1.5 accent-bg accent-bg-hover text-white px-4 py-2 rounded-xl text-sm font-bold transition disabled:opacity-60">
-                      {saving ? <Spinner size={14} /> : <Save size={14} />} Save Settings
-                    </button>
-                  </div>
-                </SettingsCard>
-
-                <SettingsCard title="Export Data" description="Download your data in various formats" icon={Download}>
-                  <div className="flex gap-2 mb-4 flex-wrap">
-                    {["CSV", "JSON", "Excel"].map(f => (
-                      <button key={f} onClick={() => setExportFormat(f)}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition ${exportFormat === f ? "accent-bg text-white" : "themed-subtle themed-secondary themed-hover"}`}>{f}</button>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {exportItems.map(item => (
-                      <button key={item.label} onClick={() => handleExport(item.label, item.data)}
-                        className="flex items-center justify-between p-3 themed-subtle rounded-xl border themed-border themed-hover transition text-left group">
-                        <div>
-                          <p className="text-xs font-bold themed-muted uppercase tracking-widest">{item.icon} {item.label}</p>
-                          <p className="font-black themed-text mt-0.5">{item.count} records</p>
-                        </div>
-                        <Download size={16} className="themed-muted group-hover:accent-text transition" />
-                      </button>
-                    ))}
-                  </div>
-                </SettingsCard>
-
-                <SettingsCard title="Import Data" description="Bulk upload volunteers or drives via CSV" icon={Upload}>
-                  <div className="border-2 border-dashed themed-border rounded-2xl p-8 text-center hover:border-current themed-hover transition cursor-pointer group"
-                    onClick={() => toast("CSV upload coming soon!")}>
-                    <Upload size={24} className="mx-auto themed-muted group-hover:accent-text transition mb-2" />
-                    <p className="text-sm font-semibold themed-secondary">Click to upload a CSV file</p>
-                    <p className="text-xs themed-muted mt-1">Max 5MB · Supported: volunteers, drives</p>
-                  </div>
-                </SettingsCard>
-              </>
-            )}
-
-            {/* ── SYSTEM ── */}
-            {activeTab === "system" && (
-              <>
-
-
-
-                <SettingsCard title="Danger Zone" description="Irreversible actions — proceed with caution" icon={AlertTriangle} danger>
-                  <div className="space-y-3">
-                    {[
-                      { label: "Reset All Settings", desc: "Restore all settings to default values", action: () => toast.success("Settings reset"), btnLabel: "Reset", color: "orange" },
-                    ].map((item, i) => (
-                      <div key={i} className={`flex items-center justify-between py-2 ${i > 0 ? "border-t themed-border" : ""}`}>
-                        <div>
-                          <p className="text-sm font-semibold themed-text">{item.label}</p>
-                          <p className="text-xs themed-muted">{item.desc}</p>
-                        </div>
-                        <button onClick={item.action} className="text-sm font-bold text-orange-600 px-4 py-2 bg-orange-50 rounded-xl hover:bg-orange-100 transition">{item.btnLabel}</button>
-                      </div>
-                    ))}
-                    <div className="flex items-center justify-between py-2 border-t border-red-100">
-                      <div>
-                        <p className="text-sm font-semibold text-red-700">Delete All Data</p>
-                        <p className="text-xs text-red-400">Permanently erase all volunteers, drives, and records</p>
-                      </div>
-                      <button onClick={() => setShowDeleteConfirm(true)} className="text-sm font-bold text-red-600 px-4 py-2 bg-red-50 rounded-xl hover:bg-red-100 transition border border-red-200">Delete</button>
-                    </div>
-                  </div>
-                </SettingsCard>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Delete Confirm Modal */}
-        <AnimatePresence>
-          {showDeleteConfirm && (
-            <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)} />
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-                className="fixed inset-0 flex items-center justify-center z-50 px-4">
-                <div className="themed-card w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center border themed-border">
-                  <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <AlertTriangle size={24} className="text-red-600" />
-                  </div>
-                  <h3 className="text-lg font-black themed-text mb-2">Delete All Data?</h3>
-                  <p className="text-sm themed-secondary mb-6">This will permanently erase all volunteers, drives, attendance, and messages. This action cannot be undone.</p>
-                  <div className="flex gap-3">
-                    <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 themed-subtle rounded-xl font-semibold text-sm themed-secondary">Cancel</button>
-                    <button onClick={() => { setShowDeleteConfirm(false); toast.error("All data deleted (demo only)"); }} className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition">Yes, Delete</button>
-                  </div>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </div>
-    );
+  const handleSave = () => {
+    setSaving(true);
+    setTimeout(() => { setSaving(false); toast.success("Settings saved successfully ✅"); }, 900);
   };
 
-// Workaround for missing EyeOff
+  const exportItems = [
+    { label: "Volunteers", count: volunteers.length, icon: "👥", data: volunteers },
+    { label: "Drives", count: drives.length, icon: "🌊", data: drives },
+    { label: "Attendance", count: attendance.length, icon: "📋", data: attendance },
+    { label: "Messages", count: messages.length, icon: "📧", data: messages },
+  ];
+
+  const handleExport = (label: string, data: any[]) => {
+    if (!data?.length) { toast.error("No data available"); return; }
+
+    if (exportFormat === "JSON") {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `${label}.json`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`${label} exported`);
+      return;
+    }
+
+    if (exportFormat === "CSV") {
+      const headers = Object.keys(data[0]);
+      const rows = data.map(row => headers.map(h => row[h]));
+      const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `${label}.csv`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`${label} exported`);
+      return;
+    }
+
+    toast("Excel export coming soon");
+  };
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold themed-text">Settings</h1>
+        <p className="themed-secondary mt-1">Manage your organization's configuration, security, and integrations.</p>
+      </div>
+
+      <div className="flex gap-6">
+        <div className="w-52 flex-shrink-0">
+          <nav className="space-y-1 sticky top-4">
+            {TABS.map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left ${activeTab === tab.id ? "accent-nav-active shadow-md" : "themed-secondary themed-hover"}`}>
+                <tab.icon size={16} />{tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex-1 min-w-0 space-y-5">
+
+          {activeTab === "account" && (
+            <SettingsCard title="Organization Profile" description="Basic details about your organization" icon={UserCircle}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                {[
+                  { label: "Organization Name", val: orgName, set: setOrgName, type: "text" },
+                  { label: "Admin Name", val: adminName, set: setAdminName, type: "text" },
+                  { label: "Admin Email", val: adminEmail, set: setAdminEmail, type: "email" },
+                ].map(f => (
+                  <div key={f.label}>
+                    <label className="block text-xs font-bold themed-muted uppercase tracking-widest mb-1.5">{f.label}</label>
+                    <input type={f.type} value={f.val} onChange={e => f.set(e.target.value)}
+                      className="w-full border rounded-xl px-4 py-2.5 text-sm transition input-themed" />
+                  </div>
+                ))}
+              </div>
+              <button onClick={handleSave} disabled={saving}
+                className="flex items-center gap-2 accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-60">
+                {saving ? <Spinner size={14} /> : <Save size={14} />} Save Changes
+              </button>
+            </SettingsCard>
+          )}
+
+          {activeTab === "security" && (
+            <SettingsCard title="Change Password" description="Update your admin account password" icon={Key}>
+              <div className="space-y-3">
+                {[
+                  { label: "Current Password", val: currentPassword, set: setCurrentPassword },
+                  { label: "New Password", val: newPassword, set: setNewPassword },
+                  { label: "Confirm New Password", val: confirmPassword, set: setConfirmPassword },
+                ].map(f => (
+                  <div key={f.label}>
+                    <label className="block text-xs font-bold themed-muted uppercase tracking-widest mb-1.5">{f.label}</label>
+                    <input type="password" value={f.val} onChange={e => f.set(e.target.value)} placeholder="••••••••"
+                      className="w-full border rounded-xl px-4 py-2.5 text-sm transition input-themed" />
+                  </div>
+                ))}
+                {newPassword && confirmPassword && newPassword !== confirmPassword && (
+                  <p className="text-xs text-red-500 flex items-center gap-1"><AlertTriangle size={12} /> Passwords do not match</p>
+                )}
+                <button
+                  onClick={() => { toast.success("Password updated!"); setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); }}
+                  disabled={!currentPassword || !newPassword || newPassword !== confirmPassword}
+                  className="flex items-center gap-2 accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-40">
+                  <Lock size={14} /> Update Password
+                </button>
+              </div>
+            </SettingsCard>
+          )}
+
+          {activeTab === "appearance" && (
+            <SettingsCard title="Theme" description="Choose how the portal looks" icon={Palette}>
+              <div className="flex gap-3 mb-6">
+                {([
+                  { val: "light", label: "Light", icon: Sun },
+                  { val: "dark", label: "Dark", icon: Moon },
+                  { val: "system", label: "System", icon: Monitor },
+                ] as const).map(t => (
+                  <button key={t.val} onClick={() => setTheme(t.val)}
+                    className={`flex-1 flex flex-col items-center gap-2 py-4 rounded-2xl border-2 transition font-semibold text-sm ${theme === t.val ? "accent-border accent-bg-soft accent-text" : "border-slate-200 themed-secondary themed-hover"}`}>
+                    <t.icon size={22} />
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </SettingsCard>
+          )}
+
+          {activeTab === "data" && (
+            <>
+              <SettingsCard title="Automated Backups" description="Configure scheduled data backups" icon={Cloud}>
+                <Toggle enabled={autoBackup} onChange={setAutoBackup} label="Enable Auto Backup" description="Automatically backup all data on schedule" />
+                <div className={`mt-4 grid grid-cols-2 gap-3 transition-opacity ${autoBackup ? "" : "opacity-40 pointer-events-none"}`}>
+                  <div>
+                    <label className="block text-xs font-bold themed-muted uppercase tracking-widest mb-1.5">Frequency</label>
+                    <select value={backupFrequency} onChange={e => setBackupFrequency(e.target.value)} className="w-full border rounded-xl px-4 py-2.5 text-sm transition input-themed">
+                      <option>Daily</option><option>Weekly</option><option>Monthly</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold themed-muted uppercase tracking-widest mb-1.5">Retention (days)</label>
+                    <input type="number" value={retentionDays} onChange={e => setRetentionDays(e.target.value)} className="w-full border rounded-xl px-4 py-2.5 text-sm transition input-themed" />
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <button onClick={() => toast.success("Manual backup started!")} className="flex items-center gap-1.5 text-sm font-semibold accent-text px-4 py-2 accent-bg-soft rounded-xl hover:accent-bg-soft-dark transition">
+                    <HardDrive size={14} /> Backup Now
+                  </button>
+                  <button onClick={handleSave} disabled={saving} className="flex items-center gap-1.5 accent-bg accent-bg-hover text-white px-4 py-2 rounded-xl text-sm font-bold transition disabled:opacity-60">
+                    {saving ? <Spinner size={14} /> : <Save size={14} />} Save Settings
+                  </button>
+                </div>
+              </SettingsCard>
+
+              <SettingsCard title="Export Data" description="Download your data" icon={Download}>
+                <div className="flex gap-2 mb-4 flex-wrap">
+                  {["CSV"].map(f => (
+                    <button key={f} onClick={() => setExportFormat(f)}
+                      className={`px-4 py-2 rounded-xl text-sm font-bold transition ${exportFormat === f ? "accent-bg text-white" : "themed-subtle themed-secondary themed-hover"}`}>{f}</button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {exportItems.map(item => (
+                    <button key={item.label} onClick={() => handleExport(item.label, item.data)}
+                      className="flex items-center justify-between p-3 themed-subtle rounded-xl border themed-border themed-hover transition text-left group">
+                      <div>
+                        <p className="text-xs font-bold themed-muted uppercase tracking-widest">{item.icon} {item.label}</p>
+                        <p className="font-black themed-text mt-0.5">{item.count} records</p>
+                      </div>
+                      <Download size={16} className="themed-muted group-hover:accent-text transition" />
+                    </button>
+                  ))}
+                </div>
+              </SettingsCard>
+
+              <SettingsCard title="Import Data" description="Bulk upload volunteers or drives via CSV" icon={Upload}>
+                <div className="border-2 border-dashed themed-border rounded-2xl p-8 text-center hover:border-current themed-hover transition cursor-pointer group"
+                  onClick={() => toast("CSV upload coming soon!")}>
+                  <Upload size={24} className="mx-auto themed-muted group-hover:accent-text transition mb-2" />
+                  <p className="text-sm font-semibold themed-secondary">Click to upload a CSV file</p>
+                  <p className="text-xs themed-muted mt-1">Max 5MB · Supported: volunteers, drives</p>
+                </div>
+              </SettingsCard>
+            </>
+          )}
+
+          {activeTab === "system" && (
+            <SettingsCard title="Danger Zone" description="Irreversible actions — proceed with caution" icon={AlertTriangle} danger>
+              <div className="space-y-3">
+                {[
+                  { label: "Reset All Settings", desc: "Restore all settings to default values", action: () => toast.success("Settings reset"), btnLabel: "Reset" },
+                ].map((item, i) => (
+                  <div key={i} className={`flex items-center justify-between py-2 ${i > 0 ? "border-t themed-border" : ""}`}>
+                    <div>
+                      <p className="text-sm font-semibold themed-text">{item.label}</p>
+                      <p className="text-xs themed-muted">{item.desc}</p>
+                    </div>
+                    <button onClick={item.action} className="text-sm font-bold text-orange-600 px-4 py-2 bg-orange-50 rounded-xl hover:bg-orange-100 transition">{item.btnLabel}</button>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between py-2 border-t border-red-100">
+                  <div>
+                    <p className="text-sm font-semibold text-red-700">Delete All Data</p>
+                    <p className="text-xs text-red-400">Permanently erase all volunteers, drives, and records</p>
+                  </div>
+                  <button onClick={() => setShowDeleteConfirm(true)} className="text-sm font-bold text-red-600 px-4 py-2 bg-red-50 rounded-xl hover:bg-red-100 transition border border-red-200">Delete</button>
+                </div>
+              </div>
+            </SettingsCard>
+          )}
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)} />
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-0 flex items-center justify-center z-50 px-4">
+              <div className="themed-card w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center border themed-border">
+                <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle size={24} className="text-red-600" />
+                </div>
+                <h3 className="text-lg font-black themed-text mb-2">Delete All Data?</h3>
+                <p className="text-sm themed-secondary mb-6">This will permanently erase all volunteers, drives, attendance, and messages. This action cannot be undone.</p>
+                <div className="flex gap-3">
+                  <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 themed-subtle rounded-xl font-semibold text-sm themed-secondary">Cancel</button>
+                  <button onClick={() => { setShowDeleteConfirm(false); toast.error("All data deleted (demo only)"); }} className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition">Yes, Delete</button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ─── EYE OFF WORKAROUND ───────────────────────────────────────────────────────
+
 const EyeOff: React.FC<{ size: number }> = ({ size }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
@@ -799,10 +759,15 @@ const EyeOff: React.FC<{ size: number }> = ({ size }) => (
 );
 
 // ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
+
 export default function AdvancedDashboard() {
   // ── Theme State ──────────────────────────────────────────────────────────
   const [theme, setThemeState] = useState<ThemeMode>("light");
-  const [accent, setAccentState] = useState<AccentPalette>({ hex: "#10b981", name: "Emerald", 50: "#ecfdf5", 100: "#d1fae5", 200: "#a7f3d0", 400: "#34d399", 500: "#10b981", 600: "#059669", 700: "#047857", 900: "#064e3b", shadow: "rgba(16,185,129,0.25)" });
+  const [accent, setAccentState] = useState<AccentPalette>({
+    hex: "#10b981", name: "Emerald", 50: "#ecfdf5", 100: "#d1fae5", 200: "#a7f3d0",
+    400: "#34d399", 500: "#10b981", 600: "#059669", 700: "#047857", 900: "#064e3b",
+    shadow: "rgba(16,185,129,0.25)",
+  });
 
   const setTheme = useCallback((t: ThemeMode) => {
     setThemeState(t);
@@ -815,10 +780,12 @@ export default function AdvancedDashboard() {
     toast.success(`Accent changed to ${a.name} 🎨`);
   }, [theme]);
 
-  // Apply on first render
+  const [selectedDrive, setSelectedDrive] =
+    useState<Drive | null>(null);
+
+
   useEffect(() => { applyTheme(theme, accent); }, []); // eslint-disable-line
 
-  // Re-apply when system preference changes
   useEffect(() => {
     if (theme !== "system") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -832,6 +799,9 @@ export default function AdvancedDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<SectionId>("overview");
   const navigate = useNavigate();
+
+  // ── Admin User ───────────────────────────────────────────────────────────
+  const [adminUser, setAdminUser] = useState<any>(null);
 
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [leaderboard, setLeaderboard] = useState<{ name: string; kg: number; drives: number; rank: number }[]>([]);
@@ -853,7 +823,12 @@ export default function AdvancedDashboard() {
   const [selectedVolunteer, setSelectedVolunteer] = useState<Volunteer | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<MessageItem | null>(null);
 
-  const [driveForm, setDriveForm] = useState({ date: "", locationId: "", totalHours: "", expiryDate: "" });
+  const [driveForm, setDriveForm] = useState({
+    title: "",
+    location: "",
+    date: "",
+    totalHours: "",
+  });
   const [attendanceForm, setAttendanceForm] = useState({ name: "", email: "", drive: "", hours: "" });
   const [volunteerForm, setVolunteerForm] = useState({ name: "", email: "", city: "", age: "", password: "" });
   const [messageForm, setMessageForm] = useState({ title: "", content: "" });
@@ -898,7 +873,11 @@ export default function AdvancedDashboard() {
         id: v.id, name: v.name, email: v.email, city: v.city ?? "Unknown", age: v.age ?? 0,
         drives: v.drives ?? 0, status: v.status ?? "Pending",
         joined: new Date(v.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" }),
-        isNew: v.isNew ?? false,
+        isNew:
+          Date.now() -
+          new Date(v.createdAt).getTime()
+          <
+          7 * 24 * 60 * 60 * 1000,
       }));
       setVolunteers(mapped);
     } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to load volunteers"); }
@@ -923,21 +902,28 @@ export default function AdvancedDashboard() {
     finally { setLoadingMessages(false); }
   }, []);
 
+  // ── Load admin user from localStorage ────────────────────────────────────
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) setAdminUser(JSON.parse(user));
+  }, []);
+
   useEffect(() => {
     const init = async () => { await fetchDashboardStats(); setAppLoading(false); };
     init();
   }, [fetchDashboardStats]);
 
   useEffect(() => {
-    if (activeNav === "drives") fetchDrives();
-    if (activeNav === "attendance") { fetchAttendance(); if (drives.length === 0) fetchDrives(); }
-    if (activeNav === "volunteers") fetchVolunteers();
-    if (activeNav === "messages") fetchMessages();
-  }, [activeNav, drives.length, fetchDrives, fetchAttendance, fetchVolunteers, fetchMessages]);
+    fetchDrives();
+    fetchAttendance();
+    fetchVolunteers();
+    fetchMessages();
+  }, [fetchDrives, fetchAttendance, fetchVolunteers, fetchMessages]);
 
   // ── Nav & Auth ────────────────────────────────────────────────────────────
 
   const goTo = (section: SectionId) => { setActiveNav(section); setIsMobileMenuOpen(false); };
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -991,22 +977,69 @@ export default function AdvancedDashboard() {
   // ── Action handlers ────────────────────────────────────────────────────────
 
   const handleCreateDrive = async () => {
-    if (!driveForm.date || !driveForm.locationId || !driveForm.totalHours || !driveForm.expiryDate) { toast.error("Fill all required fields"); return; }
+
+    if (
+      !driveForm.title ||
+      !driveForm.location ||
+      !driveForm.date ||
+      !driveForm.totalHours
+    ) {
+      toast.error("Fill all required fields");
+      return;
+    }
+
     setSubmitting(true);
+
     try {
-      const locationId = Number(driveForm.locationId);
-      if (!locationId) { toast.error("Invalid location ID"); setSubmitting(false); return; }
-      const res = await API.post("/drive/newdrive", {
-        date: new Date(driveForm.date).toISOString(), locationId,
-        totalHours: Number(driveForm.totalHours), expiryDate: new Date(driveForm.expiryDate).toISOString(),
-      });
-      setDrives(prev => [res.data.drive ?? res.data, ...prev]);
+
+      const res = await API.post(
+        "/drive/newdrive",
+        {
+          title: driveForm.title,
+
+          location: driveForm.location,
+
+          date: new Date(
+            driveForm.date
+          ).toISOString(),
+
+          totalHours: Number(
+            driveForm.totalHours
+          ),
+
+        }
+      );
+
+      setDrives(prev => [
+        res.data.drive ?? res.data,
+        ...prev,
+      ]);
+
       setShowDriveModal(false);
-      setDriveForm({ date: "", locationId: "", totalHours: "", expiryDate: "" });
+
+      setDriveForm({
+        title: "",
+        location: "",
+        date: "",
+        totalHours: "",
+      });
+
       toast.success("Drive created 🚀");
+
       fetchDashboardStats();
-    } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to create drive"); }
-    finally { setSubmitting(false); }
+
+    } catch (err: any) {
+
+      toast.error(
+        err?.response?.data?.message ||
+        "Failed to create drive"
+      );
+
+    } finally {
+
+      setSubmitting(false);
+
+    }
   };
 
   const handleMarkAttendance = async () => {
@@ -1097,6 +1130,7 @@ export default function AdvancedDashboard() {
     overview: "Dashboard Overview", drives: "Drives", attendance: "Attendance",
     volunteers: "Volunteers", messages: "Messages", settings: "Settings",
   };
+
   const pendingBadge = pendingVolunteers > 0 ? `${pendingVolunteers} Pending` : undefined;
 
   // ── Sidebar ───────────────────────────────────────────────────────────────
@@ -1124,18 +1158,6 @@ export default function AdvancedDashboard() {
           );
         })}
       </nav>
-      {/* Milestone Card */}
-      <div className="milestone-card p-6 rounded-[2rem] text-white relative overflow-hidden mt-auto">
-        <div className="absolute -right-4 -bottom-4 text-white/10 rotate-45"><Leaf size={120} /></div>
-        <div className="relative z-10">
-          <p className="text-[10px] font-bold text-white/60 uppercase mb-2">Next Milestone</p>
-          <h4 className="text-lg font-bold mb-4">Platinum Status</h4>
-          <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-            <motion.div initial={{ width: 0 }} animate={{ width: "65%" }} className="h-full milestone-progress" />
-          </div>
-          <p className="text-[10px] mt-3 text-white/40 font-medium">14/20 Sundays Completed</p>
-        </div>
-      </div>
     </div>
   );
 
@@ -1168,25 +1190,31 @@ export default function AdvancedDashboard() {
         <Sidebar />
 
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          {/* Header */}
+          {/* ── Header ── */}
           <header className="h-20 themed-header backdrop-blur-md border-b themed-border flex items-center justify-between px-6 lg:px-12 flex-shrink-0 z-30">
             <div className="flex items-center gap-4">
-              <button onClick={() => setIsMobileMenuOpen(true)} className="xl:hidden p-2 themed-hover rounded-full"><Menu size={20} className="themed-secondary" /></button>
+              <button onClick={() => setIsMobileMenuOpen(true)} className="xl:hidden p-2 themed-hover rounded-full">
+                <Menu size={20} className="themed-secondary" />
+              </button>
+              {/* Personalized header title */}
               <div>
                 <p className="text-xs font-bold accent-text uppercase tracking-[0.2em]">Volunteer Admin</p>
-                <h1 className="text-xl lg:text-2xl font-black tracking-tight themed-text">{sectionTitle[activeNav]}</h1>
+                <h1 className="text-xl lg:text-2xl font-black tracking-tight themed-text">{sectionTitle[activeNav]}
+                </h1>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {/* Accent quick-switcher in header */}
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5">
-              </div>
-              <div className="h-8 w-px themed-border" style={{ background: "var(--border-color)" }} />
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5" />
+              <div className="h-8 w-px" style={{ background: "var(--border-color)" }} />
               <button onClick={() => goTo("messages")} className="relative p-2 themed-hover rounded-full transition">
                 <Bell size={20} className="themed-secondary" />
               </button>
-              <button onClick={() => goTo("settings")} className="p-2 themed-hover rounded-full transition"><Settings size={20} className="themed-secondary" /></button>
-              <button onClick={handleLogout} className="p-2 themed-hover rounded-full transition"><LogOut size={20} className="themed-secondary" /></button>
+              <button onClick={() => goTo("settings")} className="p-2 themed-hover rounded-full transition">
+                <Settings size={20} className="themed-secondary" />
+              </button>
+              <button onClick={handleLogout} className="p-2 themed-hover rounded-full transition">
+                <LogOut size={20} className="themed-secondary" />
+              </button>
             </div>
           </header>
 
@@ -1195,10 +1223,31 @@ export default function AdvancedDashboard() {
             {/* ── OVERVIEW ── */}
             {activeNav === "overview" && (
               <>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold themed-text">Dashboard Overview</h1>
-                  <p className="themed-secondary mt-1">Track drive performance, volunteer engagement, and impact metrics.</p>
-                </div>
+                {/* Welcome Hero Banner */}
+                <motion.div
+                  initial={{ opacity: 0, y: -16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="mb-8 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl"
+                  style={{ background: "linear-gradient(135deg, var(--accent-900) 0%, #1e293b 100%)" }}
+                >
+                  <div className="relative z-10">
+                    <p className="text-sm font-semibold mb-2" style={{ color: "var(--accent-400)" }}>
+                      Welcome back 👋
+                    </p>
+                    <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-3">
+                      {adminUser?.name || "Admin"}
+                    </h1>
+                    <p className="text-white/60 text-base lg:text-lg">
+                      Manage drives, volunteers, attendance and impact metrics.
+                    </p>
+                  </div>
+                  <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+                    <Leaf size={240} />
+                  </div>
+                </motion.div>
+
+                {/* Metric Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                   {appLoading
                     ? Array.from({ length: 4 }).map((_, i) => (
@@ -1217,6 +1266,8 @@ export default function AdvancedDashboard() {
                     ))
                   }
                 </div>
+
+                {/* Charts + Leaderboard */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-2 themed-card p-8 rounded-[2.5rem] border themed-border shadow-sm h-96">
                     <h3 className="text-xl font-black mb-1 themed-text">Weekly Velocity</h3>
@@ -1246,6 +1297,7 @@ export default function AdvancedDashboard() {
                       </ResponsiveContainer>
                     )}
                   </div>
+
                   <div className="milestone-card p-8 rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16" />
                     <h3 className="text-xl font-black mb-1 relative z-10">Leaderboard</h3>
@@ -1258,9 +1310,15 @@ export default function AdvancedDashboard() {
                           <div key={u.name} className="flex items-center justify-between px-4 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition">
                             <div className="flex items-center gap-3">
                               <span className={`text-lg font-black ${getRankColor(u.rank)}`}>#{u.rank}</span>
-                              <div><p className="font-bold text-sm">{u.name}</p><p className="text-xs text-white/40">{u.drives} Drives</p></div>
+                              <div>
+                                <p className="font-bold text-sm">{u.name}</p>
+                                <p className="text-xs text-white/40">{u.drives} Drives</p>
+                              </div>
                             </div>
-                            <div className="text-right"><p className="font-black">{u.kg} kg</p><p className="text-xs text-white/30">Collected</p></div>
+                            <div className="text-right">
+                              <p className="font-black">{u.kg} kg</p>
+                              <p className="text-xs text-white/30">Collected</p>
+                            </div>
                           </div>
                         ))}
                         {leaderboard.length === 0 && <p className="text-white/30 text-sm text-center py-4">No data yet.</p>}
@@ -1275,13 +1333,17 @@ export default function AdvancedDashboard() {
             {activeNav === "drives" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <div><h1 className="text-2xl font-bold themed-text">Drives</h1><p className="themed-secondary text-sm">Manage and track all cleanup drives.</p></div>
-                  <button onClick={() => setShowDriveModal(true)} className="accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition accent-shadow flex items-center gap-2"><Plus size={16} /> Create Drive</button>
+                  <div>
+                    <h1 className="text-2xl font-bold themed-text">Drives</h1>
+                    <p className="themed-secondary text-sm">Manage and track all cleanup drives.</p>
+                  </div>
+                  <button onClick={() => setShowDriveModal(true)} className="accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition accent-shadow flex items-center gap-2">
+                    <Plus size={16} /> Create Drive
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                   {[
                     { label: "Total Drives", val: drives.length },
-                    { label: "Upcoming", val: drives.filter(d => new Date(d.expiryDate) > new Date()).length },
                   ].map(s => (
                     <div key={s.label} className="themed-card rounded-2xl p-5 border themed-border shadow-sm">
                       <p className="text-xs font-bold themed-muted uppercase tracking-widest mb-1">{s.label}</p>
@@ -1295,16 +1357,37 @@ export default function AdvancedDashboard() {
                       <motion.div key={drive.id} layout className="themed-card p-5 rounded-2xl shadow-sm border themed-border themed-hover transition">
                         <div className="mb-4">
                           <h2 className="font-bold text-lg themed-text">
-                            Drive — {new Date(drive.date).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" })}
+                            {drive.title || "Cleanup Drive"}
                           </h2>
+
+                          <p className="text-sm themed-muted mt-1">
+                            {new Date(drive.date).toLocaleDateString(
+                              "en-IN",
+                              {
+                                weekday: "long",
+                                day: "numeric",
+                                month: "short",
+                              }
+                            )}
+                          </p>
+
                           <div className="mt-3 space-y-1.5">
-                            <p className="text-sm themed-secondary flex items-center gap-2"><MapPin size={14} className="accent-text shrink-0" />{drive.location ?? "Unknown Location"}</p>
-                            <p className="text-sm themed-secondary flex items-center gap-2"><Clock size={14} className="text-blue-500 shrink-0" />{drive.totalHours} hrs planned</p>
-                            <p className="text-sm themed-secondary flex items-center gap-2"><Calendar size={14} className="text-orange-500 shrink-0" />Expires {new Date(drive.expiryDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
+                            <p className="text-sm themed-secondary flex items-center gap-2">
+                              <MapPin size={14} className="accent-text shrink-0" />
+                              {drive.location ?? "Unknown Location"}
+                            </p>
+
+                            <p className="text-sm themed-secondary flex items-center gap-2">
+                              <Clock size={14} className="text-blue-500 shrink-0" />
+                              {drive.totalHours} hrs planned
+                            </p>
                           </div>
                         </div>
                         <div className="pt-3 border-t themed-border">
-                          <button onClick={() => toast.success(`Viewing drive on ${new Date(drive.date).toLocaleDateString()}`)}
+                          <button
+                            onClick={() =>
+                              setSelectedDrive(drive)
+                            }
                             className="accent-text text-sm font-semibold inline-flex items-center gap-1 accent-text-hover">
                             View Details <ChevronRight size={16} />
                           </button>
@@ -1321,7 +1404,10 @@ export default function AdvancedDashboard() {
             {activeNav === "attendance" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <div><h1 className="text-2xl font-bold themed-text">Attendance</h1><p className="themed-secondary text-sm">Mark and track volunteer attendance across drives.</p></div>
+                  <div>
+                    <h1 className="text-2xl font-bold themed-text">Attendance</h1>
+                    <p className="themed-secondary text-sm">Mark and track volunteer attendance across drives.</p>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {[
@@ -1366,8 +1452,13 @@ export default function AdvancedDashboard() {
             {activeNav === "volunteers" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <div><h1 className="text-2xl font-bold themed-text">Volunteers</h1><p className="themed-secondary text-sm">Manage your volunteer community.</p></div>
-                  <button onClick={() => setShowVolunteerModal(true)} className="accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition accent-shadow flex items-center gap-2"><Plus size={16} /> Add Volunteer</button>
+                  <div>
+                    <h1 className="text-2xl font-bold themed-text">Volunteers</h1>
+                    <p className="themed-secondary text-sm">Manage your volunteer community.</p>
+                  </div>
+                  <button onClick={() => setShowVolunteerModal(true)} className="accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition accent-shadow flex items-center gap-2">
+                    <Plus size={16} /> Add Volunteer
+                  </button>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   {[
@@ -1385,41 +1476,6 @@ export default function AdvancedDashboard() {
                 </div>
                 {loadingVolunteers ? <SectionLoader /> : (
                   <>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                      <div className="themed-card rounded-2xl border themed-border shadow-sm p-6">
-                        <h3 className="font-black themed-text mb-4">📍 City Distribution</h3>
-                        <div className="flex items-center gap-4">
-                          <ResponsiveContainer width="50%" height={180}>
-                            <PieChart>
-                              <Pie data={cityData} cx="50%" cy="50%" outerRadius={70} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={11}>
-                                {cityData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                              </Pie>
-                              <Tooltip contentStyle={{ background: "var(--bg-card)", border: "none", color: "var(--text-primary)" }} />
-                            </PieChart>
-                          </ResponsiveContainer>
-                          <div className="space-y-2">
-                            {cityData.map((d, i) => (
-                              <div key={d.name} className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
-                                <span className="text-sm themed-secondary font-medium">{d.name} — {d.value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="themed-card rounded-2xl border themed-border shadow-sm p-6">
-                        <h3 className="font-black themed-text mb-4">🎂 Age Demographics</h3>
-                        <ResponsiveContainer width="100%" height={180}>
-                          <BarChart data={ageData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
-                            <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fill: "var(--text-muted)", fontSize: 12 }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--text-muted)", fontSize: 12 }} />
-                            <Tooltip contentStyle={{ borderRadius: 12, border: "none", background: "var(--bg-card)", color: "var(--text-primary)" }} />
-                            <Bar dataKey="count" name="Volunteers" fill={accent.hex} radius={[6, 6, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
                     <div className="flex flex-col sm:flex-row gap-3 mb-4">
                       <div className="relative flex-1">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 themed-muted" />
@@ -1471,8 +1527,13 @@ export default function AdvancedDashboard() {
             {activeNav === "messages" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <div><h1 className="text-2xl font-bold themed-text">Messages</h1><p className="themed-secondary text-sm">Compose and send messages to your volunteers via email.</p></div>
-                  <button onClick={() => setShowMessageModal(true)} className="accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition accent-shadow flex items-center gap-2"><Send size={16} /> New Message</button>
+                  <div>
+                    <h1 className="text-2xl font-bold themed-text">Messages</h1>
+                    <p className="themed-secondary text-sm">Compose and send messages to your volunteers via email.</p>
+                  </div>
+                  <button onClick={() => setShowMessageModal(true)} className="accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition accent-shadow flex items-center gap-2">
+                    <Send size={16} /> New Message
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {[
@@ -1500,7 +1561,9 @@ export default function AdvancedDashboard() {
                         <p className="text-sm themed-secondary mb-3">{msg.content}</p>
                         <div className="flex justify-between items-center">
                           <span className="text-xs themed-muted">{msg.date}</span>
-                          <button onClick={() => setSelectedMessage(msg)} className="accent-text text-sm font-semibold inline-flex items-center gap-1 accent-text-hover">View <ChevronRight size={16} /></button>
+                          <button onClick={() => setSelectedMessage(msg)} className="accent-text text-sm font-semibold inline-flex items-center gap-1 accent-text-hover">
+                            View <ChevronRight size={16} />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -1528,10 +1591,10 @@ export default function AdvancedDashboard() {
         {/* ── MODALS ── */}
 
         <Modal open={showDriveModal} onClose={() => setShowDriveModal(false)} title="Create New Drive">
+          <InputField label="Title *" value={driveForm.title} onChange={v => setDriveForm(p => ({ ...p, title: v }))} placeholder="e.g. Community Cleanup" />
+          <InputField label="Location *" value={driveForm.location} onChange={v => setDriveForm(p => ({ ...p, location: v }))} placeholder="e.g. Central Park" />
           <InputField label="Date & Time *" type="datetime-local" value={driveForm.date} onChange={v => setDriveForm(p => ({ ...p, date: v }))} />
-          <InputField label="Location ID *" type="number" value={driveForm.locationId} onChange={v => setDriveForm(p => ({ ...p, locationId: v }))} placeholder="e.g. 3" />
           <InputField label="Total Hours *" type="number" value={driveForm.totalHours} onChange={v => setDriveForm(p => ({ ...p, totalHours: v }))} placeholder="e.g. 3" />
-          <InputField label="Expiry Date *" type="datetime-local" value={driveForm.expiryDate} onChange={v => setDriveForm(p => ({ ...p, expiryDate: v }))} />
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setShowDriveModal(false)} className="px-4 py-2 text-sm themed-subtle rounded-xl font-semibold themed-secondary">Cancel</button>
             <button onClick={handleCreateDrive} disabled={submitting}
@@ -1593,6 +1656,10 @@ export default function AdvancedDashboard() {
         </Modal>
 
         <VolunteerDrawer volunteer={selectedVolunteer} onClose={() => setSelectedVolunteer(null)} onApprove={handleApproveVolunteer} />
+        <DriveDetailsModal
+          drive={selectedDrive}
+          onClose={() => setSelectedDrive(null)}
+        />
       </div>
     </ThemeContext.Provider>
   );
