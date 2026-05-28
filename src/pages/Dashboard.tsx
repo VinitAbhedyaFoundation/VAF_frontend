@@ -442,9 +442,6 @@ const DriveDetailsModal: React.FC<{
               </div>
 
               <div className="themed-subtle rounded-2xl p-4">
-                <p className="text-xs themed-muted uppercase font-bold mb-1">
-                  Registration Ends
-                </p>
 
                 <p className="font-semibold themed-text">
                 </p>
