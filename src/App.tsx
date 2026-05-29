@@ -13,6 +13,7 @@ import SocialShelfPage from "./pages/SocialShelf";
 import LaalBindiPage from "./pages/LaalBindi";
 import GalleryPage from "./components/Ploggers/GalleryPage";
 import NewsletterSuccess from "./pages/Newsletter";
+import Donate from "./pages/donate";
 
 // BLOG
 import Blog from "./pages/Blog";
@@ -128,6 +129,7 @@ const App = () => (
         <Route path="/laal-bindi" element={<LaalBindiPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/newsletter-success" element={<NewsletterSuccess />} />
+        <Route path="/donate" element={<Donate />} />
 
         {/* BLOG */}
         <Route path="/blog" element={<Blog />} />
