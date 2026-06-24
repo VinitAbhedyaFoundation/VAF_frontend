@@ -26,13 +26,24 @@ import {
   Trophy,
   Flame,
   Heart,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import api from "@/api/api"
+import api from "@/api/api";
 
-// --- TYPES ---
+// =========================
+// TYPES
+// =========================
 
-type SectionId = "overview" | "upcoming" | "drives" | "attendance" | "certificates" | "profile";
+type SectionId =
+  | "overview"
+  | "upcoming"
+  | "drives"
+  | "attendance"
+  | "certificates"
+  | "profile";
+
+type ParticipationStatus =   | "Registered" |"Pending" | "Approved" | "Rejected";
 
 interface NavItem {
   label: string;
@@ -73,6 +84,16 @@ interface UpcomingDrive {
   slotsLeft: number;
   type: string;
   organizer: string;
+  completed: boolean; // FIX: added missing field
+}
+
+interface Participation {
+  id: number;
+  driveId: number;
+  status: ParticipationStatus;
+  attendanceMarked: boolean;
+  hours?: number;
+  waste?: number;
 }
 
 interface AttendanceRecord {
@@ -101,64 +122,70 @@ interface User {
   address?: string;
 }
 
-// --- MOCK DATA ---
+// =========================
+// CONSTANTS
+// =========================
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Home", icon: LayoutDashboard, id: "overview" },
   { label: "Upcoming Drives", icon: Calendar, id: "upcoming" },
   { label: "My Drives", icon: Waves, id: "drives" },
   { label: "My Activity", icon: ShieldCheck, id: "attendance" },
-  { label: "Certificates", icon: Award, id: "certificates", badge: "New" },
+  {
+    label: "Certificates",
+    icon: Award,
+    id: "certificates",
+    badge: "New",
+  },
   { label: "Profile", icon: UserCircle, id: "profile" },
 ];
 
-const UPCOMING_DRIVES: UpcomingDrive[] = [
-
-];
-
-const ATTENDANCE: AttendanceRecord[] = [
-
-];
-
-const CERTIFICATES: Certificate[] = [
-
-];
-
-
-// --- UTILS ---
+// =========================
+// UTILS
+// =========================
 
 const getStatusBadgeClass = (status: string) => {
   switch (status) {
     case "Completed":
     case "Marked":
+    case "Approved":
       return "bg-emerald-100 text-emerald-700";
     case "Joined":
     case "Active":
       return "bg-blue-100 text-blue-700";
     case "Pending":
       return "bg-orange-100 text-orange-700";
-    case "Upcoming":
-      return "bg-slate-100 text-slate-600";
+    case "Rejected":
+      return "bg-red-100 text-red-700";
     default:
       return "bg-slate-100 text-slate-600";
   }
 };
 
 const getCertIcon = (type: Certificate["type"]) => {
-  if (type === "excellence") return <Trophy size={28} className="text-yellow-500" />;
-  if (type === "milestone") return <Flame size={28} className="text-orange-500" />;
+  if (type === "excellence")
+    return <Trophy size={28} className="text-yellow-500" />;
+  if (type === "milestone")
+    return <Flame size={28} className="text-orange-500" />;
   return <Heart size={28} className="text-emerald-500" />;
 };
 
-/// --- COMPONENTS ---
+// =========================
+// COMPONENTS
+// =========================
 
-const StatCard: React.FC<{ metric: MetricData; loading: boolean }> = ({ metric, loading }) => (
+const StatCard: React.FC<{ metric: MetricData; loading: boolean }> = ({
+  metric,
+  loading,
+}) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
   >
-    <div className={`w-12 h-12 rounded-2xl ${metric.bg} ${metric.color} flex items-center justify-center mb-5`}>
+    <div
+      className={`w-12 h-12 rounded-2xl ${metric.bg} ${metric.color} flex items-center justify-center mb-5`}
+    >
       <metric.icon size={22} />
     </div>
     {loading ? (
@@ -170,24 +197,161 @@ const StatCard: React.FC<{ metric: MetricData; loading: boolean }> = ({ metric, 
       <>
         <h3 className="text-4xl font-black text-slate-900 tracking-tighter mb-1">
           <CountUp end={metric.value} duration={1.8} />
-          {metric.unit && <span className="text-xl font-bold text-slate-400 ml-1">{metric.unit}</span>}
+          {metric.unit && (
+            <span className="text-xl font-bold text-slate-400 ml-1">
+              {metric.unit}
+            </span>
+          )}
         </h3>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{metric.label}</p>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+          {metric.label}
+        </p>
       </>
     )}
   </motion.div>
 );
 
+// =========================
+// DRIVE ACTION BUTTON
+// Renders the correct CTA based on participation + drive state
+// =========================
+
+interface DriveActionButtonProps {
+  drive: UpcomingDrive;
+  participation: Participation | undefined;
+  onJoin: (drive: UpcomingDrive) => Promise<void>;
+  onMarkAttendance: (driveId: number) => Promise<void>;
+  loadingId: string | null;
+  compact?: boolean;
+}
+
+const DriveActionButton: React.FC<DriveActionButtonProps> = ({
+  drive,
+  participation,
+  onJoin,
+  onMarkAttendance,
+  loadingId,
+  compact = false,
+}) => {
+  const isLoading = loadingId === drive.id;
+  const py = compact ? "py-2" : "py-2.5";
+  const baseClass = `w-full ${py} rounded-2xl text-sm font-bold transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed`;
+
+  if (isLoading) {
+    return (
+      <button disabled className={`${baseClass} bg-slate-100 text-slate-500`}>
+        <Loader2 size={14} className="animate-spin" /> Working…
+      </button>
+    );
+  }
+
+  // State 1: Not joined
+  if (!participation) {
+    return (
+      <button
+        onClick={() => onJoin(drive)}
+        className={`${baseClass} bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-100`}
+      >
+        Join Drive
+      </button>
+    );
+  }
+
+  // State 2: Joined, drive not yet completed
+  if (!drive.completed) {
+    return (
+      <button
+        disabled
+        className={`${baseClass} bg-blue-50 text-blue-700 border border-blue-200`}
+      >
+        <CheckCircle2 size={14} /> Joined · Awaiting Drive
+      </button>
+    );
+  }
+
+  // State 3: Drive completed, attendance not yet submitted
+  if (drive.completed && !participation.attendanceMarked) {
+    return (
+      <button
+        onClick={() => onMarkAttendance(Number(drive.id))}
+        className={`${baseClass} bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-100`}
+      >
+        <ShieldCheck size={14} /> Mark Attendance
+      </button>
+    );
+  }
+
+  // State 4: Attendance submitted, pending admin approval
+  if (participation.status === "Pending") {
+    return (
+      <button
+        disabled
+        className={`${baseClass} bg-orange-50 text-orange-700 border border-orange-200`}
+      >
+        Submitted · Awaiting Approval
+      </button>
+    );
+  }
+
+  // State 5: Approved
+  if (participation.status === "Approved") {
+    return (
+      <button
+        disabled
+        className={`${baseClass} bg-emerald-50 text-emerald-700 border border-emerald-200`}
+      >
+        <CheckCircle2 size={14} /> Approved · Certificate Available
+      </button>
+    );
+  }
+
+  // Rejected
+  if (participation.status === "Rejected") {
+    return (
+      <button
+        disabled
+        className={`${baseClass} bg-red-50 text-red-600 border border-red-200`}
+      >
+        Attendance Rejected
+      </button>
+    );
+  }
+
+  return null;
+};
+
+// =========================
+// MAIN DASHBOARD
+// =========================
+
 export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<SectionId>("overview");
-  const [joinedDrives, setJoinedDrives] = useState<Set<string>>(new Set());
   const [user, setUser] = useState<User | null>(null);
   const [data, setdata] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [openNotif, setOpenNotif] = useState(false);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [upcomingDrives, setUpcomingDrives] = useState<UpcomingDrive[]>([]);
+  const [participations, setParticipations] = useState<Participation[]>([]);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+
   const drives = data?.stats?.drivesJoined ?? 0;
+
+  // =========================
+  // PARTICIPATION HELPERS
+  // =========================
+
+  const getParticipation = (driveId: string): Participation | undefined => {
+    return participations.find((p) => p.driveId === Number(driveId));
+  };
+
+  // =========================
+  // LEVEL SYSTEM
+  // =========================
 
   const getLevel = (drives: number) => {
     if (drives >= 20) return "Elite";
@@ -208,107 +372,107 @@ export default function UserDashboard() {
   const level = getLevel(drives);
   const total = getNextLevelTarget(drives);
 
-  const levelStyles: any = {
+  const levelStyles: Record<string, string> = {
     Bronze: "text-orange-400",
     Silver: "text-gray-300",
     Gold: "text-yellow-400",
     Platinum: "text-emerald-400",
     Elite: "text-purple-400",
   };
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [upcomingDrives, setUpcomingDrives] = useState<UpcomingDrive[]>([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 1400);
     return () => clearTimeout(t);
   }, []);
 
-  // ✅ 1. Fetch user
+  // =========================
+  // FETCH: PARTICIPATIONS
+  // =========================
+
+  const fetchParticipations = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:3000/api/attendance/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      setParticipations(Array.isArray(json) ? json : []);
+    } catch (err) {
+      console.error("fetchParticipations failed", err);
+    }
+  };
+
+  // =========================
+  // FETCH: USER
+  // =========================
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
-
         const res = await fetch("http://localhost:3000/api/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        if (!res.ok) {
-          console.error("User API failed");
-          return;
-        }
-
-        const data = await res.json();
-
-        console.log("USER API 👉", data); // 🔥 DEBUG
-
-        // ✅ HANDLE BOTH CASES
-        if (data.user) {
-          setUser(data.user);
-        } else {
-          setUser(data);
-        }
-
+        if (!res.ok) return;
+        const json = await res.json();
+        setUser(json.user ?? json);
       } catch (err) {
         console.error("User fetch failed", err);
       }
     };
-
     fetchUser();
   }, []);
 
-  // ✅ 2. Fetch dashboard
+  // =========================
+  // FETCH: DASHBOARD STATS
+  // =========================
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         const token = localStorage.getItem("token");
-
         if (!token) return;
-
         const res = await fetch("http://localhost:3000/api/dashboard/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-
         if (!res.ok) return;
-
-        const data = await res.json();
-
-        setdata(data);
+        const json = await res.json();
+        setdata(json);
         setCertificates(
-          (data?.certificates || []).map((c: any, index: number) => ({
+          (json?.certificates || []).map((c: any) => ({
             ...c,
-
-            file:
-              index === 0
-                ? "/cloth-donation-cert-priya-ghadge.pdf"
-                : "/Blood_donation_cert-priya-ghadge.pdf",
+            file: c.fileUrl,
           }))
         );
-
       } catch (err) {
-        console.error(err);
+        console.error("Dashboard fetch failed", err);
       }
     };
-
     fetchDashboard();
   }, []);
+
+  // =========================
+  // FETCH: PARTICIPATIONS (on mount)
+  // =========================
+
+  useEffect(() => {
+    fetchParticipations();
+  }, []);
+
+  // =========================
+  // FETCH: UPCOMING DRIVES
+  // =========================
+
   useEffect(() => {
     const fetchUpcoming = async () => {
       try {
         const res = await fetch("http://localhost:3000/api/drive/upcoming");
-        const data = await res.json();
-
-        console.log("UPCOMING API:", data);
-
-        const formatted = data.map((d: any) => ({
+        const json = await res.json();
+        const formatted: UpcomingDrive[] = json.map((d: any) => ({
           id: d.id.toString(),
           title: d.title,
+          completed: d.completed ?? false, // FIX: include completed
           location: d.location || "Unknown",
           date: new Date(d.date).toLocaleDateString(),
           time: new Date(d.date).toLocaleTimeString([], {
@@ -320,83 +484,89 @@ export default function UserDashboard() {
           type: d.type || "General",
           organizer: "VAF",
         }));
-
-        setUpcomingDrives(formatted.slice(0, 1));
+        setUpcomingDrives(formatted); // FIX: removed accidental .slice(0,1)
       } catch (err) {
         console.error("Upcoming fetch failed", err);
       }
     };
-
     fetchUpcoming();
   }, []);
 
-  const goToSection = (id: SectionId) => {
-    setActiveNav(id);
-    setIsMobileMenuOpen(false);
-    document.getElementById("top")?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleJoin = (drive: UpcomingDrive) => {
-    setJoinedDrives((prev) => {
-      const next = new Set(prev);
-      if (next.has(drive.id)) {
-        next.delete(drive.id);
-        toast("Left the drive", { icon: "👋" });
-      } else {
-        next.add(drive.id);
-        toast.success(`Joined "${drive.title}" 🎉`);
-      }
-      return next;
-    });
-  };
+  // =========================
+  // NOTIFICATIONS
+  // =========================
 
   const fetchNotifications = async () => {
-  try {
-    const res = await fetch(
-      "http://localhost:3000/api/drive/upcoming"
-    );
-
-    const data = await res.json();
-
-    console.log("NOTIFICATIONS:", data);
-
-    const latest = data.slice(0, 3);
-
-    const formatted = latest.map((d: any) => ({
-      id: d.id,
-
-      subject: "New Drive Created 🚀",
-
-      content: `${d.title} at ${d.location} — Join now!`,
-
-      createdAt: d.date,
-    }));
-
-    setNotifications(formatted.slice(0, 1));
-
-  } catch (err) {
-    console.error("Notification fetch error", err);
-  }
-};
+    try {
+      const res = await fetch("http://localhost:3000/api/drive/upcoming");
+      const json = await res.json();
+      const formatted = json.slice(0, 3).map((d: any) => ({
+        id: d.id,
+        subject: "New Drive Created 🚀",
+        content: `${d.title} at ${d.location} — Join now!`,
+        createdAt: d.date,
+      }));
+      setNotifications(formatted);
+    } catch (err) {
+      console.error("Notification fetch failed", err);
+    }
+  };
 
   useEffect(() => {
-    const handleClickOutside = (e: any) => {
-      if (!e.target.closest(".notification-wrapper")) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest(".notification-wrapper")) {
         setOpenNotif(false);
       }
     };
-
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const handleBellClick = () => {
     setOpenNotif((prev) => !prev);
+    if (!openNotif) fetchNotifications();
+  };
 
-    if (!openNotif) {
-      fetchNotifications();
+  // =========================
+  // ACTIONS
+  // =========================
+
+  const handleJoin = async (drive: UpcomingDrive) => {
+    setActionLoadingId(drive.id);
+    try {
+      const token = localStorage.getItem("token");
+      await api.post(
+        `/attendance/join`,
+        { driveId: Number(drive.id) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Drive joined successfully");
+      await fetchParticipations();
+    } catch (err) {
+      toast.error("Could not join drive. Already joined or server error.");
+    } finally {
+      setActionLoadingId(null);
     }
   };
+
+  const handleMarkAttendance = async (driveId: number) => {
+    setActionLoadingId(driveId.toString());
+    try {
+      const token = localStorage.getItem("token");
+      await api.post(
+        "/attendance/mark",
+        { driveId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Attendance submitted");
+      await fetchParticipations();
+    } catch (err) {
+      toast.error("Attendance submission failed");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -404,32 +574,35 @@ export default function UserDashboard() {
     navigate("/login");
   };
 
+  const goToSection = (id: SectionId) => {
+    setActiveNav(id);
+    setIsMobileMenuOpen(false);
+    document.getElementById("top")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // =========================
+  // DERIVED DATA
+  // =========================
+
   const totalHours = data?.stats?.hoursVolunteered || 0;
 
-  /* 🔥 WEEKLY STREAK LOGIC START */
-
   const calculateWeeklyStreak = (activity: any[]) => {
-    if (!activity || activity.length === 0) return 0;
-
-    const weeks = new Set();
-
+    if (!activity?.length) return 0;
+    const weeks = new Set<string>();
     activity.forEach((a) => {
       const date = new Date(a.date);
-
       const firstDay = new Date(date.getFullYear(), 0, 1);
       const pastDays = Math.floor(
         (date.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24)
       );
-
       const week = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
-
       weeks.add(`${date.getFullYear()}-${week}`);
     });
-
     return weeks.size;
   };
 
   const streak = calculateWeeklyStreak(data?.activity || []);
+
   const getWeeklyHeatmapData = (activity: any[]) => {
     const weeks = Array.from({ length: 53 }, () => ({
       hours: 0,
@@ -437,18 +610,14 @@ export default function UserDashboard() {
       location: "",
       date: "",
     }));
-
     activity?.forEach((a) => {
       const date = new Date(a.date);
-
       const firstDay = new Date(date.getFullYear(), 0, 1);
       const pastDays = Math.floor(
         (date.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24)
       );
-
       const week = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
       const index = Math.min(week - 1, 52);
-
       weeks[index].hours += a.hours || 0;
       weeks[index].waste += a.waste || 0;
       weeks[index].location = a.location || "Unknown";
@@ -457,13 +626,10 @@ export default function UserDashboard() {
         month: "short",
       });
     });
-
     return weeks;
   };
-  const HEATMAP_DATA = getWeeklyHeatmapData(data?.activity || []);
 
-  /* 🔥 WEEKLY STREAK LOGIC END */
-  /* 🔥 ADD HERE (exactly here) */
+  const HEATMAP_DATA = getWeeklyHeatmapData(data?.activity || []);
 
   const USER_METRICS: MetricData[] = [
     {
@@ -502,15 +668,13 @@ export default function UserDashboard() {
     },
   ];
 
-  const CHART_DATA = data?.activity || [];
-
   const MY_DRIVES: Drive[] =
     data?.recentDrives?.map((d: any, i: number) => ({
       id: i.toString(),
       title: d.title,
       location: d.location,
       date: d.date,
-      status: "Completed",
+      status: d.status ?? "Completed",
       volunteers: 0,
       hoursLogged: d.hours,
       description: "",
@@ -526,10 +690,15 @@ export default function UserDashboard() {
     profile: "My Profile",
   };
 
+  // =========================
+  // RENDER
+  // =========================
+
   return (
     <div className="flex min-h-screen bg-[#F4F7F5] text-slate-900 font-sans overflow-hidden">
       <Toaster position="bottom-center" />
 
+      {/* ── MOBILE SIDEBAR ── */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -552,9 +721,14 @@ export default function UserDashboard() {
                   <div className="w-8 h-8 bg-emerald-600 rounded-lg rotate-12 flex items-center justify-center">
                     <Leaf className="text-white -rotate-12" size={16} />
                   </div>
-                  <span className="text-xl font-black tracking-tighter text-emerald-950">VAF</span>
+                  <span className="text-xl font-black tracking-tighter text-emerald-950">
+                    VAF
+                  </span>
                 </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-slate-100 rounded-full">
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 bg-slate-100 rounded-full"
+                >
                   <X size={18} />
                 </button>
               </div>
@@ -563,14 +737,21 @@ export default function UserDashboard() {
                   <button
                     key={item.id}
                     onClick={() => goToSection(item.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeNav === item.id ? "bg-emerald-50 text-emerald-700" : "text-slate-500 hover:bg-slate-50"
-                      }`}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                      activeNav === item.id
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "text-slate-500 hover:bg-slate-50"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <item.icon size={18} />
                       {item.label}
                     </div>
-                    {item.badge && <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">{item.badge}</span>}
+                    {item.badge && (
+                      <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 ))}
               </nav>
@@ -579,14 +760,19 @@ export default function UserDashboard() {
         )}
       </AnimatePresence>
 
+      {/* ── DESKTOP SIDEBAR ── */}
       <aside className="w-72 border-r border-slate-200 bg-white p-8 hidden xl:flex flex-col sticky top-0 h-screen">
         <div className="flex items-center gap-2 mb-10">
           <div className="w-10 h-10 bg-emerald-600 rounded-xl rotate-12 flex items-center justify-center shadow-lg shadow-emerald-200">
             <Leaf className="text-white -rotate-12" size={20} />
           </div>
           <div>
-            <h2 className="text-2xl font-black tracking-tighter text-emerald-950">VAF</h2>
-            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest -mt-1">Volunteer Portal</p>
+            <h2 className="text-2xl font-black tracking-tighter text-emerald-950">
+              VAF
+            </h2>
+            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest -mt-1">
+              Volunteer Portal
+            </p>
           </div>
         </div>
 
@@ -595,8 +781,13 @@ export default function UserDashboard() {
             <UserCircle size={28} className="text-emerald-600" />
           </div>
           <div>
-            <p className="font-black text-sm text-slate-900">{user?.name || "Loading..."}</p>
-            <p className="text-[11px] text-emerald-600 font-bold">🔥 {streak > 0 ? `${streak}-week streak` : "No streak yet"}</p>
+            <p className="font-black text-sm text-slate-900">
+              {user?.name || "Loading..."}
+            </p>
+            <p className="text-[11px] text-emerald-600 font-bold">
+              🔥{" "}
+              {streak > 0 ? `${streak}-week streak` : "No streak yet"}
+            </p>
           </div>
         </div>
 
@@ -605,10 +796,11 @@ export default function UserDashboard() {
             <button
               key={item.id}
               onClick={() => goToSection(item.id)}
-              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all ${activeNav === item.id
-                ? "bg-emerald-900 text-white shadow-xl shadow-emerald-200"
-                : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"
-                }`}
+              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all ${
+                activeNav === item.id
+                  ? "bg-emerald-900 text-white shadow-xl shadow-emerald-200"
+                  : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"
+              }`}
             >
               <div className="flex items-center gap-3">
                 <item.icon size={18} />
@@ -616,8 +808,11 @@ export default function UserDashboard() {
               </div>
               {item.badge && (
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${activeNav === item.id ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"
-                    }`}
+                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                    activeNav === item.id
+                      ? "bg-white/20 text-white"
+                      : "bg-emerald-100 text-emerald-700"
+                  }`}
                 >
                   {item.badge}
                 </span>
@@ -630,72 +825,75 @@ export default function UserDashboard() {
           <div className="absolute -right-4 -bottom-4 text-emerald-500/20 rotate-45">
             <Leaf size={100} />
           </div>
-
           <div className="relative z-10">
             <p className="text-[10px] font-bold text-emerald-400 uppercase mb-1">
               Next Milestone
             </p>
-
             <h3 className={`text-lg font-black mt-1 ${levelStyles[level]}`}>
               {level}
             </h3>
-
-            {/* ✅ FIXED PROGRESS BAR */}
             <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden mt-2">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{
-                  width: `${total ? (drives / total) * 100 : 0}%`,
-                }}
+                animate={{ width: `${total ? (drives / total) * 100 : 0}%` }}
                 transition={{ delay: 0.5, duration: 1 }}
                 className="h-full bg-emerald-400 rounded-full"
               />
             </div>
-
-            <p className="text-xs text-white/70">
+            <p className="text-xs text-white/70 mt-1">
               {drives} drives completed
             </p>
           </div>
-        </div>            </aside>
+        </div>
+      </aside>
 
+      {/* ── MAIN CONTENT ── */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* HEADER */}
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-30">
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsMobileMenuOpen(true)} className="xl:hidden p-2 hover:bg-slate-100 rounded-full" aria-label="Open menu">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="xl:hidden p-2 hover:bg-slate-100 rounded-full"
+              aria-label="Open menu"
+            >
               <Menu size={20} className="text-slate-600" />
             </button>
             <div>
-              <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em]">Volunteer</p>
-              <h1 className="text-xl font-black tracking-tight">{sectionLabel[activeNav]}</h1>
+              <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em]">
+                Volunteer
+              </p>
+              <h1 className="text-xl font-black tracking-tight">
+                {sectionLabel[activeNav]}
+              </h1>
             </div>
           </div>
+
           <div className="flex items-center gap-3">
-            <button onClick={() => goToSection("upcoming")} className="hidden sm:flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all">
+            <button
+              onClick={() => goToSection("upcoming")}
+              className="hidden sm:flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all"
+            >
               <Calendar size={16} /> Find Drives
             </button>
             <div className="h-8 w-px bg-slate-200" />
-            <div className="relative notification-wrapper">
 
-              {/* 🔔 Bell */}
+            {/* NOTIFICATIONS */}
+            <div className="relative notification-wrapper">
               <button
                 onClick={handleBellClick}
                 className="relative p-2 hover:bg-slate-100 rounded-full"
               >
                 <Bell size={20} className="text-slate-600" />
-
                 {notifications.length > 0 && (
                   <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
                 )}
               </button>
-
-              {/* 🔽 DROPDOWN */}
               {openNotif && (
                 <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
-
                   <div className="px-4 py-3 border-b font-bold text-sm">
                     Notifications
                   </div>
-
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.length === 0 ? (
                       <p className="p-4 text-sm text-slate-500 text-center">
@@ -710,11 +908,9 @@ export default function UserDashboard() {
                           <p className="text-sm font-semibold text-slate-900">
                             {n.subject || "Update"}
                           </p>
-
                           <p className="text-xs text-slate-500 mt-1">
                             {n.content}
                           </p>
-
                           <p className="text-[10px] text-slate-400 mt-1">
                             {n?.createdAt
                               ? new Date(n.createdAt).toLocaleString()
@@ -727,31 +923,62 @@ export default function UserDashboard() {
                 </div>
               )}
             </div>
-            <button onClick={handleLogout} className="p-2 hover:bg-slate-100 rounded-full" aria-label="Logout">
+
+            <button
+              onClick={handleLogout}
+              className="p-2 hover:bg-slate-100 rounded-full"
+              aria-label="Logout"
+            >
               <LogOut size={20} className="text-slate-600" />
             </button>
           </div>
         </header>
 
+        {/* PAGE CONTENT */}
         <div id="top" className="flex-1 overflow-y-auto p-6 lg:p-10">
+
+          {/* ── OVERVIEW ── */}
           {activeNav === "overview" && (
             <div className="space-y-8">
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-emerald-900 to-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-emerald-900 to-slate-900 rounded-3xl p-8 text-white relative overflow-hidden"
+              >
                 <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl -mr-20 -mt-20" />
                 <div className="relative z-10">
-                  <p className="text-emerald-400 text-sm font-bold mb-1">Welcome back 👋</p>
-                  <h2 className="text-3xl font-black tracking-tight mb-2">{user?.name || "Loading..."}</h2>
+                  <p className="text-emerald-400 text-sm font-bold mb-1">
+                    Welcome back 👋
+                  </p>
+                  <h2 className="text-3xl font-black tracking-tight mb-2">
+                    {user?.name || "Loading..."}
+                  </h2>
                   <p className="text-slate-300 text-sm mb-5">
-                    You've contributed <strong className="text-white">{data?.stats?.hoursVolunteered || 0} hours</strong>
-                    and collected <strong className="text-white">{data?.stats?.wasteCollected || 0} kg</strong> of waste. Keep going!
-                  </p>                                    <div className="flex gap-3 flex-wrap">
+                    You've contributed{" "}
+                    <strong className="text-white">
+                      {data?.stats?.hoursVolunteered || 0} hours
+                    </strong>{" "}
+                    and collected{" "}
+                    <strong className="text-white">
+                      {data?.stats?.wasteCollected || 0} kg
+                    </strong>{" "}
+                    of waste. Keep going!
+                  </p>
+                  <div className="flex gap-3 flex-wrap">
                     <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
-                      <Flame size={16} className="text-orange-400" /> {streak > 0 ? `${streak}-week streak` : "No streak yet"}
+                      <Flame size={16} className="text-orange-400" />{" "}
+                      {streak > 0
+                        ? `${streak}-week streak`
+                        : "No streak yet"}
                     </div>
                     <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
-                      <Trophy size={16} className="text-yellow-400" /> {certificates.length} Certificates
+                      <Trophy size={16} className="text-yellow-400" />{" "}
+                      {certificates.length} Certificates
                     </div>
-                    <button onClick={() => goToSection("upcoming")} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 px-4 py-2 rounded-xl text-sm font-bold transition">
+                    <button
+                      onClick={() => goToSection("upcoming")}
+                      className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 px-4 py-2 rounded-xl text-sm font-bold transition"
+                    >
                       <Calendar size={16} /> Join Next Drive
                     </button>
                   </div>
@@ -759,108 +986,144 @@ export default function UserDashboard() {
               </motion.div>
 
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {USER_METRICS.map((m) => <StatCard key={m.id} metric={m} loading={loading} />)}
+                {USER_METRICS.map((m) => (
+                  <StatCard key={m.id} metric={m} loading={loading} />
+                ))}
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* HEATMAP */}
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7 flex flex-col justify-between">
-                  <h3 className="text-lg font-black text-slate-900 mb-1">My Activity</h3>
-                  <p className="text-sm text-slate-400 mb-6">Hours volunteered vs waste collected</p>
+                  <h3 className="text-lg font-black text-slate-900 mb-1">
+                    My Activity
+                  </h3>
+                  <p className="text-sm text-slate-400 mb-6">
+                    Hours volunteered vs waste collected
+                  </p>
                   <div className="h-52">
                     {loading ? (
                       <div className="h-full bg-slate-50 rounded-2xl flex items-center justify-center">
-                        <span className="text-slate-400 font-bold animate-pulse">Loading...</span>
+                        <span className="text-slate-400 font-bold animate-pulse">
+                          Loading...
+                        </span>
                       </div>
                     ) : (
                       <div className="flex flex-col justify-center py-4">
-                        <div className="space-y-1 flex flex-col items-start justify-center">
-                          <div className="flex justify-center">
-                            <div className="grid grid-cols-10 gap-2">
-                              {Array.from({ length: 53 }).map((_, index) => {
-                                const item = HEATMAP_DATA[index] || {
-                                  hours: 0,
-                                  waste: 0,
-                                  location: "",
-                                  date: "",
-                                };
-
-                                const value = item.hours + item.waste;
-                                let color = "bg-slate-100";
-                                if (value > 0 && value < 5) color = "bg-emerald-200";
-                                else if (value < 10) color = "bg-emerald-400";
-                                else if (value < 20) color = "bg-emerald-600";
-                                else if (value >= 20) color = "bg-emerald-800";
-
-                                return (
-                                  <div
-                                    key={index}
-                                    title={`📅 ${item.date || "No activity"}
-📍 ${item.location || "N/A"}
-⏱ ${item.hours} hrs
-♻️ ${item.waste} kg`}
-                                    className={`w-6 h-6 rounded-md ${color}`}
-                                  />
-                                );
-                              })}
-                            </div>
+                        <div className="flex justify-center">
+                          <div className="grid grid-cols-10 gap-2">
+                            {Array.from({ length: 53 }).map((_, index) => {
+                              const item = HEATMAP_DATA[index] || {
+                                hours: 0,
+                                waste: 0,
+                                location: "",
+                                date: "",
+                              };
+                              const value = item.hours + item.waste;
+                              let color = "bg-slate-100";
+                              if (value > 0 && value < 5)
+                                color = "bg-emerald-200";
+                              else if (value < 10) color = "bg-emerald-400";
+                              else if (value < 20) color = "bg-emerald-600";
+                              else if (value >= 20) color = "bg-emerald-800";
+                              return (
+                                <div
+                                  key={index}
+                                  title={`📅 ${item.date || "No activity"}\n📍 ${item.location || "N/A"}\n⏱ ${item.hours} hrs\n♻️ ${item.waste} kg`}
+                                  className={`w-6 h-6 rounded-md ${color}`}
+                                />
+                              );
+                            })}
                           </div>
-
                         </div>
                       </div>
                     )}
                   </div>
                 </div>
 
+                {/* RECENT DRIVES */}
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7">
-                  <h3 className="text-lg font-black text-slate-900 mb-4">Recent Drives</h3>
+                  <h3 className="text-lg font-black text-slate-900 mb-4">
+                    Recent Drives
+                  </h3>
                   <div className="space-y-3">
                     {MY_DRIVES.slice(0, 3).map((drive) => (
-                      <div key={drive.id} className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                      <div
+                        key={drive.id}
+                        className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100"
+                      >
                         <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Leaf size={14} className="text-emerald-600" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-bold text-sm text-slate-900 truncate">{drive.title}</p>
-                          <p className="text-xs text-slate-400">{drive.location} · {drive.date}</p>
-                          <p className="text-xs text-emerald-600 font-bold mt-0.5">{drive.hoursLogged} hrs logged</p>
+                          <p className="font-bold text-sm text-slate-900 truncate">
+                            {drive.title}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {drive.location} · {drive.date}
+                          </p>
+                          <p className="text-xs text-emerald-600 font-bold mt-0.5">
+                            {drive.hoursLogged} hrs logged
+                          </p>
                         </div>
                       </div>
                     ))}
-                    <button onClick={() => goToSection("drives")} className="w-full text-center text-sm text-emerald-600 font-bold py-2 hover:text-emerald-700 transition">
+                    <button
+                      onClick={() => goToSection("drives")}
+                      className="w-full text-center text-sm text-emerald-600 font-bold py-2 hover:text-emerald-700 transition"
+                    >
                       View All Drives →
                     </button>
                   </div>
                 </div>
               </div>
+
+              {/* UPCOMING PREVIEW */}
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7">
                 <div className="flex items-center justify-between mb-5">
                   <div>
                     <h3 className="text-lg font-black">Upcoming Near You</h3>
-                    <p className="text-sm text-slate-400 mt-0.5">{upcomingDrives.length} drives available to join</p>
+                    <p className="text-sm text-slate-400 mt-0.5">
+                      {upcomingDrives.length} drives available to join
+                    </p>
                   </div>
-                  <button onClick={() => goToSection("upcoming")} className="text-sm font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                  <button
+                    onClick={() => goToSection("upcoming")}
+                    className="text-sm font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                  >
                     See all <ChevronRight size={16} />
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {upcomingDrives.slice(0, 3).map((drive) => (
-                    <div key={drive.id} className="rounded-2xl border border-slate-100 p-4 hover:border-emerald-200 hover:shadow-sm transition">
-                      <div className="flex justify-between items-start mb-2">
-
+                  {upcomingDrives.slice(0, 3).map((drive) => {
+                    const participation = getParticipation(drive.id);
+                    return (
+                      <div
+                        key={drive.id}
+                        className="rounded-2xl border border-slate-100 p-4 hover:border-emerald-200 hover:shadow-sm transition"
+                      >
+                        <h4 className="font-bold text-sm text-slate-900 mb-1">
+                          {drive.title}
+                        </h4>
+                        <p className="text-xs text-slate-400 flex items-center gap-1 mb-3">
+                          <MapPin size={11} /> {drive.location}
+                        </p>
+                        <DriveActionButton
+                          drive={drive}
+                          participation={participation}
+                          onJoin={handleJoin}
+                          onMarkAttendance={handleMarkAttendance}
+                          loadingId={actionLoadingId}
+                          compact
+                        />
                       </div>
-                      <h4 className="font-bold text-sm text-slate-900 mb-1">{drive.title}</h4>
-                      <p className="text-xs text-slate-400 flex items-center gap-1 mb-3"><MapPin size={11} /> {drive.location}</p>
-                      <button onClick={() => handleJoin(drive)}
-                        className={`w-full py-2 rounded-xl text-xs font-bold transition ${joinedDrives.has(drive.id) ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-emerald-600 text-white hover:bg-emerald-700"}`}>
-                        {joinedDrives.has(drive.id) ? "✓ Joined" : "Join Drive"}
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
           )}
 
+          {/* ── UPCOMING DRIVES ── */}
           {activeNav === "upcoming" && (
             <div className="space-y-6">
               <div>
@@ -870,55 +1133,54 @@ export default function UserDashboard() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {upcomingDrives.map((drive) => (
-                  <motion.div
-                    key={drive.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all"
-                  >
-                    {/* removed type + slots */}
-
-                    <h3 className="text-lg font-black text-slate-900 mb-1">
-                      {drive.title}
-                    </h3>
-
-                    <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
-                      <MapPin size={13} /> {drive.location}
-                    </p>
-
-                    <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
-                      <Calendar size={13} /> {drive.date}
-                    </p>
-
-                    <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-4">
-                      <Clock size={13} /> {drive.time}
-                    </p>
-
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleJoin(drive)}
-                        className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition ${joinedDrives.has(drive.id)
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
-                          : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-100"
-                          }`}
+              {upcomingDrives.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-slate-100 p-12 text-center text-slate-400">
+                  <Calendar size={36} className="mx-auto mb-3 opacity-30" />
+                  <p className="font-bold">No upcoming drives right now.</p>
+                  <p className="text-sm mt-1">Check back soon!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {upcomingDrives.map((drive) => {
+                    const participation = getParticipation(drive.id);
+                    return (
+                      <motion.div
+                        key={drive.id}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all"
                       >
-                        {joinedDrives.has(drive.id)
-                          ? "✓ Joined — Leave?"
-                          : "Join Drive"}
-                      </button>
-                    </div>
-
-                    <p className="text-xs text-slate-400 mt-3 font-medium">
-                      by {drive.organizer}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
+                        <h3 className="text-lg font-black text-slate-900 mb-1">
+                          {drive.title}
+                        </h3>
+                        <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
+                          <MapPin size={13} /> {drive.location}
+                        </p>
+                        <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
+                          <Calendar size={13} /> {drive.date}
+                        </p>
+                        <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-4">
+                          <Clock size={13} /> {drive.time}
+                        </p>
+                        <DriveActionButton
+                          drive={drive}
+                          participation={participation}
+                          onJoin={handleJoin}
+                          onMarkAttendance={handleMarkAttendance}
+                          loadingId={actionLoadingId}
+                        />
+                        <p className="text-xs text-slate-400 mt-3 font-medium">
+                          by {drive.organizer}
+                        </p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
+          {/* ── MY DRIVES ── */}
           {activeNav === "drives" && (
             <div className="space-y-6">
               <div>
@@ -927,57 +1189,57 @@ export default function UserDashboard() {
                   All drives you've participated in.
                 </p>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {MY_DRIVES.map((drive) => (
-                  <motion.div
-                    key={drive.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all"
-                  >
-                    <div className="flex justify-end items-center mb-4">
-                      <span
-                        className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${getStatusBadgeClass(
-                          drive.status
-                        )}`}
-                      >
-                        {drive.status}
-                      </span>
-                    </div>
-
-                    <h3 className="text-lg font-black text-slate-900 mb-1">
-                      {drive.title}
-                    </h3>
-
-                    <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
-                      <MapPin size={13} /> {drive.location}
+                {MY_DRIVES.length === 0 ? (
+                  <div className="col-span-3 bg-white rounded-3xl border border-slate-100 p-12 text-center text-slate-400">
+                    <Waves size={36} className="mx-auto mb-3 opacity-30" />
+                    <p className="font-bold">No drives yet.</p>
+                    <p className="text-sm mt-1">
+                      Join one from the Upcoming section.
                     </p>
-
-                    <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-3">
-                      <Calendar size={13} /> {drive.date}
-                    </p>
-
-                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">
-                      {drive.description}
-                    </p>
-
-                    <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-                      <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700">
-                        <Clock size={14} className="text-emerald-500" />
-                        {drive.hoursLogged} hrs logged
+                  </div>
+                ) : (
+                  MY_DRIVES.map((drive) => (
+                    <motion.div
+                      key={drive.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all"
+                    >
+                      <div className="flex justify-end items-center mb-4">
+                        <span
+                          className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${getStatusBadgeClass(drive.status)}`}
+                        >
+                          {drive.status}
+                        </span>
                       </div>
-
-                      <div className="flex items-center gap-1.5 text-sm text-slate-400">
-                        <UserCircle size={14} />
-                        {drive.volunteers} volunteers
+                      <h3 className="text-lg font-black text-slate-900 mb-1">
+                        {drive.title}
+                      </h3>
+                      <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
+                        <MapPin size={13} /> {drive.location}
+                      </p>
+                      <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-3">
+                        <Calendar size={13} /> {drive.date}
+                      </p>
+                      <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700">
+                          <Clock size={14} className="text-emerald-500" />
+                          {drive.hoursLogged} hrs logged
+                        </div>
+                        <div className="flex items-center gap-1.5 text-sm text-slate-400">
+                          <UserCircle size={14} />
+                          {drive.volunteers} volunteers
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))
+                )}
               </div>
             </div>
           )}
+
+          {/* ── ATTENDANCE / ACTIVITY ── */}
           {activeNav === "attendance" && (
             <div className="space-y-6">
               <div>
@@ -987,7 +1249,6 @@ export default function UserDashboard() {
                 </p>
               </div>
 
-              {/* STATS */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   {
@@ -1010,7 +1271,9 @@ export default function UserDashboard() {
                   },
                   {
                     label: "PENDING",
-                    value: 0,
+                    value: participations.filter(
+                      (p) => p.status === "Pending"
+                    ).length,
                     bg: "bg-orange-50",
                     color: "text-orange-600",
                   },
@@ -1022,10 +1285,8 @@ export default function UserDashboard() {
                     <div
                       className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}
                     >
-                      {/* simple dot icon instead of s.icon */}
                       <div className="w-2 h-2 bg-current rounded-full" />
                     </div>
-
                     <p className="text-2xl font-black text-slate-900">
                       {s.value}
                     </p>
@@ -1036,12 +1297,10 @@ export default function UserDashboard() {
                 ))}
               </div>
 
-              {/* TABLE */}
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-slate-100">
                   <h2 className="font-black text-slate-900">Attendance Log</h2>
                 </div>
-
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 text-slate-500">
@@ -1053,11 +1312,13 @@ export default function UserDashboard() {
                         <th className="p-4 text-left font-bold">Status</th>
                       </tr>
                     </thead>
-
                     <tbody>
                       {!data?.activity?.length ? (
                         <tr>
-                          <td colSpan={5} className="text-center py-6 text-slate-400">
+                          <td
+                            colSpan={5}
+                            className="text-center py-6 text-slate-400"
+                          >
                             No attendance yet
                           </td>
                         </tr>
@@ -1068,27 +1329,27 @@ export default function UserDashboard() {
                             className="border-t border-slate-50 hover:bg-slate-50 transition"
                           >
                             <td className="p-4 font-semibold text-slate-900">
-                              Drive #{index + 1}
+                              {a.title || `Drive #${index + 1}`}
                             </td>
-
                             <td className="p-4 text-slate-500">
                               {new Date(a.date).toLocaleDateString("en-IN", {
                                 day: "numeric",
                                 month: "short",
                               })}
                             </td>
-
                             <td className="p-4 font-bold text-slate-700">
                               {a.hours} hrs
                             </td>
-
                             <td className="p-4 font-bold text-emerald-600">
                               {a.waste} kg
                             </td>
-
                             <td className="p-4">
-                              <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-green-100 text-green-600">
-                                Marked
+                              <span
+                                className={`text-xs px-2.5 py-1 rounded-full font-bold ${getStatusBadgeClass(
+                                  a.status || "Marked"
+                                )}`}
+                              >
+                                {a.status || "Marked"}
                               </span>
                             </td>
                           </tr>
@@ -1100,55 +1361,90 @@ export default function UserDashboard() {
               </div>
             </div>
           )}
+
+          {/* ── CERTIFICATES ── */}
           {activeNav === "certificates" && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl font-black">My Certificates</h1>
-                <p className="text-slate-500 text-sm mt-1">Download and share your volunteer achievements.</p>
+                <p className="text-slate-500 text-sm mt-1">
+                  Download and share your volunteer achievements.
+                </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {certificates.map((cert) => (
-                  <motion.div key={cert.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
-
-                    <div className={`h-2 w-full ${cert.type === "excellence" ? "bg-gradient-to-r from-yellow-400 to-amber-500" : cert.type === "milestone" ? "bg-gradient-to-r from-orange-400 to-red-500" : "bg-gradient-to-r from-emerald-400 to-teal-500"}`} />
-
-                    <div className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                          {getCertIcon(cert.type)}
-                        </div>
-                        <div>
-                          <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${cert.type === "excellence" ? "bg-yellow-100 text-yellow-700" : cert.type === "milestone" ? "bg-orange-100 text-orange-700" : "bg-emerald-100 text-emerald-700"}`}>
+              {certificates.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-slate-100 p-12 text-center text-slate-400">
+                  <Award size={36} className="mx-auto mb-3 opacity-30" />
+                  <p className="font-bold">No certificates yet.</p>
+                  <p className="text-sm mt-1">
+                    Complete a drive and get approved to earn one.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {certificates.map((cert) => (
+                    <motion.div
+                      key={cert.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all"
+                    >
+                      <div
+                        className={`h-2 w-full ${
+                          cert.type === "excellence"
+                            ? "bg-gradient-to-r from-yellow-400 to-amber-500"
+                            : cert.type === "milestone"
+                            ? "bg-gradient-to-r from-orange-400 to-red-500"
+                            : "bg-gradient-to-r from-emerald-400 to-teal-500"
+                        }`}
+                      />
+                      <div className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                            {getCertIcon(cert.type)}
+                          </div>
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                              cert.type === "excellence"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : cert.type === "milestone"
+                                ? "bg-orange-100 text-orange-700"
+                                : "bg-emerald-100 text-emerald-700"
+                            }`}
+                          >
                             {cert.type}
                           </span>
                         </div>
+                        <h3 className="text-lg font-black text-slate-900 mb-1">
+                          {cert.title}
+                        </h3>
+                        <p className="text-sm text-slate-500 mb-4">
+                          {cert.drive}
+                        </p>
+                        <a
+                          href={cert.file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border-2 border-slate-200 text-sm font-bold text-slate-700 hover:border-emerald-300 hover:text-emerald-700 hover:bg-emerald-50 transition"
+                        >
+                          <Download size={15} />
+                          Download PDF
+                        </a>
                       </div>
-
-                      <h3 className="text-lg font-black text-slate-900 mb-1">{cert.title}</h3>
-                      <p className="text-sm text-slate-500 mb-1">{cert.drive}</p>
-                      <p className="text-xs text-slate-400 mb-4">{cert.hours} hours · Issued {cert.issueDate}</p>
-
-                      <a
-                        href={cert.file}
-                        download
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border-2 border-slate-200 text-sm font-bold text-slate-700 hover:border-emerald-300 hover:text-emerald-700 hover:bg-emerald-50 transition"
-                      >
-                        <Download size={15} />
-                        Download PDF
-                      </a>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
+          {/* ── PROFILE ── */}
           {activeNav === "profile" && (
             <div className="space-y-6 max-w-2xl">
               <div>
                 <h1 className="text-2xl font-black">My Profile</h1>
-                <p className="text-slate-500 text-sm mt-1">Your volunteer identity and impact summary.</p>
+                <p className="text-slate-500 text-sm mt-1">
+                  Your volunteer identity and impact summary.
+                </p>
               </div>
 
               <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
@@ -1158,31 +1454,49 @@ export default function UserDashboard() {
                     <UserCircle size={48} className="text-emerald-400" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black">{user ? user.name : "—"}</h2>
-                    <p className="text-slate-400 text-sm">{user ? user.email : "—"}</p>
+                    <h2 className="text-2xl font-black">
+                      {user ? user.name : "—"}
+                    </h2>
+                    <p className="text-slate-400 text-sm">
+                      {user ? user.email : "—"}
+                    </p>
                     <div className="flex items-center gap-1.5 mt-1">
                       <CheckCircle2 size={14} className="text-emerald-400" />
-                      <span className="text-xs text-emerald-400 font-bold">Verified Volunteer</span>
+                      <span className="text-xs text-emerald-400 font-bold">
+                        Verified Volunteer
+                      </span>
                     </div>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-3 gap-4">
                   {[
                     { label: "Drives", value: data?.stats?.drivesJoined || 0 },
-                    { label: "Hours", value: data?.stats?.hoursVolunteered || 0 },
-                    { label: "Points", value: data?.stats?.impactPoints || 0 },
+                    {
+                      label: "Hours",
+                      value: data?.stats?.hoursVolunteered || 0,
+                    },
+                    {
+                      label: "Points",
+                      value: data?.stats?.impactPoints || 0,
+                    },
                   ].map((s) => (
-                    <div key={s.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                    <div
+                      key={s.label}
+                      className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center"
+                    >
                       <p className="text-2xl font-black">{s.value}</p>
-                      <p className="text-xs text-slate-400 font-bold mt-0.5">{s.label}</p>
+                      <p className="text-xs text-slate-400 font-bold mt-0.5">
+                        {s.label}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-4">
-                <h3 className="font-black text-slate-900 mb-2">Account Info</h3>
+                <h3 className="font-black text-slate-900 mb-2">
+                  Account Info
+                </h3>
                 {[
                   { label: "Full Name", value: user?.name || "Loading..." },
                   { label: "Email", value: user?.email || "Loading..." },
@@ -1191,9 +1505,9 @@ export default function UserDashboard() {
                     label: "Joined",
                     value: user?.createdAt
                       ? new Date(user.createdAt).toLocaleDateString("en-IN", {
-                        month: "long",
-                        year: "numeric",
-                      })
+                          month: "long",
+                          year: "numeric",
+                        })
                       : "Loading...",
                   },
                   { label: "Role", value: "Field Volunteer" },
@@ -1202,7 +1516,9 @@ export default function UserDashboard() {
                     key={row.label}
                     className="flex justify-between items-center py-3 border-b border-slate-50 last:border-0"
                   >
-                    <span className="text-sm font-bold text-slate-400">{row.label}</span>
+                    <span className="text-sm font-bold text-slate-400">
+                      {row.label}
+                    </span>
                     <span className="text-sm font-bold text-slate-900">
                       {row.value ?? "N/A"}
                     </span>

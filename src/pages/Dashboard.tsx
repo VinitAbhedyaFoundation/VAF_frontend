@@ -181,20 +181,17 @@ interface DashboardStats {
 }
 interface Drive {
   id: number;
-
   title?: string;
-
   date: string;
-
   totalHours: number;
-
   location?: string;
-
+  certificateIssued?: boolean;
+  completed?: boolean;
   driveLocation?: {
     location: string;
   };
 }
-interface AttendanceRecord { id: number; user: { name: string; email: string; }; drive: { date: string; }; hours: number; createdAt: string; status?: "Marked" | "Pending"; }
+interface AttendanceRecord { id: number; user: { name: string; email: string; }; drive: { date: string; }; hours: number; createdAt: string; status?: "Pending" | "Approved" | "Rejected"; }
 interface Volunteer { id: number; name: string; email: string; drives: number; status: "Approved" | "Pending"; city: string; age: number; joined: string; isNew: boolean; }
 interface MessageItem { id: number; title: string; content: string; date: string; status: "Sent"; recipients: number; }
 interface ApiMessage { id: number; subject?: string; title?: string; content?: string; createdAt?: string; recipients?: number; }
@@ -212,17 +209,20 @@ const NAV_ITEMS: NavItem[] = [
 
 const PIE_COLORS = ["#10b981", "#6366f1", "#f59e0b", "#ef4444", "#8b5cf6"];
 
-
-
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 const getStatusClass = (s: string) => {
   switch (s) {
-    case "Active": case "Approved": case "Marked": case "Sent": return "bg-green-100 text-green-700";
-    case "Upcoming": return "bg-blue-100 text-blue-700";
-    case "Pending": case "Draft": return "bg-orange-100 text-orange-700";
-    case "Completed": return "bg-slate-100 text-slate-600";
-    default: return "bg-slate-100 text-slate-600";
+    case "Active":
+    case "Approved":
+    case "Sent":
+      return "bg-green-100 text-green-700";
+    case "Pending":
+      return "bg-yellow-100 text-yellow-700";
+    case "Rejected":
+      return "bg-red-100 text-red-700";
+    default:
+      return "";
   }
 };
 
@@ -370,6 +370,8 @@ const VolunteerDrawer: React.FC<{ volunteer: Volunteer | null; onClose: () => vo
     </AnimatePresence>
   );
 
+// ─── FIX #4: DriveDetailsModal — replaced empty status card with real content ─
+
 const DriveDetailsModal: React.FC<{
   drive: Drive | null;
   onClose: () => void;
@@ -384,7 +386,6 @@ const DriveDetailsModal: React.FC<{
           className="fixed inset-0 bg-black/50 z-40"
           onClick={onClose}
         />
-
         <motion.div
           initial={{ opacity: 0, scale: 0.92, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -393,60 +394,38 @@ const DriveDetailsModal: React.FC<{
           className="fixed inset-0 flex items-center justify-center z-50 px-4"
         >
           <div className="themed-card w-full max-w-lg rounded-3xl border themed-border shadow-2xl p-6">
-
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-black themed-text">
                 {drive.title || "Cleanup Drive"}
               </h2>
-
-              <button
-                onClick={onClose}
-                className="p-2 rounded-full themed-hover"
-              >
+              <button onClick={onClose} className="p-2 rounded-full themed-hover">
                 <X size={18} />
               </button>
             </div>
-
             <div className="space-y-4">
-
               <div className="themed-subtle rounded-2xl p-4">
-                <p className="text-xs themed-muted uppercase font-bold mb-1">
-                  Location
-                </p>
-
+                <p className="text-xs themed-muted uppercase font-bold mb-1">Location</p>
                 <p className="font-semibold themed-text">
-                  {drive.location ??
-                    drive.driveLocation?.location ??
-                    "Unknown Location"}
+                  {drive.location ?? drive.driveLocation?.location ?? "Unknown Location"}
                 </p>
               </div>
-
               <div className="themed-subtle rounded-2xl p-4">
-                <p className="text-xs themed-muted uppercase font-bold mb-1">
-                  Date
-                </p>
-
+                <p className="text-xs themed-muted uppercase font-bold mb-1">Date</p>
                 <p className="font-semibold themed-text">
                   {new Date(drive.date).toLocaleString()}
                 </p>
               </div>
-
               <div className="themed-subtle rounded-2xl p-4">
-                <p className="text-xs themed-muted uppercase font-bold mb-1">
-                  Planned Hours
-                </p>
-
+                <p className="text-xs themed-muted uppercase font-bold mb-1">Planned Hours</p>
+                <p className="font-semibold themed-text">{drive.totalHours} hours</p>
+              </div>
+              {/* FIX: was an empty card — now shows drive status */}
+              <div className="themed-subtle rounded-2xl p-4">
+                <p className="text-xs themed-muted uppercase font-bold mb-1">Status</p>
                 <p className="font-semibold themed-text">
-                  {drive.totalHours} hours
+                  {drive.completed ? "Completed ✅" : "Pending ⏳"}
                 </p>
               </div>
-
-              <div className="themed-subtle rounded-2xl p-4">
-
-                <p className="font-semibold themed-text">
-                </p>
-              </div>
-
             </div>
           </div>
         </motion.div>
@@ -454,6 +433,7 @@ const DriveDetailsModal: React.FC<{
     )}
   </AnimatePresence>
 );
+
 // ─── SETTINGS SECTION ─────────────────────────────────────────────────────────
 
 const SettingsSection: React.FC<{
@@ -758,7 +738,6 @@ const EyeOff: React.FC<{ size: number }> = ({ size }) => (
 // ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
 
 export default function AdvancedDashboard() {
-  // ── Theme State ──────────────────────────────────────────────────────────
   const [theme, setThemeState] = useState<ThemeMode>("light");
   const [accent, setAccentState] = useState<AccentPalette>({
     hex: "#10b981", name: "Emerald", 50: "#ecfdf5", 100: "#d1fae5", 200: "#a7f3d0",
@@ -777,9 +756,7 @@ export default function AdvancedDashboard() {
     toast.success(`Accent changed to ${a.name} 🎨`);
   }, [theme]);
 
-  const [selectedDrive, setSelectedDrive] =
-    useState<Drive | null>(null);
-
+  const [selectedDrive, setSelectedDrive] = useState<Drive | null>(null);
 
   useEffect(() => { applyTheme(theme, accent); }, []); // eslint-disable-line
 
@@ -791,15 +768,12 @@ export default function AdvancedDashboard() {
     return () => mq.removeEventListener("change", handler);
   }, [theme, accent]);
 
-  // ── App State ────────────────────────────────────────────────────────────
   const [appLoading, setAppLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<SectionId>("overview");
   const navigate = useNavigate();
 
-  // ── Admin User ───────────────────────────────────────────────────────────
   const [adminUser, setAdminUser] = useState<any>(null);
-
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [leaderboard, setLeaderboard] = useState<{ name: string; kg: number; drives: number; rank: number }[]>([]);
   const [drives, setDrives] = useState<Drive[]>([]);
@@ -820,12 +794,7 @@ export default function AdvancedDashboard() {
   const [selectedVolunteer, setSelectedVolunteer] = useState<Volunteer | null>(null);
   const [selectedMessage, setSelectedMessage] = useState<MessageItem | null>(null);
 
-  const [driveForm, setDriveForm] = useState({
-    title: "",
-    location: "",
-    date: "",
-    totalHours: "",
-  });
+  const [driveForm, setDriveForm] = useState({ title: "", location: "", date: "", totalHours: "" });
   const [attendanceForm, setAttendanceForm] = useState({ name: "", email: "", drive: "", hours: "" });
   const [volunteerForm, setVolunteerForm] = useState({ name: "", email: "", city: "", age: "", password: "" });
   const [messageForm, setMessageForm] = useState({ title: "", content: "" });
@@ -861,6 +830,17 @@ export default function AdvancedDashboard() {
     finally { setLoadingAttendance(false); }
   }, []);
 
+  const handleApproveAttendance = async (id: number) => {
+    try {
+      await API.patch(`/attendance/approve/${id}`);
+      toast.success("Attendance approved");
+      await fetchAttendance();
+      await fetchDashboardStats();
+    } catch (err) {
+      toast.error("Failed to approve attendance");
+    }
+  };
+
   const fetchVolunteers = useCallback(async () => {
     setLoadingVolunteers(true);
     try {
@@ -870,11 +850,7 @@ export default function AdvancedDashboard() {
         id: v.id, name: v.name, email: v.email, city: v.city ?? "Unknown", age: v.age ?? 0,
         drives: v.drives ?? 0, status: v.status ?? "Pending",
         joined: new Date(v.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" }),
-        isNew:
-          Date.now() -
-          new Date(v.createdAt).getTime()
-          <
-          7 * 24 * 60 * 60 * 1000,
+        isNew: Date.now() - new Date(v.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000,
       }));
       setVolunteers(mapped);
     } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to load volunteers"); }
@@ -899,7 +875,6 @@ export default function AdvancedDashboard() {
     finally { setLoadingMessages(false); }
   }, []);
 
-  // ── Load admin user from localStorage ────────────────────────────────────
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) setAdminUser(JSON.parse(user));
@@ -917,8 +892,6 @@ export default function AdvancedDashboard() {
     fetchMessages();
   }, [fetchDrives, fetchAttendance, fetchVolunteers, fetchMessages]);
 
-  // ── Nav & Auth ────────────────────────────────────────────────────────────
-
   const goTo = (section: SectionId) => { setActiveNav(section); setIsMobileMenuOpen(false); };
 
   const handleLogout = () => {
@@ -927,8 +900,6 @@ export default function AdvancedDashboard() {
     toast.success("Logged out");
     setTimeout(() => navigate("/login"), 600);
   };
-
-  // ── Derived metrics ────────────────────────────────────────────────────────
 
   const METRICS = dashboardStats ? [
     { id: "m1", label: "Drives Conducted", value: dashboardStats.totalDrives, icon: Calendar, trend: "+12%", color: "accent-text", bgLight: "accent-bg-soft" },
@@ -974,68 +945,27 @@ export default function AdvancedDashboard() {
   // ── Action handlers ────────────────────────────────────────────────────────
 
   const handleCreateDrive = async () => {
-
-    if (
-      !driveForm.title ||
-      !driveForm.location ||
-      !driveForm.date ||
-      !driveForm.totalHours
-    ) {
+    if (!driveForm.title || !driveForm.location || !driveForm.date || !driveForm.totalHours) {
       toast.error("Fill all required fields");
       return;
     }
-
     setSubmitting(true);
-
     try {
-
-      const res = await API.post(
-        "/drive/newdrive",
-        {
-          title: driveForm.title,
-
-          location: driveForm.location,
-
-          date: new Date(
-            driveForm.date
-          ).toISOString(),
-
-          totalHours: Number(
-            driveForm.totalHours
-          ),
-
-        }
-      );
-
-      setDrives(prev => [
-        res.data.drive ?? res.data,
-        ...prev,
-      ]);
-
-      setShowDriveModal(false);
-
-      setDriveForm({
-        title: "",
-        location: "",
-        date: "",
-        totalHours: "",
+      const res = await API.post("/drive/newdrive", {
+        title: driveForm.title,
+        location: driveForm.location,
+        date: new Date(driveForm.date).toISOString(),
+        totalHours: Number(driveForm.totalHours),
       });
-
+      setDrives(prev => [res.data.drive ?? res.data, ...prev]);
+      setShowDriveModal(false);
+      setDriveForm({ title: "", location: "", date: "", totalHours: "" });
       toast.success("Drive created 🚀");
-
-      fetchDashboardStats();
-
+      await fetchDashboardStats();
     } catch (err: any) {
-
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to create drive"
-      );
-
+      toast.error(err?.response?.data?.message || "Failed to create drive");
     } finally {
-
       setSubmitting(false);
-
     }
   };
 
@@ -1043,26 +973,26 @@ export default function AdvancedDashboard() {
     if (!attendanceForm.name || !attendanceForm.hours || !attendanceForm.drive) { toast.error("Name, hours and drive are required"); return; }
     setSubmitting(true);
     try {
-      const selectedDrive = drives.find(d => d.id === Number(attendanceForm.drive));
-      if (!selectedDrive?.id) { toast.error("Invalid drive selected"); setSubmitting(false); return; }
+      const selectedDriveForAttendance = drives.find(d => d.id === Number(attendanceForm.drive));
+      if (!selectedDriveForAttendance?.id) { toast.error("Invalid drive selected"); setSubmitting(false); return; }
       const res = await API.post("/user/attendance", {
-        driveId: selectedDrive.id, name: attendanceForm.name,
+        driveId: selectedDriveForAttendance.id, name: attendanceForm.name,
         email: attendanceForm.email, hours: Number(attendanceForm.hours),
       });
       const raw = res.data.record ?? res.data;
       const safeRecord: AttendanceRecord = {
         id: raw.id,
         user: { name: raw.user?.name ?? attendanceForm.name, email: raw.user?.email ?? attendanceForm.email },
-        drive: { date: raw.drive?.date ?? selectedDrive.date },
+        drive: { date: raw.drive?.date ?? selectedDriveForAttendance.date },
         hours: raw.hours ?? Number(attendanceForm.hours),
         createdAt: raw.createdAt ?? new Date().toISOString(),
-        status: raw.status ?? "Marked",
+        status: raw.status ?? "Pending",
       };
       setAttendance(prev => [safeRecord, ...prev]);
       setAttendanceForm({ name: "", email: "", drive: "", hours: "" });
       setShowAttendanceModal(false);
       toast.success("Attendance marked ✅");
-      fetchDashboardStats();
+      await fetchDashboardStats();
     } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to mark attendance"); }
     finally { setSubmitting(false); }
   };
@@ -1084,17 +1014,19 @@ export default function AdvancedDashboard() {
       setShowVolunteerModal(false);
       setVolunteerForm({ name: "", email: "", city: "", age: "", password: "" });
       toast.success(`${volunteerForm.name} added as volunteer 👤`);
-      fetchDashboardStats();
+      await fetchDashboardStats();
     } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to add volunteer"); }
     finally { setSubmitting(false); }
   };
 
+  // ── FIX #1: handleApproveVolunteer — added missing fetchDashboardStats() ──
   const handleApproveVolunteer = async (vol: Volunteer) => {
     try {
       await API.patch(`/user/approve/${vol.id}`);
       setVolunteers(prev => prev.map(v => v.id === vol.id ? { ...v, status: "Approved" as const } : v));
       setSelectedVolunteer(null);
       toast.success(`${vol.name} approved ✅`);
+      await fetchDashboardStats();
     } catch (err: any) { toast.error(err?.response?.data?.message || "Failed to approve volunteer"); }
   };
 
@@ -1113,7 +1045,9 @@ export default function AdvancedDashboard() {
         id: msg.id, title: msg.subject ?? msg.title ?? "Untitled", content: msg.content,
         date: new Date(msg.createdAt).toLocaleDateString(), status: "Sent", recipients: msg.recipients ?? 0,
       };
-      setMessages(prev => [newMsg, ...prev]);
+
+      await fetchMessages();
+
       setShowMessageModal(false);
       setMessageForm({ title: "", content: "" });
       toast.success("Message sent 📧");
@@ -1121,7 +1055,34 @@ export default function AdvancedDashboard() {
     finally { setSubmitting(false); }
   };
 
-  // ── Section titles ────────────────────────────────────────────────────────
+  // ── FIX #3: handleGenerateCertificates — added await + fetchDashboardStats ─
+  const handleGenerateCertificates = async (driveId: number) => {
+    const drive = drives.find(d => d.id === driveId);
+    if (!drive?.completed) {
+      toast.error("Complete the drive first before generating certificates");
+      return;
+    }
+    try {
+      const res = await API.post(`/certificate/generate/${driveId}`);
+      toast.success(res.data.message || "Certificates generated successfully");
+      await fetchDrives();
+      await fetchDashboardStats();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to generate certificates");
+    }
+  };
+
+  // ── FIX #2: handleCompleteDrive — added await + fetchDashboardStats ────────
+  const handleCompleteDrive = async (driveId: number) => {
+    try {
+      await API.patch(`/drive/${driveId}/complete`);
+      toast.success("Drive marked as completed");
+      await fetchDrives();
+      await fetchDashboardStats();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to complete drive");
+    }
+  };
 
   const sectionTitle: Record<SectionId, string> = {
     overview: "Dashboard Overview", drives: "Drives", attendance: "Attendance",
@@ -1129,8 +1090,6 @@ export default function AdvancedDashboard() {
   };
 
   const pendingBadge = pendingVolunteers > 0 ? `${pendingVolunteers} Pending` : undefined;
-
-  // ── Sidebar ───────────────────────────────────────────────────────────────
 
   const Sidebar = ({ mobile = false }) => (
     <div className={`flex flex-col themed-sidebar ${mobile ? "p-8 w-80" : "w-80 border-r themed-border p-8 hidden xl:flex sticky top-0 h-screen"}`}>
@@ -1158,15 +1117,12 @@ export default function AdvancedDashboard() {
     </div>
   );
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <ThemeContext.Provider value={{ theme, accent, setTheme, setAccent }}>
       <GlobalThemeStyle />
       <div className="flex min-h-screen font-sans overflow-hidden" style={{ background: "var(--bg-base)", color: "var(--text-primary)" }}>
         <Toaster position="bottom-center" toastOptions={{ duration: 2500 }} />
 
-        {/* Mobile drawer */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <>
@@ -1187,17 +1143,14 @@ export default function AdvancedDashboard() {
         <Sidebar />
 
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          {/* ── Header ── */}
           <header className="h-20 themed-header backdrop-blur-md border-b themed-border flex items-center justify-between px-6 lg:px-12 flex-shrink-0 z-30">
             <div className="flex items-center gap-4">
               <button onClick={() => setIsMobileMenuOpen(true)} className="xl:hidden p-2 themed-hover rounded-full">
                 <Menu size={20} className="themed-secondary" />
               </button>
-              {/* Personalized header title */}
               <div>
                 <p className="text-xs font-bold accent-text uppercase tracking-[0.2em]">Volunteer Admin</p>
-                <h1 className="text-xl lg:text-2xl font-black tracking-tight themed-text">{sectionTitle[activeNav]}
-                </h1>
+                <h1 className="text-xl lg:text-2xl font-black tracking-tight themed-text">{sectionTitle[activeNav]}</h1>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -1220,7 +1173,6 @@ export default function AdvancedDashboard() {
             {/* ── OVERVIEW ── */}
             {activeNav === "overview" && (
               <>
-                {/* Welcome Hero Banner */}
                 <motion.div
                   initial={{ opacity: 0, y: -16 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1229,22 +1181,15 @@ export default function AdvancedDashboard() {
                   style={{ background: "linear-gradient(135deg, var(--accent-900) 0%, #1e293b 100%)" }}
                 >
                   <div className="relative z-10">
-                    <p className="text-sm font-semibold mb-2" style={{ color: "var(--accent-400)" }}>
-                      Welcome back 👋
-                    </p>
-                    <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-3">
-                      {adminUser?.name || "Admin"}
-                    </h1>
-                    <p className="text-white/60 text-base lg:text-lg">
-                      Manage drives, volunteers, attendance and impact metrics.
-                    </p>
+                    <p className="text-sm font-semibold mb-2" style={{ color: "var(--accent-400)" }}>Welcome back 👋</p>
+                    <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-3">{adminUser?.name || "Admin"}</h1>
+                    <p className="text-white/60 text-base lg:text-lg">Manage drives, volunteers, attendance and impact metrics.</p>
                   </div>
                   <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
                     <Leaf size={240} />
                   </div>
                 </motion.div>
 
-                {/* Metric Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                   {appLoading
                     ? Array.from({ length: 4 }).map((_, i) => (
@@ -1264,7 +1209,6 @@ export default function AdvancedDashboard() {
                   }
                 </div>
 
-                {/* Charts + Leaderboard */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-2 themed-card p-8 rounded-[2.5rem] border themed-border shadow-sm h-96">
                     <h3 className="text-xl font-black mb-1 themed-text">Weekly Velocity</h3>
@@ -1338,9 +1282,12 @@ export default function AdvancedDashboard() {
                     <Plus size={16} /> Create Drive
                   </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                   {[
                     { label: "Total Drives", val: drives.length },
+                    { label: "Completed", val: drives.filter(d => d.completed).length },
+                    { label: "Upcoming", val: drives.filter(d => !d.completed && new Date(d.date) >= new Date()).length },
                   ].map(s => (
                     <div key={s.label} className="themed-card rounded-2xl p-5 border themed-border shadow-sm">
                       <p className="text-xs font-bold themed-muted uppercase tracking-widest mb-1">{s.label}</p>
@@ -1348,47 +1295,80 @@ export default function AdvancedDashboard() {
                     </div>
                   ))}
                 </div>
+
                 {loadingDrives ? <SectionLoader /> : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {drives.map(drive => (
-                      <motion.div key={drive.id} layout className="themed-card p-5 rounded-2xl shadow-sm border themed-border themed-hover transition">
-                        <div className="mb-4">
-                          <h2 className="font-bold text-lg themed-text">
-                            {drive.title || "Cleanup Drive"}
-                          </h2>
+                      <motion.div key={drive.id} layout className="themed-card p-5 rounded-2xl shadow-sm border themed-border themed-hover transition flex flex-col">
+                        <div className="mb-4 flex-1">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <h2 className="font-bold text-lg themed-text">
+                              {drive.title || "Cleanup Drive"}
+                            </h2>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${drive.completed
+                                ? "bg-green-100 text-green-700"
+                                : new Date(drive.date) < new Date()
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-blue-100 text-blue-700"
+                              }`}>
+                              {drive.completed ? "Completed" : new Date(drive.date) < new Date() ? "Active" : "Upcoming"}
+                            </span>
+                          </div>
 
-                          <p className="text-sm themed-muted mt-1">
-                            {new Date(drive.date).toLocaleDateString(
-                              "en-IN",
-                              {
-                                weekday: "long",
-                                day: "numeric",
-                                month: "short",
-                              }
-                            )}
+                          <p className="text-sm themed-muted">
+                            {new Date(drive.date).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" })}
                           </p>
 
                           <div className="mt-3 space-y-1.5">
                             <p className="text-sm themed-secondary flex items-center gap-2">
                               <MapPin size={14} className="accent-text shrink-0" />
-                              {drive.location ?? "Unknown Location"}
+                              {drive.location ?? drive.driveLocation?.location ?? "Unknown Location"}
                             </p>
-
                             <p className="text-sm themed-secondary flex items-center gap-2">
                               <Clock size={14} className="text-blue-500 shrink-0" />
                               {drive.totalHours} hrs planned
                             </p>
                           </div>
                         </div>
-                        <div className="pt-3 border-t themed-border">
+
+                        {/* View Details */}
+                        <div className="pt-3 border-t themed-border mb-3">
                           <button
-                            onClick={() =>
-                              setSelectedDrive(drive)
-                            }
+                            onClick={() => setSelectedDrive(drive)}
                             className="accent-text text-sm font-semibold inline-flex items-center gap-1 accent-text-hover">
                             View Details <ChevronRight size={16} />
                           </button>
                         </div>
+
+                        {/* Complete Drive — only shown while not yet completed */}
+                        
+                        {!drive.completed && (
+                          <button
+                            onClick={() => handleCompleteDrive(drive.id)}
+                            className="w-full py-2.5 mb-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-slate-700 hover:bg-slate-800 text-white"
+                          >
+                            Mark as Completed ✓
+                          </button>
+
+                        )}
+
+                        {/* Generate Certificates — requires drive to be completed */}
+                        <button
+                          disabled={drive.certificateIssued || !drive.completed}
+                          onClick={() => handleGenerateCertificates(drive.id)}
+                          className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${drive.certificateIssued
+                              ? "bg-gray-200 cursor-not-allowed text-gray-500"
+                              : !drive.completed
+                                ? "bg-gray-200 cursor-not-allowed text-gray-400"
+                                : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                            }`}
+                        >
+                          {drive.certificateIssued
+                            ? "Certificates Issued ✅"
+                            : !drive.completed
+                              ? "Complete drive to unlock"
+                              : "Generate Certificates"}
+                        </button>
                       </motion.div>
                     ))}
                     {drives.length === 0 && <p className="col-span-3 text-center themed-muted py-10">No drives found. Create one!</p>}
@@ -1409,8 +1389,8 @@ export default function AdvancedDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {[
                     { label: "Total Records", val: attendance.length, icon: "📋" },
-                    { label: "Marked", val: attendance.length, icon: "✅" },
-                    { label: "Pending", val: 0, icon: "⏳" },
+                    { label: "Marked", val: attendance.filter(item => item.status === "Approved").length, icon: "✅" },
+                    { label: "Pending", val: attendance.filter(item => item.status === "Pending").length, icon: "⏳" },
                   ].map(s => (
                     <div key={s.label} className="themed-card rounded-2xl p-5 border themed-border shadow-sm">
                       <p className="text-2xl mb-1">{s.icon}</p>
@@ -1433,8 +1413,23 @@ export default function AdvancedDashboard() {
                             <td className="p-4 themed-secondary">{item.drive ? new Date(item.drive.date).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }) : "-"}</td>
                             <td className="p-4 themed-secondary">{item.hours} hrs</td>
                             <td className="p-4 themed-muted">{item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-IN") : "-"}</td>
-                            <td className="p-4"><span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">{item.status ?? "Marked"}</span></td>
-                            <td className="p-4"><span className="themed-muted text-xs">Done</span></td>
+                            <td className="p-4">
+                              <span className={`text-xs px-2 py-1 rounded-full font-medium ${item.status === "Approved" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                                {item.status}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              {item.status === "Pending" ? (
+                                <button
+                                  onClick={() => handleApproveAttendance(item.id)}
+                                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-xs"
+                                >
+                                  Approve
+                                </button>
+                              ) : (
+                                <span className="text-green-600 text-xs">Approved</span>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -1653,10 +1648,7 @@ export default function AdvancedDashboard() {
         </Modal>
 
         <VolunteerDrawer volunteer={selectedVolunteer} onClose={() => setSelectedVolunteer(null)} onApprove={handleApproveVolunteer} />
-        <DriveDetailsModal
-          drive={selectedDrive}
-          onClose={() => setSelectedDrive(null)}
-        />
+        <DriveDetailsModal drive={selectedDrive} onClose={() => setSelectedDrive(null)} />
       </div>
     </ThemeContext.Provider>
   );
