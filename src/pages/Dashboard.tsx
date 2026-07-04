@@ -24,6 +24,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AnimatePresence } from "framer-motion";
+import Sidebar from "../components/admin/layout/Sidebar";
+import type { SectionId } from "../types/admin";
 
 // ─── THEME SYSTEM ─────────────────────────────────────────────────────────────
 
@@ -171,10 +173,8 @@ API.interceptors.request.use((config) => {
 
 // ─── TYPES ──────────────────────────────────────────────────────────────────
 
-type SectionId = "overview" | "drives" | "attendance" | "volunteers" | "messages" | "settings";
 type SettingsTab = "account" | "security" | "appearance" | "data" | "system";
 
-interface NavItem { label: string; icon: React.ElementType; id: SectionId; badge?: string; }
 interface DashboardStats {
   totalDrives: number; totalHours: number; wasteCollected: number; totalVolunteers: number;
   chartData: { name: string; waste: number; volunteers: number }[];
@@ -196,16 +196,7 @@ interface Volunteer { id: number; name: string; email: string; drives: number; s
 interface MessageItem { id: number; title: string; content: string; date: string; status: "Sent"; recipients: number; }
 interface ApiMessage { id: number; subject?: string; title?: string; content?: string; createdAt?: string; recipients?: number; }
 
-// ─── NAV ITEMS ───────────────────────────────────────────────────────────────
 
-const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, id: "overview" },
-  { label: "Drives", icon: Waves, id: "drives" },
-  { label: "Attendance", icon: ShieldCheck, id: "attendance" },
-  { label: "Volunteers", icon: UserCircle, id: "volunteers" },
-  { label: "Messages", icon: Mail, id: "messages" },
-  { label: "Settings", icon: Settings, id: "settings" },
-];
 
 const PIE_COLORS = ["#10b981", "#6366f1", "#f59e0b", "#ef4444", "#8b5cf6"];
 
@@ -800,7 +791,7 @@ export default function AdvancedDashboard() {
   const [messageForm, setMessageForm] = useState({ title: "", content: "" });
 
   const [volunteerSearch, setVolunteerSearch] = useState("");
-  const [volunteerFilter, setVolunteerFilter] = useState<"All" | "New" | "Recurring" | "Pending">("All");
+  const [volunteerFilter, setVolunteerFilter] = useState<"All" | "New" | "Pending">("All");
 
   // ── Data fetchers ─────────────────────────────────────────────────────────
 
@@ -910,7 +901,6 @@ export default function AdvancedDashboard() {
 
   const chartData = dashboardStats?.chartData ?? [];
   const newVolunteers = volunteers.filter(v => v.isNew).length;
-  const recurringVolunteers = volunteers.filter(v => !v.isNew && v.status === "Approved").length;
   const pendingVolunteers = volunteers.filter(v => v.status === "Pending").length;
 
   const cityData = useMemo(() => {
@@ -933,7 +923,6 @@ export default function AdvancedDashboard() {
   const filteredVolunteers = useMemo(() => {
     let list = volunteers;
     if (volunteerFilter === "New") list = list.filter(v => v.isNew);
-    else if (volunteerFilter === "Recurring") list = list.filter(v => !v.isNew && v.status === "Approved");
     else if (volunteerFilter === "Pending") list = list.filter(v => v.status === "Pending");
     if (volunteerSearch) list = list.filter(v =>
       v.name.toLowerCase().includes(volunteerSearch.toLowerCase()) ||
@@ -1085,37 +1074,11 @@ export default function AdvancedDashboard() {
   };
 
   const sectionTitle: Record<SectionId, string> = {
-    overview: "Dashboard Overview", drives: "Drives", attendance: "Attendance",
+    overview: "Dashboard Overview", drives: "Drives", attendance: "Attendance", certificates: "Certificates",
     volunteers: "Volunteers", messages: "Messages", settings: "Settings",
   };
 
   const pendingBadge = pendingVolunteers > 0 ? `${pendingVolunteers} Pending` : undefined;
-
-  const Sidebar = ({ mobile = false }) => (
-    <div className={`flex flex-col themed-sidebar ${mobile ? "p-8 w-80" : "w-80 border-r themed-border p-8 hidden xl:flex sticky top-0 h-screen"}`}>
-      <div className="flex items-center gap-2 mb-12">
-        <div className="w-10 h-10 accent-bg rounded-xl rotate-12 flex items-center justify-center accent-shadow">
-          <Leaf className="text-white -rotate-12" size={20} />
-        </div>
-        <div>
-          <h2 className="text-2xl font-black tracking-tighter themed-text">VAF</h2>
-          <p className="text-[10px] font-bold accent-text uppercase tracking-widest -mt-1">Portal</p>
-        </div>
-      </div>
-      <nav className="space-y-2 flex-1">
-        {NAV_ITEMS.map(item => {
-          const badge = item.id === "volunteers" ? pendingBadge : undefined;
-          return (
-            <button key={item.id} onClick={() => goTo(item.id)}
-              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all ${activeNav === item.id ? "accent-nav-active accent-shadow" : "themed-secondary themed-hover"}`}>
-              <div className="flex items-center gap-3"><item.icon size={20} />{item.label}</div>
-              {badge && <span className="text-[10px] opacity-60">{badge}</span>}
-            </button>
-          );
-        })}
-      </nav>
-    </div>
-  );
 
   return (
     <ThemeContext.Provider value={{ theme, accent, setTheme, setAccent }}>
@@ -1134,13 +1097,22 @@ export default function AdvancedDashboard() {
                 <div className="flex justify-end p-4">
                   <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 themed-subtle rounded-full"><X size={20} /></button>
                 </div>
-                <Sidebar mobile />
+                <Sidebar
+    mobile
+    activeNav={activeNav}
+    goTo={goTo}
+    pendingBadge={pendingBadge}
+/>
               </motion.div>
             </>
           )}
         </AnimatePresence>
 
-        <Sidebar />
+        <Sidebar
+    activeNav={activeNav}
+    goTo={goTo}
+    pendingBadge={pendingBadge}
+/>
 
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
           <header className="h-20 themed-header backdrop-blur-md border-b themed-border flex items-center justify-between px-6 lg:px-12 flex-shrink-0 z-30">
@@ -1306,10 +1278,10 @@ export default function AdvancedDashboard() {
                               {drive.title || "Cleanup Drive"}
                             </h2>
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${drive.completed
-                                ? "bg-green-100 text-green-700"
-                                : new Date(drive.date) < new Date()
-                                  ? "bg-amber-100 text-amber-700"
-                                  : "bg-blue-100 text-blue-700"
+                              ? "bg-green-100 text-green-700"
+                              : new Date(drive.date) < new Date()
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-blue-100 text-blue-700"
                               }`}>
                               {drive.completed ? "Completed" : new Date(drive.date) < new Date() ? "Active" : "Upcoming"}
                             </span>
@@ -1341,7 +1313,7 @@ export default function AdvancedDashboard() {
                         </div>
 
                         {/* Complete Drive — only shown while not yet completed */}
-                        
+
                         {!drive.completed && (
                           <button
                             onClick={() => handleCompleteDrive(drive.id)}
@@ -1357,10 +1329,10 @@ export default function AdvancedDashboard() {
                           disabled={drive.certificateIssued || !drive.completed}
                           onClick={() => handleGenerateCertificates(drive.id)}
                           className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${drive.certificateIssued
-                              ? "bg-gray-200 cursor-not-allowed text-gray-500"
-                              : !drive.completed
-                                ? "bg-gray-200 cursor-not-allowed text-gray-400"
-                                : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                            ? "bg-gray-200 cursor-not-allowed text-gray-500"
+                            : !drive.completed
+                              ? "bg-gray-200 cursor-not-allowed text-gray-400"
+                              : "bg-indigo-600 hover:bg-indigo-700 text-white"
                             }`}
                         >
                           {drive.certificateIssued
@@ -1456,7 +1428,6 @@ export default function AdvancedDashboard() {
                   {[
                     { label: "Total", val: volunteers.length, icon: Users, color: "themed-subtle themed-secondary" },
                     { label: "New Members", val: newVolunteers, icon: Plus, color: "bg-purple-50 text-purple-600" },
-                    { label: "Recurring", val: recurringVolunteers, icon: RefreshCw, color: "accent-icon-bg" },
                     { label: "Pending Approval", val: pendingVolunteers, icon: Clock, color: "bg-orange-50 text-orange-600" },
                   ].map(s => (
                     <div key={s.label} className="themed-card rounded-2xl p-5 border themed-border shadow-sm">
@@ -1475,7 +1446,7 @@ export default function AdvancedDashboard() {
                           className="w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm input-themed" />
                       </div>
                       <div className="flex gap-2">
-                        {(["All", "New", "Recurring", "Pending"] as const).map(f => (
+                        {(["All", "New", "Pending"] as const).map(f => (
                           <button key={f} onClick={() => setVolunteerFilter(f)}
                             className={`px-4 py-2 rounded-xl text-sm font-bold transition ${volunteerFilter === f ? "accent-bg text-white" : "themed-card border themed-border themed-secondary themed-hover"}`}>{f}</button>
                         ))}
@@ -1484,7 +1455,7 @@ export default function AdvancedDashboard() {
                     <div className="themed-card rounded-2xl shadow-sm border themed-border overflow-hidden">
                       <table className="w-full text-sm">
                         <thead className="themed-subtle text-left">
-                          <tr>{["Name", "Email", "City", "Drives", "Status", "Type", "Action"].map(h => <th key={h} className="p-4 text-xs font-bold themed-muted uppercase tracking-wider">{h}</th>)}</tr>
+                          <tr>{["Name", "Email", "City", "Drives", "Status", "Action"].map(h => <th key={h} className="p-4 text-xs font-bold themed-muted uppercase tracking-wider">{h}</th>)}</tr>
                         </thead>
                         <tbody>
                           {filteredVolunteers.map(v => (
@@ -1494,11 +1465,6 @@ export default function AdvancedDashboard() {
                               <td className="p-4 themed-secondary">{v.city}</td>
                               <td className="p-4 themed-secondary">{v.drives}</td>
                               <td className="p-4"><span className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusClass(v.status)}`}>{v.status}</span></td>
-                              <td className="p-4">
-                                {v.isNew
-                                  ? <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-bold">New</span>
-                                  : <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-bold">Recurring</span>}
-                              </td>
                               <td className="p-4" onClick={e => e.stopPropagation()}>
                                 {v.status === "Pending"
                                   ? <button onClick={() => handleApproveVolunteer(v)} className="accent-text font-semibold text-sm accent-text-hover">Approve</button>
@@ -1564,6 +1530,55 @@ export default function AdvancedDashboard() {
                 )}
               </div>
             )}
+
+            {/* ── CERTIFICATES ── */}
+            {activeNav === "certificates" && (
+  <div className="space-y-6">
+
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="text-2xl font-bold themed-text">
+          Certificate Templates
+        </h1>
+
+        <p className="themed-secondary mt-1">
+          Manage reusable certificate templates for volunteer drives.
+        </p>
+      </div>
+
+      <button
+        disabled
+        className="accent-bg text-white px-5 py-2.5 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed"
+      >
+        <Upload size={16} className="inline mr-2" />
+        Upload Template
+      </button>
+    </div>
+
+    <div className="themed-card rounded-3xl border themed-border p-16 text-center">
+
+      <Award
+        size={60}
+        className="mx-auto accent-text mb-5"
+      />
+
+      <h2 className="text-2xl font-black themed-text mb-3">
+        Certificate Templates
+      </h2>
+
+      <p className="themed-secondary max-w-xl mx-auto">
+        Upload reusable templates, assign them to drive types,
+        manage versions, and generate certificates for volunteers.
+      </p>
+
+      <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full accent-bg-soft accent-text text-sm font-semibold">
+        🚧 Module under development
+      </div>
+
+    </div>
+
+  </div>
+)}
 
             {/* ── SETTINGS ── */}
             {activeNav === "settings" && (
