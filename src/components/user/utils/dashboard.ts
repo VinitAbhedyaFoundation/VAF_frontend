@@ -63,14 +63,28 @@ export const createUserMetrics = (
 export const createMyDrives = (
   data: DashboardData | null
 ): Drive[] =>
-  data?.recentDrives?.map((d, i) => ({
-    id: i.toString(),
+  data?.recentDrives?.map((d) => ({
+    id: d.driveId.toString(),
+
+    driveId: d.driveId, // ✅ Add this
+
+    participationId: d.participationId,
+
+    attendanceMarked: d.attendanceMarked,
+
     title: d.title,
+
     location: d.location,
+
     date: d.date,
-    status: d.status ?? "Completed",
+
+    status: d.status,
+
     volunteers: 0,
-    hoursLogged: d.hoursLogged,
+
+    hoursLogged: d.hours,
+
     description: d.description,
+
     type: d.type,
   })) || [];
