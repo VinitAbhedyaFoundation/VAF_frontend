@@ -38,14 +38,22 @@ export interface MetricData {
 
 export interface Drive {
   id: string;
+
+  participationId: number;
+  driveId: number; // <-- add this
+  attendanceMarked: boolean;
+
   title: string;
   location: string;
   date: string;
-  status: "Joined" | "Completed" | "Upcoming";
+
+  status: "Registered" | "Pending" | "Approved" | "Rejected";
+
   volunteers: number;
   hoursLogged?: number;
-  description: string;
-  type: string;
+
+  description?: string;
+  type?: string;
 }
 
 export interface UpcomingDrive {
@@ -118,12 +126,27 @@ export interface DashboardStats {
   wasteCollected: number;
   impactPoints: number;
 }
+export interface DashboardRecentDrive {
+  driveId: number;
+  participationId: number;
+  attendanceMarked: boolean;
+
+  title: string;
+  location: string;
+  date: string;
+
+  status: "Registered" | "Pending" | "Approved" | "Rejected";
+
+  hours: number;
+
+  description?: string;
+  type?: string;
+}
 
 export interface DashboardData {
   stats: DashboardStats;
   activity: Activity[];
-  recentDrives: Drive[];
-  certificates: Certificate[];
+recentDrives: DashboardRecentDrive[];  certificates: Certificate[];
 }
 
 export interface HeatmapData {

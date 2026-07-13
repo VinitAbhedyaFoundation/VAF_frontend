@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 
 import type { AttendanceRecord } from "../../../types/admin";
 import SectionLoader from "../common/SectionLoader";
+import AttendanceScanner from "./AttendanceScanner";
+
+
 
 interface AttendanceProps {
   attendance: AttendanceRecord[];
@@ -14,17 +17,60 @@ const Attendance: React.FC<AttendanceProps> = ({
   loadingAttendance,
   handleApproveAttendance,
 }) => {
+  const [showScanner, setShowScanner] = useState(false);
+
   return (
     <div>
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold themed-text">Attendance</h1>
+          <h1 className="text-2xl font-bold themed-text">
+            Attendance
+          </h1>
+
           <p className="themed-secondary text-sm">
             Mark and track volunteer attendance across drives.
           </p>
         </div>
+
+        <button
+          onClick={() => setShowScanner(true)}
+          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow transition"
+        >
+          📷 Start QR Scanner
+        </button>
       </div>
 
+      {/* Scanner Modal */}
+      {showScanner && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative overflow-hidden">
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b px-6 py-4">
+              <h2 className="text-xl font-bold">
+                Scan Volunteer QR
+              </h2>
+
+              <button
+                onClick={() => setShowScanner(false)}
+                className="text-gray-500 hover:text-red-500 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Scanner */}
+            <div className="p-6">
+              <AttendanceScanner
+                onClose={() => setShowScanner(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {[
           {
@@ -52,7 +98,11 @@ const Attendance: React.FC<AttendanceProps> = ({
             className="themed-card rounded-2xl p-5 border themed-border shadow-sm"
           >
             <p className="text-2xl mb-1">{s.icon}</p>
-            <p className="text-3xl font-black themed-text">{s.val}</p>
+
+            <p className="text-3xl font-black themed-text">
+              {s.val}
+            </p>
+
             <p className="text-xs font-bold themed-muted uppercase tracking-widest">
               {s.label}
             </p>
@@ -102,14 +152,13 @@ const Attendance: React.FC<AttendanceProps> = ({
 
                   <td className="p-4 themed-secondary">
                     {item.drive
-                      ? new Date(item.drive.date).toLocaleDateString(
-                          "en-IN",
-                          {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                          }
-                        )
+                      ? new Date(
+                          item.drive.date
+                        ).toLocaleDateString("en-IN", {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })
                       : "-"}
                   </td>
 
@@ -119,7 +168,9 @@ const Attendance: React.FC<AttendanceProps> = ({
 
                   <td className="p-4 themed-muted">
                     {item.createdAt
-                      ? new Date(item.createdAt).toLocaleDateString("en-IN")
+                      ? new Date(
+                          item.createdAt
+                        ).toLocaleDateString("en-IN")
                       : "-"}
                   </td>
 
@@ -146,7 +197,7 @@ const Attendance: React.FC<AttendanceProps> = ({
                         Approve
                       </button>
                     ) : (
-                      <span className="text-green-600 text-xs">
+                      <span className="text-green-600 text-xs font-medium">
                         Approved
                       </span>
                     )}
@@ -166,5 +217,4 @@ const Attendance: React.FC<AttendanceProps> = ({
     </div>
   );
 };
-
 export default Attendance;
