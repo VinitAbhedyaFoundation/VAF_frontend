@@ -50,14 +50,6 @@ export const createUserMetrics = (
     color: "text-purple-600",
     bg: "bg-purple-50",
   },
-  {
-    id: "m4",
-    label: "Impact Points",
-    value: data?.stats?.impactPoints || 0,
-    icon: Star,
-    color: "text-amber-600",
-    bg: "bg-amber-50",
-  },
 ];
 
 export const createMyDrives = (

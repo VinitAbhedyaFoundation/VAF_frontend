@@ -90,10 +90,17 @@ export interface Certificate {
 }
 
 export interface User {
+  id?: number;
+
   name: string;
+
   email: string;
-  createdAt?: string;
+
   address?: string;
+
+  avatarUrl?: string;
+
+  createdAt?: string;
 }
 
 export interface Notification {
@@ -116,7 +123,6 @@ export interface DashboardStats {
   drivesJoined: number;
   hoursVolunteered: number;
   wasteCollected: number;
-  impactPoints: number;
 }
 
 export interface DashboardData {
@@ -203,7 +209,19 @@ export interface CertificatesProps {
 }
 
 export interface ProfileProps {
-  user: User | null;
-  data: DashboardData | null;
-  handleLogout: () => void;
+    user: User | null;
+    data: DashboardData | null;
+    handleLogout: () => void;
+
+    onUpdateAvatar?: (file: File) => Promise<void>;
+
+    onUpdateProfile?: (data: {
+        name: string;
+        address: string;
+    }) => Promise<void>;
+
+    onChangePassword?: (data: {
+        currentPassword: string;
+        newPassword: string;
+    }) => Promise<void>;
 }
