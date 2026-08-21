@@ -18,7 +18,6 @@ import {
   Search,
   Trash2,
   Users as UsersIcon,
-  Waves,
 } from "lucide-react";
 
 import Avatar from "../common/Avatar";
@@ -46,6 +45,11 @@ interface UsersProps {
   cityData: CityData[];
 
   pieColors: string[];
+
+  toggleUserStatus: (
+  id: number,
+  currentStatus: User["status"]
+) => Promise<void>;
 }
 
 const Users: FC<UsersProps> = ({
@@ -58,6 +62,7 @@ const Users: FC<UsersProps> = ({
   setConfirm,
   cityData,
   pieColors,
+  toggleUserStatus,
 }) => {
   return (
     <div>
@@ -82,7 +87,7 @@ const Users: FC<UsersProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           {
-            label: "Total Users",
+            label: "Total Volunteers",
             val: users.length,
             icon: UsersIcon,
             color: "text-amber-600",
@@ -96,21 +101,18 @@ const Users: FC<UsersProps> = ({
             bg: "bg-emerald-50",
           },
           {
-            label: "Inactive",
-            val: users.filter((u) => u.status === "Inactive").length,
+            label: "Pending Approval",
+            val: users.filter((u) => u.status === "Pending").length,
             icon: Clock,
-            color: "text-slate-600",
-            bg: "bg-slate-100",
+            color: "text-amber-600",
+            bg: "bg-amber-50",
           },
           {
-            label: "Avg. Drives",
-            val: Math.round(
-              users.reduce((s, u) => s + u.drives, 0) /
-                Math.max(users.length, 1)
-            ),
-            icon: Waves,
-            color: "text-indigo-600",
-            bg: "bg-indigo-50",
+            label: "Suspended",
+            val: users.filter((u) => u.status === "Suspended").length,
+            icon: Clock,
+            color: "text-red-600",
+            bg: "bg-red-50",
           },
         ].map((s) => (
           <div
@@ -206,15 +208,14 @@ const Users: FC<UsersProps> = ({
                   className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-100"
                 >
                   <span
-                    className={`text-sm font-black w-5 ${
-                      i === 0
+                    className={`text-sm font-black w-5 ${i === 0
                         ? "text-yellow-400"
                         : i === 1
-                        ? "text-slate-400"
-                        : i === 2
-                        ? "text-orange-400"
-                        : "text-slate-300"
-                    }`}
+                          ? "text-slate-400"
+                          : i === 2
+                            ? "text-orange-400"
+                            : "text-slate-300"
+                      }`}
                   >
                     #{i + 1}
                   </span>
@@ -331,27 +332,54 @@ const Users: FC<UsersProps> = ({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setViewUser(u)}
-                      className="text-blue-600 font-semibold text-xs bg-blue-50 px-2.5 py-1.5 rounded-lg flex items-center gap-1"
-                    >
-                      <Eye size={12} />
-                      View
-                    </button>
+  <button
+    onClick={() => setViewUser(u)}
+    className="text-blue-600 font-semibold text-xs bg-blue-50 px-2.5 py-1.5 rounded-lg flex items-center gap-1"
+  >
+    <Eye size={12} />
+    View
+  </button>
 
-                    <button
-                      onClick={() =>
-                        setConfirm({
-                          type: "user",
-                          id: u.id,
-                          name: u.name,
-                        })
-                      }
-                      className="text-red-600 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
+  {u.status === "Pending" && (
+    <button
+      onClick={() => toggleUserStatus(u.id, u.status)}
+      className="text-emerald-600 font-semibold text-xs bg-emerald-50 px-2.5 py-1.5 rounded-lg"
+    >
+      Approve
+    </button>
+  )}
+
+  {u.status === "Active" && (
+    <button
+      onClick={() => toggleUserStatus(u.id, u.status)}
+      className="text-amber-600 font-semibold text-xs bg-amber-50 px-2.5 py-1.5 rounded-lg"
+    >
+      Suspend
+    </button>
+  )}
+
+  {u.status === "Suspended" && (
+    <button
+      onClick={() => toggleUserStatus(u.id, u.status)}
+      className="text-emerald-600 font-semibold text-xs bg-emerald-50 px-2.5 py-1.5 rounded-lg"
+    >
+      Activate
+    </button>
+  )}
+
+  <button
+    onClick={() =>
+      setConfirm({
+        type: "user",
+        id: u.id,
+        name: u.name,
+      })
+    }
+    className="text-red-600 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition"
+  >
+    <Trash2 size={13} />
+  </button>
+</div>
                 </td>
               </tr>
             ))}

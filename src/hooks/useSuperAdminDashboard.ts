@@ -20,7 +20,6 @@ import {
 } from "@/types/superadmin";
 
 import { INITIAL_SETTINGS } from "@/constants/superadmin";
-import { Await } from "react-router-dom";
 
 export const useSuperAdminDashboard = () => {
     // ── settings ─────────────────────────────────────
@@ -79,8 +78,15 @@ export const useSuperAdminDashboard = () => {
 
     // ── computed values ──────────────────────────────
 
-    const totalWaste = drives.reduce((s, d) => s + d.wasteKg, 0);
-    const totalHours = drives.reduce((s, d) => s + d.hours, 0);
+    const totalWaste = attendance.reduce(
+        (sum, record) => sum + (record.waste ?? 0),
+        0
+    );
+
+    const totalHours = attendance.reduce(
+        (sum, record) => sum + (record.hours ?? 0),
+        0
+    );
 
     const completedDrives = drives.filter(
         d => d.status === "Completed"
@@ -175,7 +181,12 @@ export const useSuperAdminDashboard = () => {
                     email: u.email,
                     city: u.city || "N/A",
                     drives: u.drivesCount || 0,
-                    status: u.status === "Approved" ? "Active" : "Inactive",
+                    status:
+                        u.status === "Approved"
+                            ? "Active"
+                            : u.status === "Pending"
+                                ? "Pending"
+                                : "Suspended",
                     joined: new Date(u.createdAt).toLocaleDateString(),
                     totalHours: u.totalHours || 0,
                     wasteKg: u.wasteKg || 0,
@@ -214,49 +225,66 @@ export const useSuperAdminDashboard = () => {
 
     const fetchDrives = async () => {
         try {
-            const res = await API.get("/drives");
+            const res = await API.get("/drive/alldrives");
 
-            const formatted = res.data.drives.map((d: any) => ({
+            const formatted = res.data.map((d: any) => ({
                 id: d.id,
                 date: d.date,
-                location: d.location,
-                volunteers: d.volunteersCount || 0,
-                wasteKg: d.wasteKg || 0,
-                status: d.status,
-                hours: d.hours || 0,
+                location: d.location ?? "N/A",
+
+                volunteers: d.volunteerCount ?? 0,
+
+                wasteKg: d.wasteKg ?? 0,
+
+                status: d.completed
+                    ? "Completed"
+                    : new Date(d.date) > new Date()
+                        ? "Upcoming"
+                        : "Active",
+
+                hours: d.totalHours ?? 0,
+
                 coordinator: d.coordinator?.name,
             }));
 
             setDrives(formatted);
         } catch (error) {
-            console.error(error);
+            console.error("Failed to fetch drives:", error);
         }
     };
 
     const fetchAttendance = async () => {
         try {
-            const res = await API.get("/attendance");
+            const res = await API.get("/attendance/all");
 
-            const formatted = res.data.attendance.map((a: any) => ({
+            const formatted = res.data.map((a: any) => ({
                 id: a.id,
-                volunteer: a.user.name,
-                email: a.user.email,
-                drive: a.drive.location,
-                driveId: a.drive.id,
-                date: new Date(a.date).toLocaleDateString(),
-                hours: a.hours,
-                status: a.marked ? "Marked" : "Pending",
+                volunteer: a.user?.name ?? "Unknown",
+                email: a.user?.email ?? "",
+                drive: a.drive?.title ?? a.drive?.location ?? "Unknown Drive",
+                driveId: a.driveId,
+                date: new Date(
+                    a.drive?.date ?? a.createdAt
+                ).toLocaleDateString(),
+                hours: a.hours ?? 0,
+
+                waste: a.waste ?? 0,
+
+                status:
+                    a.status === "Approved"
+                        ? "Marked"
+                        : "Pending",
             }));
 
             setAttendance(formatted);
         } catch (error) {
-            console.error(error);
+            console.error("Failed to fetch attendance:", error);
         }
     };
 
     const fetchReports = async () => {
         try {
-            const res = await API.get("/reports");
+            const res = await API.get("/reports/all");
             setReports(res.data.reports);
         } catch (error) {
             console.error(error);
@@ -376,6 +404,29 @@ export const useSuperAdminDashboard = () => {
         }
     };
 
+    const toggleUserStatus = async (
+        id: number,
+        currentStatus: string
+    ) => {
+        try {
+            if (currentStatus === "Active") {
+                await API.patch(`/user/suspend/${id}`);
+                toast.success("Volunteer suspended");
+            } else if (currentStatus === "Pending") {
+                await API.patch(`/user/approve/${id}`);
+                toast.success("Volunteer approved");
+            } else if (currentStatus === "Suspended") {
+                await API.patch(`/user/approve/${id}`);
+                toast.success("Volunteer reactivated");
+            }
+
+            await fetchUsers();
+        } catch (error) {
+            console.error(error);
+            toast.error("Action failed");
+        }
+    };
+
     const markAttendance = async (id: number) => {
         try {
             await API.patch(`/attendance/mark/${id}`);
@@ -425,7 +476,6 @@ export const useSuperAdminDashboard = () => {
         fetchAdmins();
         fetchDrives();
         fetchAttendance();
-        fetchReports();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -520,9 +570,11 @@ export const useSuperAdminDashboard = () => {
         handleAddUser,
         confirmDelete,
         toggleAdminStatus,
+        toggleUserStatus,
         markAttendance,
         generateReport,
         goTo,
         handleLogout,
+
     };
 };
