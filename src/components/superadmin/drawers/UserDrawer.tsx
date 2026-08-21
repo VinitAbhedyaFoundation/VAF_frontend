@@ -1,26 +1,12 @@
 "use client";
 
 import { FC } from "react";
+import type { User } from "@/types/superadmin";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 
 import Avatar from "../common/Avatar";
 import { getStatusClass } from "../utils/status";
-
-// TODO: Replace this with:
-// import { User } from "@/types/superadmin";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  city: string;
-  drives: number;
-  status: "Active" | "Inactive";
-  joined: string;
-  totalHours?: number;
-  wasteKg?: number;
-}
 
 interface UserDrawerProps {
   user: User | null;

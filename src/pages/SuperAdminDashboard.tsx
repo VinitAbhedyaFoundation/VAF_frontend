@@ -71,6 +71,7 @@ export default function SuperAdminDashboard() {
   handleAddUser,
   confirmDelete,
   toggleAdminStatus,
+  toggleUserStatus,
   markAttendance,
   generateReport,
   goTo,
@@ -139,6 +140,7 @@ export default function SuperAdminDashboard() {
         setConfirm={setConfirm}
         cityData={cityData}
         pieColors={PIE_COLORS}
+        toggleUserStatus={toggleUserStatus}
       />
     ),
 
