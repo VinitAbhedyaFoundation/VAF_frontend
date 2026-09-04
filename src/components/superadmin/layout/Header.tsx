@@ -17,13 +17,15 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
-const SECTION_TITLES: Record<NavSection, string> = {
+const SECTION_TITLES: Record<
+  Exclude<NavSection, "reports">,
+  string
+> = {
   overview: "Dashboard Overview",
   admins: "Manage Admins",
   users: "Manage Users",
   drives: "All Drives",
   attendance: "Attendance Logs",
-  reports: "Reports",
   settings: "System Settings",
 };
 
@@ -45,7 +47,7 @@ const Header: FC<HeaderProps> = ({
 
         <div>
           <h1 className="text-xl font-black text-slate-900">
-            {SECTION_TITLES[active]}
+            {SECTION_TITLES[active as Exclude<NavSection, "reports">]}
           </h1>
 
           <p className="text-xs text-slate-400">

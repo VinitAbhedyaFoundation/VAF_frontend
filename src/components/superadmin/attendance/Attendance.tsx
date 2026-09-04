@@ -1,6 +1,12 @@
 "use client";
 
-import { Dispatch, FC, SetStateAction } from "react";
+import {
+  Dispatch,
+  FC,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 
 import { CheckCircle2 } from "lucide-react";
 
@@ -20,7 +26,11 @@ interface AttendanceProps {
     SetStateAction<"All" | AttendanceStatus>
   >;
   pendingAttendance: number;
-  markAttendance: (id: number) => void;
+
+  // Bulk approval
+  approveSelectedAttendance: (
+    ids: number[]
+  ) => Promise<void>;
 }
 
 const Attendance: FC<AttendanceProps> = ({
@@ -29,10 +39,76 @@ const Attendance: FC<AttendanceProps> = ({
   attendanceFilter,
   setAttendanceFilter,
   pendingAttendance,
-  markAttendance,
+  approveSelectedAttendance,
 }) => {
+  const [selectedIds, setSelectedIds] = useState<number[]>(
+    []
+  );
+
+  // Registered and Pending records can be selected for approval
+  const selectableRecords = filteredAttendance.filter(
+    (record) =>
+      record.status === "Registered" ||
+      record.status === "Pending"
+  );
+
+  const allSelectableSelected =
+    selectableRecords.length > 0 &&
+    selectableRecords.every((record) =>
+      selectedIds.includes(record.id)
+    );
+
+  // Clear selections when filter/data changes
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [attendanceFilter, attendance.length]);
+
+  const toggleSelection = (id: number) => {
+    setSelectedIds((current) =>
+      current.includes(id)
+        ? current.filter(
+          (selectedId) => selectedId !== id
+        )
+        : [...current, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (allSelectableSelected) {
+      setSelectedIds((current) =>
+        current.filter(
+          (id) =>
+            !selectableRecords.some(
+              (record) => record.id === id
+            )
+        )
+      );
+    } else {
+      setSelectedIds((current) => {
+        const existing = new Set(current);
+
+        selectableRecords.forEach((record) => {
+          existing.add(record.id);
+        });
+
+        return Array.from(existing);
+      });
+    }
+  };
+
+  const handleApproveSelected = async () => {
+    if (selectedIds.length === 0) {
+      return;
+    }
+
+    await approveSelectedAttendance(selectedIds);
+
+    setSelectedIds([]);
+  };
+
   return (
     <div>
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">
@@ -60,9 +136,9 @@ const Attendance: FC<AttendanceProps> = ({
             icon: "📋",
           },
           {
-            label: "Marked",
+            label: "Approved",
             val: attendance.filter(
-              (a) => a.status === "Marked"
+              (a) => a.status === "Approved"
             ).length,
             icon: "✅",
           },
@@ -91,25 +167,39 @@ const Attendance: FC<AttendanceProps> = ({
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-4">
-        {(
-          ["All", "Marked", "Pending"] as const
-        ).map((filter) => (
+      {/* Filters + Bulk Action */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex gap-2">
+          {(
+            ["All", "Registered", "Pending", "Approved"] as const
+          ).map((filter) => (
+            <button
+              key={filter}
+              onClick={() =>
+                setAttendanceFilter(filter)
+              }
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition ${attendanceFilter === filter
+                  ? "bg-emerald-600 text-white"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+
+        {/* Bulk Approve */}
+        {selectedIds.length > 0 && (
           <button
-            key={filter}
-            onClick={() =>
-              setAttendanceFilter(filter)
-            }
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
-              attendanceFilter === filter
-                ? "bg-emerald-600 text-white"
-                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-            }`}
+            onClick={handleApproveSelected}
+            className="bg-emerald-600 text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-emerald-700 transition flex items-center gap-2"
           >
-            {filter}
+            <CheckCircle2 size={16} />
+
+            Approve Selected (
+            {selectedIds.length})
           </button>
-        ))}
+        )}
       </div>
 
       {/* Table */}
@@ -117,6 +207,19 @@ const Attendance: FC<AttendanceProps> = ({
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-600 text-left">
             <tr>
+              {/* Select All */}
+              <th className="p-4 w-12">
+                <input
+                  type="checkbox"
+                  checked={allSelectableSelected}
+                  onChange={toggleSelectAll}
+                  disabled={
+                    selectableRecords.length === 0
+                  }
+                  className="h-4 w-4 cursor-pointer"
+                />
+              </th>
+
               {[
                 "Volunteer",
                 "Email",
@@ -124,7 +227,6 @@ const Attendance: FC<AttendanceProps> = ({
                 "Date",
                 "Hours",
                 "Status",
-                "Action",
               ].map((heading) => (
                 <th
                   key={heading}
@@ -137,78 +239,83 @@ const Attendance: FC<AttendanceProps> = ({
           </thead>
 
           <tbody>
-            {filteredAttendance.map((record) => (
-              <tr
-                key={record.id}
-                className="border-t hover:bg-slate-50 transition"
-              >
-                <td className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      name={record.volunteer}
-                      size="sm"
-                    />
-                    <span className="font-semibold">
-                      {record.volunteer}
-                    </span>
-                  </div>
-                </td>
+            {filteredAttendance.map((record) => {
+              const isSelectable =
+                record.status === "Registered" ||
+                record.status === "Pending";
 
-                <td className="p-4 text-slate-400 text-xs">
-                  {record.email}
-                </td>
+              const isSelected =
+                selectedIds.includes(record.id);
 
-                <td className="p-4 text-slate-500">
-                  {record.drive}
-                </td>
-
-                <td className="p-4 text-slate-400">
-                  {record.date}
-                </td>
-
-                <td className="p-4">
-                  {record.hours} hrs
-                </td>
-
-                <td className="p-4">
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusClass(
-                      record.status
-                    )}`}
-                  >
-                    {record.status}
-                  </span>
-                </td>
-
-                <td className="p-4">
-                  {record.status ===
-                  "Pending" ? (
-                    <button
-                      onClick={() =>
-                        markAttendance(
-                          record.id
-                        )
+              return (
+                <tr
+                  key={record.id}
+                  className="border-t hover:bg-slate-50 transition"
+                >
+                  {/* Checkbox */}
+                  <td className="p-4">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      disabled={!isSelectable}
+                      onChange={() =>
+                        toggleSelection(record.id)
                       }
-                      className="bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition flex items-center gap-1"
-                    >
-                      <CheckCircle2
-                        size={12}
+                      className="h-4 w-4 cursor-pointer disabled:cursor-not-allowed"
+                    />
+                  </td>
+
+                  {/* Volunteer */}
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar
+                        name={record.volunteer}
+                        size="sm"
                       />
-                      Mark
-                    </button>
-                  ) : (
-                    <span className="text-slate-400 text-xs">
-                      Done
+
+                      <span className="font-semibold">
+                        {record.volunteer}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* Email */}
+                  <td className="p-4 text-slate-400 text-xs">
+                    {record.email}
+                  </td>
+
+                  {/* Drive */}
+                  <td className="p-4 text-slate-500">
+                    {record.drive}
+                  </td>
+
+                  {/* Date */}
+                  <td className="p-4 text-slate-400">
+                    {record.date}
+                  </td>
+
+                  {/* Hours */}
+                  <td className="p-4">
+                    {record.hours} hrs
+                  </td>
+
+                  {/* Status */}
+                  <td className="p-4">
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusClass(
+                        record.status
+                      )}`}
+                    >
+                      {record.status}
                     </span>
-                  )}
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
-        {filteredAttendance.length ===
-          0 && (
+        {filteredAttendance.length === 0 && (
           <p className="text-center text-slate-400 py-10 text-sm">
             No records found.
           </p>

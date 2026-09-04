@@ -12,13 +12,11 @@ import Drives from "@/components/superadmin/drives/Drives";
 import Header from "@/components/superadmin/layout/Header";
 import Sidebar from "@/components/superadmin/layout/Sidebar";
 import Overview from "@/components/superadmin/overview/Overview";
-import Reports from "@/components/superadmin/reports/Reports";
 import Settings from "@/components/superadmin/settings/Settings";
 import Users from "@/components/superadmin/users/Users";
 import { useSuperAdminDashboard } from "@/hooks/useSuperAdminDashboard";
 import type {
   NavSection,
-  ReportType
 } from "@/types/superadmin";
 import { AnimatePresence, motion } from "framer-motion";
 import { Toaster } from "react-hot-toast";
@@ -28,68 +26,62 @@ import { PIE_COLORS } from "@/constants/superadmin";
 
 export default function SuperAdminDashboard() {
 
-  
+
 
   // ── dashboard state ─────────────────────────────────────────────────────────────────
   const {
-  settings,
-  setSettings,
-  active,
-  isMobileMenuOpen,
-  setIsMobileMenuOpen,
-  admins,
-  users,
-  drives,
-  attendance,
-  reports,
-  adminModal,
-  userModal,
-  reportModal,
-  viewAdmin,
-  viewUser,
-  confirm,
-  submitting,
-  adminForm,
-  userForm,
-  reportForm,
-  adminSearch,
-  userSearch,
-  driveFilter,
-  attendanceFilter,
-  totalWaste,
-  totalHours,
-  completedDrives,
-  pendingAttendance,
-  filteredAdmins,
-  filteredUsers,
-  filteredDrives,
-  filteredAttendance,
-  cityData,
-  wasteBarData,
-  volunteerBarData,
-  handleAddAdmin,
-  handleAddUser,
-  confirmDelete,
-  toggleAdminStatus,
-  toggleUserStatus,
-  markAttendance,
-  generateReport,
-  goTo,
-  handleLogout,
-  setAdminSearch,
-  setUserSearch,
-  setDriveFilter,
-  setAttendanceFilter,
-  setAdminModal,
-  setUserModal,
-  setReportModal,
-  setViewAdmin,
-  setViewUser,
-  setConfirm,
-  setAdminForm,
-  setUserForm,
-  setReportForm,
-} = useSuperAdminDashboard();
+    settings,
+    setSettings,
+    active,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
+    admins,
+    users,
+    drives,
+    attendance,
+    adminModal,
+    userModal,
+    viewAdmin,
+    viewUser,
+    confirm,
+    submitting,
+    adminForm,
+    userForm,
+    adminSearch,
+    userSearch,
+    driveFilter,
+    attendanceFilter,
+    totalWaste,
+    totalHours,
+    completedDrives,
+    pendingAttendance,
+    filteredAdmins,
+    filteredUsers,
+    filteredDrives,
+    filteredAttendance,
+    cityData,
+    wasteBarData,
+    volunteerBarData,
+    handleAddAdmin,
+    handleAddUser,
+    confirmDelete,
+    toggleAdminStatus,
+    toggleUserStatus,
+    approveSelectedAttendance,
+    goTo,
+    handleLogout,
+    setAdminSearch,
+    setUserSearch,
+    setDriveFilter,
+    setAttendanceFilter,
+    setAdminModal,
+    setUserModal,
+    setViewAdmin,
+    setViewUser,
+    setConfirm,
+    setAdminForm,
+    setUserForm,
+  } = useSuperAdminDashboard();
 
   const pendingBadge = pendingAttendance > 0 ? `${pendingAttendance} Pending` : undefined;
 
@@ -138,8 +130,6 @@ export default function SuperAdminDashboard() {
         setUserModal={setUserModal}
         setViewUser={setViewUser}
         setConfirm={setConfirm}
-        cityData={cityData}
-        pieColors={PIE_COLORS}
         toggleUserStatus={toggleUserStatus}
       />
     ),
@@ -161,16 +151,11 @@ export default function SuperAdminDashboard() {
         attendanceFilter={attendanceFilter}
         setAttendanceFilter={setAttendanceFilter}
         pendingAttendance={pendingAttendance}
-        markAttendance={markAttendance}
+        approveSelectedAttendance={approveSelectedAttendance}
       />
     ),
 
-    reports: (
-      <Reports
-        reports={reports}
-        setReportModal={setReportModal}
-      />
-    ),
+    reports: null,
 
     settings: (
       <Settings
@@ -361,49 +346,6 @@ export default function SuperAdminDashboard() {
             className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm"
           >
             {submitting ? "Adding..." : "Add Volunteer"}
-          </button>
-        </div>
-      </Modal>
-
-      {/* Report Modal */}
-      <Modal
-        open={reportModal}
-        onClose={() => setReportModal(false)}
-        title="Generate Report"
-      >
-        <SelectField
-          label="Report Type"
-          value={reportForm.type}
-          onChange={(v) =>
-            setReportForm({
-              type: v as ReportType,
-            })
-          }
-          options={[
-            {
-              value: "Monthly",
-              label: "Monthly",
-            },
-            {
-              value: "Quarterly",
-              label: "Quarterly",
-            },
-            {
-              value: "Annual",
-              label: "Annual",
-            },
-          ]}
-        />
-
-        <div className="flex justify-end mt-6">
-          <button
-            onClick={generateReport}
-            disabled={submitting}
-            className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm"
-          >
-            {submitting
-              ? "Generating..."
-              : "Generate"}
           </button>
         </div>
       </Modal>
