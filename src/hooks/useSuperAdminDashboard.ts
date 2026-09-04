@@ -11,9 +11,7 @@ import {
     User,
     Drive,
     AttendanceRecord,
-    Report,
     ConfirmState,
-    ReportType,
     DriveStatus,
     AttendanceStatus,
     NavSection,
@@ -34,12 +32,10 @@ export const useSuperAdminDashboard = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [drives, setDrives] = useState<Drive[]>([]);
     const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
-    const [reports, setReports] = useState<Report[]>([]);
 
     // ── modals ───────────────────────────────────────
     const [adminModal, setAdminModal] = useState(false);
     const [userModal, setUserModal] = useState(false);
-    const [reportModal, setReportModal] = useState(false);
 
     const [viewAdmin, setViewAdmin] = useState<Admin | null>(null);
     const [viewUser, setViewUser] = useState<User | null>(null);
@@ -62,9 +58,6 @@ export const useSuperAdminDashboard = () => {
         password: "",
     });
 
-    const [reportForm, setReportForm] = useState<{ type: ReportType }>({
-        type: "Monthly",
-    });
 
     // ── filters ──────────────────────────────────────
     const [adminSearch, setAdminSearch] = useState("");
@@ -180,7 +173,7 @@ export const useSuperAdminDashboard = () => {
                     name: u.name,
                     email: u.email,
                     city: u.city || "N/A",
-                    drives: u.drivesCount || 0,
+                    drives: u.totalDrives || 0,
                     status:
                         u.status === "Approved"
                             ? "Active"
@@ -234,7 +227,7 @@ export const useSuperAdminDashboard = () => {
 
                 volunteers: d.volunteerCount ?? 0,
 
-                wasteKg: d.wasteKg ?? 0,
+                wasteKg: d.totalWasteKg ?? 0,
 
                 status: d.completed
                     ? "Completed"
@@ -270,24 +263,12 @@ export const useSuperAdminDashboard = () => {
 
                 waste: a.waste ?? 0,
 
-                status:
-                    a.status === "Approved"
-                        ? "Marked"
-                        : "Pending",
+                status: a.status,
             }));
 
             setAttendance(formatted);
         } catch (error) {
             console.error("Failed to fetch attendance:", error);
-        }
-    };
-
-    const fetchReports = async () => {
-        try {
-            const res = await API.get("/reports/all");
-            setReports(res.data.reports);
-        } catch (error) {
-            console.error(error);
         }
     };
 
@@ -427,35 +408,32 @@ export const useSuperAdminDashboard = () => {
         }
     };
 
-    const markAttendance = async (id: number) => {
-        try {
-            await API.patch(`/attendance/mark/${id}`);
-            toast.success("Attendance marked");
-            await fetchAttendance();
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to mark attendance");
+    const approveSelectedAttendance = async (
+        ids: number[]
+    ) => {
+        if (ids.length === 0) {
+            toast.error("No attendance selected");
+            return;
         }
-    };
 
-    const generateReport = async () => {
         try {
-            setSubmitting(true);
-
-            await API.post("/reports/generate", {
-                type: reportForm.type,
+            await API.patch("/attendance/approve-bulk", {
+                participationIds: ids,
             });
 
-            toast.success("Report generated");
+            toast.success(
+                `${ids.length} attendance record${ids.length > 1 ? "s" : ""
+                } approved`
+            );
 
-            setReportModal(false);
-
-            await fetchReports();
-        } catch (error) {
+            await fetchAttendance();
+        } catch (error: any) {
             console.error(error);
-            toast.error("Failed to generate report");
-        } finally {
-            setSubmitting(false);
+
+            toast.error(
+                error?.response?.data?.message ||
+                "Failed to approve attendance"
+            );
         }
     };
 
@@ -501,17 +479,11 @@ export const useSuperAdminDashboard = () => {
         attendance,
         setAttendance,
 
-        reports,
-        setReports,
-
         adminModal,
         setAdminModal,
 
         userModal,
         setUserModal,
-
-        reportModal,
-        setReportModal,
 
         viewAdmin,
         setViewAdmin,
@@ -530,9 +502,6 @@ export const useSuperAdminDashboard = () => {
 
         userForm,
         setUserForm,
-
-        reportForm,
-        setReportForm,
 
         adminSearch,
         setAdminSearch,
@@ -564,15 +533,13 @@ export const useSuperAdminDashboard = () => {
         fetchAdmins,
         fetchDrives,
         fetchAttendance,
-        fetchReports,
 
         handleAddAdmin,
         handleAddUser,
         confirmDelete,
         toggleAdminStatus,
         toggleUserStatus,
-        markAttendance,
-        generateReport,
+        approveSelectedAttendance,
         goTo,
         handleLogout,
 

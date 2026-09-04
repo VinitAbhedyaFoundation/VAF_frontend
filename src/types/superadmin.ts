@@ -4,9 +4,16 @@ export type UserStatus = "Active" | "Pending" | "Suspended";
 
 export type DriveStatus = "Completed" | "Upcoming" | "Active";
 
-export type AttendanceStatus = "Marked" | "Pending";
+export type AttendanceStatus =
+  | "Registered"
+  | "Pending"
+  | "Approved"
+  | "Rejected";
 
-export type ReportType = "Monthly" | "Quarterly" | "Annual";
+export type ReportType =
+  | "Monthly"
+  | "Quarterly"
+  | "Annual";
 
 export type NavSection =
   | "overview"
@@ -52,15 +59,15 @@ export interface Drive {
 }
 
 export interface AttendanceRecord {
-    id: number;
-    volunteer: string;
-    email: string;
-    drive: string;
-    driveId: number;
-    date: string;
-    hours: number;
-    waste: number;
-    status: AttendanceStatus;
+  id: number;
+  volunteer: string;
+  email: string;
+  drive: string;
+  driveId: number;
+  date: string;
+  hours: number;
+  waste: number;
+  status: AttendanceStatus;
 }
 
 export interface Report {

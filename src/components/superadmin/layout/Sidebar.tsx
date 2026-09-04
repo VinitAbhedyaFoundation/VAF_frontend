@@ -4,7 +4,6 @@ import { FC, ElementType } from "react";
 
 import {
   ClipboardList,
-  FileBarChart2,
   LayoutDashboard,
   Leaf,
   Settings,
@@ -51,11 +50,6 @@ const NAV_ITEMS: {
     label: "Attendance Logs",
     icon: ClipboardList,
     id: "attendance",
-  },
-  {
-    label: "Reports",
-    icon: FileBarChart2,
-    id: "reports",
   },
   {
     label: "System Settings",
