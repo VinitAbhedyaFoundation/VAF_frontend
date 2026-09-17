@@ -9,18 +9,27 @@ import type {
   User,
 } from "@/types/user";
 
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:3000/api";
+
 export function useUserDashboard() {
   const [user, setUser] = useState<User | null>(null);
 
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [data, setData] =
+    useState<DashboardData | null>(null);
 
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [certificates, setCertificates] =
+    useState<Certificate[]>([]);
 
-  const [upcomingDrives, setUpcomingDrives] = useState<UpcomingDrive[]>([]);
+  const [upcomingDrives, setUpcomingDrives] =
+    useState<UpcomingDrive[]>([]);
 
-  const [participations, setParticipations] = useState<Participation[]>([]);
+  const [participations, setParticipations] =
+    useState<Participation[]>([]);
 
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] =
+    useState<Notification[]>([]);
 
   // =========================
   // FETCH: PARTICIPATIONS
@@ -31,7 +40,7 @@ export function useUserDashboard() {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        "http://localhost:3000/api/attendance/my",
+        `${API_URL}/attendance/my`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -39,11 +48,22 @@ export function useUserDashboard() {
         }
       );
 
+      if (!res.ok) {
+        throw new Error(
+          `Failed to fetch participations: ${res.status}`
+        );
+      }
+
       const json = await res.json();
 
-      setParticipations(Array.isArray(json) ? json : []);
+      setParticipations(
+        Array.isArray(json) ? json : []
+      );
     } catch (err) {
-      console.error("fetchParticipations failed", err);
+      console.error(
+        "fetchParticipations failed",
+        err
+      );
     }
   };
 
@@ -59,7 +79,7 @@ export function useUserDashboard() {
         if (!token) return;
 
         const res = await fetch(
-          "http://localhost:3000/api/auth/me",
+          `${API_URL}/auth/me`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -92,7 +112,7 @@ export function useUserDashboard() {
         if (!token) return;
 
         const res = await fetch(
-          "http://localhost:3000/api/dashboard/me",
+          `${API_URL}/dashboard/me`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -107,13 +127,18 @@ export function useUserDashboard() {
         setData(json);
 
         setCertificates(
-          (json?.certificates || []).map((c: any) => ({
-            ...c,
-            file: c.fileUrl,
-          }))
+          (json?.certificates || []).map(
+            (c: any) => ({
+              ...c,
+              file: c.fileUrl,
+            })
+          )
         );
       } catch (err) {
-        console.error("Dashboard fetch failed", err);
+        console.error(
+          "Dashboard fetch failed",
+          err
+        );
       }
     };
 
@@ -136,30 +161,53 @@ export function useUserDashboard() {
     const fetchUpcoming = async () => {
       try {
         const res = await fetch(
-          "http://localhost:3000/api/drive/upcoming"
+          `${API_URL}/drive/upcoming`
         );
+
+        if (!res.ok) {
+          throw new Error(
+            `Failed to fetch drives: ${res.status}`
+          );
+        }
 
         const json = await res.json();
 
-        const formatted: UpcomingDrive[] = json.map((d: any) => ({
-          id: d.id.toString(),
-          title: d.title,
-          completed: d.completed ?? false,
-          location: d.location || "Unknown",
-          date: new Date(d.date).toLocaleDateString(),
-          time: new Date(d.date).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          slots: d.slots,
-          slotsLeft: d.slots,
-          type: d.type || "General",
-          organizer: "VAF",
-        }));
+        if (!Array.isArray(json)) {
+          throw new Error(
+            "Invalid drives response"
+          );
+        }
+
+        const formatted: UpcomingDrive[] =
+          json.map((d: any) => ({
+            id: d.id.toString(),
+            title:
+              d.title || "Untitled Drive",
+            completed:
+              d.completed ?? false,
+            location:
+              d.location || "Unknown",
+            date: new Date(
+              d.date
+            ).toLocaleDateString(),
+            time: new Date(
+              d.date
+            ).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            slots: 0,
+            slotsLeft: 0,
+            type: "General",
+            organizer: "VAF",
+          }));
 
         setUpcomingDrives(formatted);
       } catch (err) {
-        console.error("Upcoming fetch failed", err);
+        console.error(
+          "Upcoming fetch failed",
+          err
+        );
       }
     };
 
@@ -173,23 +221,34 @@ export function useUserDashboard() {
   const fetchNotifications = async () => {
     try {
       const res = await fetch(
-        "http://localhost:3000/api/drive/upcoming"
+        `${API_URL}/drive/upcoming`
       );
+
+      if (!res.ok) {
+        throw new Error(
+          `Failed to fetch notifications: ${res.status}`
+        );
+      }
 
       const json = await res.json();
 
-      const formatted: Notification[] = json
-        .slice(0, 3)
-        .map((d: any) => ({
-          id: d.id,
-          subject: "New Drive Created 🚀",
-          content: `${d.title} at ${d.location} — Join now!`,
-          createdAt: d.date,
-        }));
+      const formatted: Notification[] =
+        json
+          .slice(0, 3)
+          .map((d: any) => ({
+            id: d.id,
+            subject:
+              "New Drive Created 🚀",
+            content: `${d.title} at ${d.location} — Join now!`,
+            createdAt: d.date,
+          }));
 
       setNotifications(formatted);
     } catch (err) {
-      console.error("Notification fetch failed", err);
+      console.error(
+        "Notification fetch failed",
+        err
+      );
     }
   };
 

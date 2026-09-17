@@ -101,8 +101,8 @@ const UpcomingDrives: FC<UpcomingDrivesProps> = ({
                         const status = drive.completed
                             ? { label: "Completed", className: "bg-slate-100 text-slate-500" }
                             : participation
-                              ? { label: "Joined", className: "bg-blue-100 text-blue-700" }
-                              : { label: "Available", className: "bg-emerald-100 text-emerald-700" };
+                                ? { label: "Joined", className: "bg-blue-100 text-blue-700" }
+                                : { label: "Available", className: "bg-emerald-100 text-emerald-700" };
 
                         return (
                             <motion.div
