@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Heart, Gift, Sparkles, HandHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import API from "@/api/api";
 import { useState } from "react";
 
 const reasons = [
@@ -32,8 +32,8 @@ const DonationSection = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/payment/checkout",
+      const response = await API.post(
+        "/payment/checkout",
         {
           amount: Number(amount),
         }
@@ -56,7 +56,6 @@ const DonationSection = () => {
       <div className="absolute bottom-[-200px] right-[-150px] w-[500px] h-[500px] bg-green-400/20 blur-[140px] rounded-full" />
 
       <div className="relative z-10 container mx-auto px-6">
-
         {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -181,7 +180,6 @@ const DonationSection = () => {
             Secure payment • Tax deductible • Every rupee matters
           </p>
         </motion.div>
-
       </div>
     </section>
   );

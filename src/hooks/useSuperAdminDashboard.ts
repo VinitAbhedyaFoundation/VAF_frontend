@@ -45,29 +45,31 @@ export const useSuperAdminDashboard = () => {
 
     // ── forms ────────────────────────────────────────
     const [adminForm, setAdminForm] = useState({
-        name: "",
-        email: "",
-        role: "Admin",
-        city: "",
-    });
+    name: "",
+    email: "",
+    role: "Admin",
+    city: "",
+    gender: "" as "" | "Male" | "Female" | "Other",
+    password: "",
+});
 
     const [userForm, setUserForm] = useState({
         name: "",
         email: "",
         city: "",
+        gender: "" as "" | "Male" | "Female" | "Other",
         password: "",
     });
-
 
     // ── filters ──────────────────────────────────────
     const [adminSearch, setAdminSearch] = useState("");
     const [userSearch, setUserSearch] = useState("");
 
-    const [driveFilter, setDriveFilter] = useState<"All" | DriveStatus>("All");
+    const [driveFilter, setDriveFilter] =
+        useState<"All" | DriveStatus>("All");
 
-    const [attendanceFilter, setAttendanceFilter] = useState<
-        "All" | AttendanceStatus
-    >("All");
+    const [attendanceFilter, setAttendanceFilter] =
+        useState<"All" | AttendanceStatus>("All");
 
     // ── computed values ──────────────────────────────
 
@@ -82,19 +84,23 @@ export const useSuperAdminDashboard = () => {
     );
 
     const completedDrives = drives.filter(
-        d => d.status === "Completed"
+        (d) => d.status === "Completed"
     ).length;
 
     const pendingAttendance = attendance.filter(
-        a => a.status === "Pending"
+        (a) => a.status === "Pending"
     ).length;
 
     const filteredAdmins = useMemo(
         () =>
             admins.filter(
-                a =>
-                    a.name.toLowerCase().includes(adminSearch.toLowerCase()) ||
-                    a.email.toLowerCase().includes(adminSearch.toLowerCase())
+                (a) =>
+                    a.name
+                        .toLowerCase()
+                        .includes(adminSearch.toLowerCase()) ||
+                    a.email
+                        .toLowerCase()
+                        .includes(adminSearch.toLowerCase())
             ),
         [admins, adminSearch]
     );
@@ -102,9 +108,13 @@ export const useSuperAdminDashboard = () => {
     const filteredUsers = useMemo(
         () =>
             users.filter(
-                u =>
-                    u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
-                    u.email.toLowerCase().includes(userSearch.toLowerCase())
+                (u) =>
+                    u.name
+                        .toLowerCase()
+                        .includes(userSearch.toLowerCase()) ||
+                    u.email
+                        .toLowerCase()
+                        .includes(userSearch.toLowerCase())
             ),
         [users, userSearch]
     );
@@ -113,7 +123,7 @@ export const useSuperAdminDashboard = () => {
         () =>
             driveFilter === "All"
                 ? drives
-                : drives.filter(d => d.status === driveFilter),
+                : drives.filter((d) => d.status === driveFilter),
         [drives, driveFilter]
     );
 
@@ -121,14 +131,16 @@ export const useSuperAdminDashboard = () => {
         () =>
             attendanceFilter === "All"
                 ? attendance
-                : attendance.filter(a => a.status === attendanceFilter),
+                : attendance.filter(
+                      (a) => a.status === attendanceFilter
+                  ),
         [attendance, attendanceFilter]
     );
 
     const cityData = useMemo(() => {
         const map: Record<string, number> = {};
 
-        users.forEach(u => {
+        users.forEach((u) => {
             map[u.city] = (map[u.city] || 0) + 1;
         });
 
@@ -141,9 +153,12 @@ export const useSuperAdminDashboard = () => {
     const wasteBarData = useMemo(
         () =>
             drives
-                .filter(d => d.wasteKg > 0)
-                .map(d => ({
-                    name: d.location.split(",")[0].split(" ").slice(-1)[0],
+                .filter((d) => d.wasteKg > 0)
+                .map((d) => ({
+                    name: d.location
+                        .split(",")[0]
+                        .split(" ")
+                        .slice(-1)[0],
                     waste: d.wasteKg,
                 })),
         [drives]
@@ -152,9 +167,12 @@ export const useSuperAdminDashboard = () => {
     const volunteerBarData = useMemo(
         () =>
             drives
-                .filter(d => d.volunteers > 0)
-                .map(d => ({
-                    name: d.location.split(",")[0].split(" ").slice(-1)[0],
+                .filter((d) => d.volunteers > 0)
+                .map((d) => ({
+                    name: d.location
+                        .split(",")[0]
+                        .split(" ")
+                        .slice(-1)[0],
                     volunteers: d.volunteers,
                 })),
         [drives]
@@ -178,8 +196,8 @@ export const useSuperAdminDashboard = () => {
                         u.status === "Approved"
                             ? "Active"
                             : u.status === "Pending"
-                                ? "Pending"
-                                : "Suspended",
+                              ? "Pending"
+                              : "Suspended",
                     joined: new Date(u.createdAt).toLocaleDateString(),
                     totalHours: u.totalHours || 0,
                     wasteKg: u.wasteKg || 0,
@@ -197,7 +215,9 @@ export const useSuperAdminDashboard = () => {
 
             const formatted = res.data.users
                 .filter(
-                    (u: any) => u.role === "Admin" || u.role === "SuperAdmin"
+                    (u: any) =>
+                        u.role === "Admin" ||
+                        u.role === "SuperAdmin"
                 )
                 .map((u: any) => ({
                     id: u.id,
@@ -205,9 +225,14 @@ export const useSuperAdminDashboard = () => {
                     email: u.email,
                     role: u.role,
                     city: u.city || "N/A",
-                    joined: new Date(u.createdAt).toLocaleDateString(),
+                    joined: new Date(
+                        u.createdAt
+                    ).toLocaleDateString(),
                     lastActive: "Recently",
-                    status: u.status === "Approved" ? "Active" : "Suspended",
+                    status:
+                        u.status === "Approved"
+                            ? "Active"
+                            : "Suspended",
                 }));
 
             setAdmins(formatted);
@@ -224,19 +249,14 @@ export const useSuperAdminDashboard = () => {
                 id: d.id,
                 date: d.date,
                 location: d.location ?? "N/A",
-
                 volunteers: d.volunteerCount ?? 0,
-
                 wasteKg: d.totalWasteKg ?? 0,
-
                 status: d.completed
                     ? "Completed"
                     : new Date(d.date) > new Date()
-                        ? "Upcoming"
-                        : "Active",
-
+                      ? "Upcoming"
+                      : "Active",
                 hours: d.totalHours ?? 0,
-
                 coordinator: d.coordinator?.name,
             }));
 
@@ -254,65 +274,87 @@ export const useSuperAdminDashboard = () => {
                 id: a.id,
                 volunteer: a.user?.name ?? "Unknown",
                 email: a.user?.email ?? "",
-                drive: a.drive?.title ?? a.drive?.location ?? "Unknown Drive",
+                drive:
+                    a.drive?.title ??
+                    a.drive?.location ??
+                    "Unknown Drive",
                 driveId: a.driveId,
                 date: new Date(
                     a.drive?.date ?? a.createdAt
                 ).toLocaleDateString(),
                 hours: a.hours ?? 0,
-
                 waste: a.waste ?? 0,
-
                 status: a.status,
             }));
 
             setAttendance(formatted);
         } catch (error) {
-            console.error("Failed to fetch attendance:", error);
+            console.error(
+                "Failed to fetch attendance:",
+                error
+            );
         }
     };
 
     // ── handlers ─────────────────────────────────────
 
     const handleAddAdmin = async () => {
-        if (!adminForm.name || !adminForm.email) {
-            toast.error("Name and email required");
-            return;
-        }
+    if (
+        !adminForm.name ||
+        !adminForm.email ||
+        !adminForm.city ||
+        !adminForm.gender ||
+        !adminForm.password
+    ) {
+        toast.error("Fill all required fields");
+        return;
+    }
 
-        try {
-            setSubmitting(true);
+    try {
+        setSubmitting(true);
 
-            await API.post("/auth/adminregister", {
-                name: adminForm.name,
-                email: adminForm.email,
-                password: "Admin@123",
-            });
+        await API.post("/auth/adminregister", {
+            name: adminForm.name,
+            email: adminForm.email,
+            city: adminForm.city,
+            gender: adminForm.gender,
+            password: adminForm.password,
+        });
 
-            toast.success("Admin created");
+        toast.success("Admin created successfully");
 
-            setAdminModal(false);
+        setAdminModal(false);
 
-            setAdminForm({
-                name: "",
-                email: "",
-                role: "Admin",
-                city: "",
-            });
+        setAdminForm({
+            name: "",
+            email: "",
+            role: "Admin",
+            city: "",
+            gender: "",
+            password: "",
+        });
 
-            await fetchAdmins();
-        } catch (error: any) {
-            console.error(error);
-            toast.error(
-                error?.response?.data?.message || "Failed to create admin"
-            );
-        } finally {
-            setSubmitting(false);
-        }
-    };
+        await fetchAdmins();
+    } catch (error: any) {
+        console.error(error);
+
+        toast.error(
+            error?.response?.data?.message ||
+                "Failed to create admin"
+        );
+    } finally {
+        setSubmitting(false);
+    }
+};
 
     const handleAddUser = async () => {
-        if (!userForm.name || !userForm.email || !userForm.password) {
+        if (
+            !userForm.name ||
+            !userForm.email ||
+            !userForm.city ||
+            !userForm.gender ||
+            !userForm.password
+        ) {
             toast.error("Fill all required fields");
             return;
         }
@@ -320,11 +362,12 @@ export const useSuperAdminDashboard = () => {
         try {
             setSubmitting(true);
 
-            await API.post("/auth/register", {
+            await API.post("/user/create-volunteer", {
                 name: userForm.name,
                 email: userForm.email,
-                password: userForm.password,
                 city: userForm.city,
+                gender: userForm.gender,
+                password: userForm.password,
             });
 
             toast.success("Volunteer added");
@@ -335,13 +378,18 @@ export const useSuperAdminDashboard = () => {
                 name: "",
                 email: "",
                 city: "",
+                gender: "",
                 password: "",
             });
 
             await fetchUsers();
         } catch (error: any) {
             console.error(error);
-            toast.error(error?.response?.data?.message || "Failed to add user");
+
+            toast.error(
+                error?.response?.data?.message ||
+                    "Failed to add user"
+            );
         } finally {
             setSubmitting(false);
         }
@@ -353,10 +401,10 @@ export const useSuperAdminDashboard = () => {
         try {
             if (confirm.type === "admin") {
                 await API.delete(`/user/${confirm.id}`);
-                fetchAdmins();
+                await fetchAdmins();
             } else {
                 await API.delete(`/user/${confirm.id}`);
-                fetchUsers();
+                await fetchUsers();
             }
 
             toast.success("Deleted successfully");
@@ -368,7 +416,10 @@ export const useSuperAdminDashboard = () => {
         }
     };
 
-    const toggleAdminStatus = async (id: number, currentStatus: string) => {
+    const toggleAdminStatus = async (
+        id: number,
+        currentStatus: string
+    ) => {
         try {
             if (currentStatus === "Active") {
                 await API.patch(`/user/suspend/${id}`);
@@ -378,7 +429,7 @@ export const useSuperAdminDashboard = () => {
                 toast.success("Admin activated");
             }
 
-            fetchAdmins();
+            await fetchAdmins();
         } catch (error) {
             console.error(error);
             toast.error("Action failed");
@@ -422,7 +473,8 @@ export const useSuperAdminDashboard = () => {
             });
 
             toast.success(
-                `${ids.length} attendance record${ids.length > 1 ? "s" : ""
+                `${ids.length} attendance record${
+                    ids.length > 1 ? "s" : ""
                 } approved`
             );
 
@@ -432,7 +484,7 @@ export const useSuperAdminDashboard = () => {
 
             toast.error(
                 error?.response?.data?.message ||
-                "Failed to approve attendance"
+                    "Failed to approve attendance"
             );
         }
     };
@@ -454,6 +506,7 @@ export const useSuperAdminDashboard = () => {
         fetchAdmins();
         fetchDrives();
         fetchAttendance();
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -542,6 +595,5 @@ export const useSuperAdminDashboard = () => {
         approveSelectedAttendance,
         goTo,
         handleLogout,
-
     };
 };

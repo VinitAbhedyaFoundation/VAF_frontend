@@ -2,7 +2,7 @@
 // TYPES
 // =========================
 
-import { LevelInfo } from "@/components/user/utils/level";
+import type { LevelInfo } from "@/components/user/utils/level";
 import type { LucideIcon } from "lucide-react";
 
 export type SectionId =

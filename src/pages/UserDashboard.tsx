@@ -124,11 +124,17 @@ export default function UserDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    toast.success("Logged out");
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+
+  toast.success("Logged out", {
+    duration: 500,
+  });
+
+  setTimeout(() => {
     navigate("/login");
-  };
+  }, 500);
+};
 
   const goToSection = (id: SectionId) => {
     setActiveNav(id);

@@ -1,5 +1,12 @@
 import React from "react";
-import { Plus, Users, Clock, Search, Eye } from "lucide-react";
+import {
+  Plus,
+  Users,
+  Clock,
+  Search,
+  Eye,
+  Trash2,
+} from "lucide-react";
 
 import SectionLoader from "../common/SectionLoader";
 import type { Volunteer } from "../../../types/admin";
@@ -7,6 +14,7 @@ import type { Volunteer } from "../../../types/admin";
 interface VolunteersProps {
   volunteers: Volunteer[];
   loadingVolunteers: boolean;
+  isSuperAdmin: boolean;
 
   volunteerSearch: string;
   setVolunteerSearch: React.Dispatch<React.SetStateAction<string>>;
@@ -26,12 +34,16 @@ interface VolunteersProps {
   >;
 
   handleApproveVolunteer: (volunteer: Volunteer) => void;
+
+  handleRemoveVolunteer: (volunteer: Volunteer) => void;
+
   getStatusClass: (status: string) => string;
 }
 
 const Volunteers: React.FC<VolunteersProps> = ({
   volunteers,
   loadingVolunteers,
+  isSuperAdmin,
   volunteerSearch,
   setVolunteerSearch,
   volunteerFilter,
@@ -42,28 +54,55 @@ const Volunteers: React.FC<VolunteersProps> = ({
   setShowVolunteerModal,
   setSelectedVolunteer,
   handleApproveVolunteer,
+  handleRemoveVolunteer,
   getStatusClass,
 }) => {
+  const handleRemove = (
+    e: React.MouseEvent,
+    volunteer: Volunteer
+  ) => {
+    e.stopPropagation();
+
+    const confirmed = window.confirm(
+      `Are you sure you want to remove ${volunteer.name}? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    handleRemoveVolunteer(volunteer);
+  };
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold themed-text">Volunteers</h1>
+          <h1 className="text-2xl font-bold themed-text">
+            Volunteers
+          </h1>
+
           <p className="themed-secondary text-sm">
             Manage your volunteer community.
           </p>
         </div>
 
-        <button
-          onClick={() => setShowVolunteerModal(true)}
-          className="accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition accent-shadow flex items-center gap-2"
-        >
-          <Plus size={16} />
-          Add Volunteer
-        </button>
+        {isSuperAdmin && (
+          <button
+            onClick={() => setShowVolunteerModal(true)}
+            className="accent-bg accent-bg-hover text-white px-5 py-2.5 rounded-xl text-sm font-bold transition accent-shadow flex items-center gap-2"
+          >
+            <Plus size={16} />
+            Add Volunteer
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* =====================================================
+          STAT CARDS
+      ===================================================== */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {[
           {
             label: "Total",
@@ -94,7 +133,9 @@ const Volunteers: React.FC<VolunteersProps> = ({
               <s.icon size={20} />
             </div>
 
-            <p className="text-3xl font-black themed-text">{s.val}</p>
+            <p className="text-3xl font-black themed-text">
+              {s.val}
+            </p>
 
             <p className="text-xs font-bold themed-muted uppercase tracking-widest mt-1">
               {s.label}
@@ -103,10 +144,14 @@ const Volunteers: React.FC<VolunteersProps> = ({
         ))}
       </div>
 
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
       {loadingVolunteers ? (
         <SectionLoader />
       ) : (
         <>
+          {/* Search + Filters */}
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <div className="relative flex-1">
               <Search
@@ -116,106 +161,168 @@ const Volunteers: React.FC<VolunteersProps> = ({
 
               <input
                 value={volunteerSearch}
-                onChange={(e) => setVolunteerSearch(e.target.value)}
+                onChange={(e) =>
+                  setVolunteerSearch(e.target.value)
+                }
                 placeholder="Search volunteers..."
                 className="w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm input-themed"
               />
             </div>
 
             <div className="flex gap-2">
-              {(["All", "New", "Pending"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setVolunteerFilter(f)}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
-                    volunteerFilter === f
-                      ? "accent-bg text-white"
-                      : "themed-card border themed-border themed-secondary themed-hover"
-                  }`}
-                >
-                  {f}
-                </button>
-              ))}
+              {(["All", "New", "Pending"] as const).map(
+                (filter) => (
+                  <button
+                    key={filter}
+                    onClick={() =>
+                      setVolunteerFilter(filter)
+                    }
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition ${volunteerFilter === filter
+                        ? "accent-bg text-white"
+                        : "themed-card border themed-border themed-secondary themed-hover"
+                      }`}
+                  >
+                    {filter}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
+          {/* =================================================
+              VOLUNTEER TABLE
+          ================================================= */}
           <div className="themed-card rounded-2xl shadow-sm border themed-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="themed-subtle text-left">
-                <tr>
-                  {[
-                    "Name",
-                    "Email",
-                    "City",
-                    "Drives",
-                    "Status",
-                    "Action",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className="p-4 text-xs font-bold themed-muted uppercase tracking-wider"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredVolunteers.map((v) => (
-                  <tr
-                    key={v.id}
-                    className="border-t themed-border table-row-hover transition cursor-pointer"
-                    onClick={() => setSelectedVolunteer(v)}
-                  >
-                    <td className="p-4 font-semibold themed-text">{v.name}</td>
-
-                    <td className="p-4 themed-muted text-xs">{v.email}</td>
-
-                    <td className="p-4 themed-secondary">{v.city}</td>
-
-                    <td className="p-4 themed-secondary">{v.drives}</td>
-
-                    <td className="p-4">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusClass(
-                          v.status
-                        )}`}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="themed-subtle text-left">
+                  <tr>
+                    {[
+                      "Name",
+                      "Email",
+                      "City",
+                      "Drives",
+                      "Status",
+                      "Action",
+                    ].map((heading) => (
+                      <th
+                        key={heading}
+                        className="p-4 text-xs font-bold themed-muted uppercase tracking-wider whitespace-nowrap"
                       >
-                        {v.status}
-                      </span>
-                    </td>
-
-                    <td
-                      className="p-4"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {v.status === "Pending" ? (
-                        <button
-                          onClick={() => handleApproveVolunteer(v)}
-                          className="accent-text font-semibold text-sm accent-text-hover"
-                        >
-                          Approve
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setSelectedVolunteer(v)}
-                          className="text-blue-600 font-semibold text-sm hover:text-blue-700 flex items-center gap-1"
-                        >
-                          <Eye size={14} />
-                          View
-                        </button>
-                      )}
-                    </td>
+                        {heading}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
 
+                <tbody>
+                  {filteredVolunteers.map((volunteer) => (
+                    <tr
+                      key={volunteer.id}
+                      className="border-t themed-border table-row-hover transition cursor-pointer"
+                      onClick={() =>
+                        setSelectedVolunteer(volunteer)
+                      }
+                    >
+                      {/* Name */}
+                      <td className="p-4 font-semibold themed-text whitespace-nowrap">
+                        {volunteer.name}
+                      </td>
+
+                      {/* Email */}
+                      <td className="p-4 themed-muted text-xs">
+                        {volunteer.email}
+                      </td>
+
+                      {/* City */}
+                      <td className="p-4 themed-secondary">
+                        {volunteer.city}
+                      </td>
+
+                      {/* Drives */}
+                      <td className="p-4 themed-secondary">
+                        {volunteer.drives}
+                      </td>
+
+                      {/* Status */}
+                      <td className="p-4">
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusClass(
+                            volunteer.status
+                          )}`}
+                        >
+                          {volunteer.status}
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td
+                        className="p-4"
+                        onClick={(e) =>
+                          e.stopPropagation()
+                        }
+                      >
+                        <div className="flex items-center gap-3">
+                          {volunteer.status === "Pending" ? (
+                            <button
+                              onClick={() =>
+                                handleApproveVolunteer(
+                                  volunteer
+                                )
+                              }
+                              className="accent-text font-semibold text-sm accent-text-hover"
+                            >
+                              Approve
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                setSelectedVolunteer(
+                                  volunteer
+                                )
+                              }
+                              className="text-blue-600 font-semibold text-sm hover:text-blue-700 flex items-center gap-1"
+                            >
+                              <Eye size={14} />
+                              View
+                            </button>
+                          )}
+
+                          {/* Remove */}
+                          {isSuperAdmin && (
+                            <button
+                              onClick={(e) => handleRemove(e, volunteer)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-2 transition"
+                              title={`Remove ${volunteer.name}`}
+                              aria-label={`Remove ${volunteer.name}`}
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Empty state */}
             {filteredVolunteers.length === 0 && (
-              <p className="text-center themed-muted py-8 text-sm">
-                No volunteers found.
-              </p>
+              <div className="text-center themed-muted py-10">
+                <Users
+                  size={28}
+                  className="mx-auto mb-3 opacity-40"
+                />
+
+                <p className="text-sm font-semibold">
+                  No volunteers found.
+                </p>
+
+                <p className="text-xs mt-1 opacity-70">
+                  Try changing your search or filter.
+                </p>
+              </div>
             )}
           </div>
         </>

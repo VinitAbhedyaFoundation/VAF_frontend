@@ -8,7 +8,7 @@ interface VolunteerForm {
   name: string;
   email: string;
   city: string;
-  age: string;
+  gender: "" | "Male" | "Female" | "Other";
   password: string;
 }
 
@@ -40,6 +40,7 @@ const AddVolunteerModal: React.FC<AddVolunteerModalProps> = ({
       onClose={onClose}
       title="Add New Volunteer"
     >
+      {/* Full Name */}
       <InputField
         label="Full Name *"
         value={volunteerForm.name}
@@ -52,6 +53,7 @@ const AddVolunteerModal: React.FC<AddVolunteerModalProps> = ({
         placeholder="e.g. Priya Sharma"
       />
 
+      {/* Email */}
       <InputField
         label="Email *"
         type="email"
@@ -65,6 +67,7 @@ const AddVolunteerModal: React.FC<AddVolunteerModalProps> = ({
         placeholder="priya@gmail.com"
       />
 
+      {/* City */}
       <InputField
         label="City *"
         value={volunteerForm.city}
@@ -77,21 +80,36 @@ const AddVolunteerModal: React.FC<AddVolunteerModalProps> = ({
         placeholder="e.g. Pune"
       />
 
-      <InputField
-        label="Age"
-        type="number"
-        value={volunteerForm.age}
-        onChange={(v) =>
-          setVolunteerForm((prev) => ({
-            ...prev,
-            age: v,
-          }))
-        }
-        placeholder="e.g. 23"
-      />
+      {/* Gender */}
+      <div className="mb-4">
+        <label className="block text-sm font-semibold themed-secondary mb-2">
+          Gender *
+        </label>
 
+        <select
+          value={volunteerForm.gender}
+          onChange={(e) =>
+            setVolunteerForm((prev) => ({
+              ...prev,
+              gender: e.target.value as
+                | ""
+                | "Male"
+                | "Female"
+                | "Other",
+            }))
+          }
+          className="w-full px-4 py-3 rounded-xl border themed-border themed-input outline-none focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="">Select gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      {/* Temporary Password */}
       <InputField
-        label="Temporary Password"
+        label="Temporary Password *"
         type="password"
         value={volunteerForm.password}
         onChange={(v) =>
@@ -100,29 +118,35 @@ const AddVolunteerModal: React.FC<AddVolunteerModalProps> = ({
             password: v,
           }))
         }
-        placeholder="Default: Volunteer@123"
+        placeholder="e.g. Volunteer@123"
       />
 
+      {/* Information */}
       <p className="text-xs themed-muted mb-4 themed-subtle rounded-xl p-3">
-        New volunteer will be added as <strong>Pending</strong> and must be
-        approved before they can participate.
+        New volunteer will be added as{" "}
+        <strong>Pending</strong> and must be approved before
+        they can participate.
       </p>
 
+      {/* Actions */}
       <div className="flex justify-end gap-3 pt-2">
         <button
+          type="button"
           onClick={onClose}
-          className="px-4 py-2 text-sm themed-subtle rounded-xl font-semibold themed-secondary"
+          disabled={submitting}
+          className="px-4 py-2 text-sm themed-subtle rounded-xl font-semibold themed-secondary disabled:opacity-60"
         >
           Cancel
         </button>
 
         <button
+          type="button"
           onClick={handleAddVolunteer}
           disabled={submitting}
           className="px-5 py-2 text-sm accent-bg accent-bg-hover text-white rounded-xl font-bold transition flex items-center gap-2 disabled:opacity-60"
         >
           {submitting && <Spinner size={16} />}
-          Add Volunteer 👤
+          {submitting ? "Adding..." : "Add Volunteer 👤"}
         </button>
       </div>
     </Modal>

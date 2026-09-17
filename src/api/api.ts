@@ -6,19 +6,26 @@ const API = axios.create({
     "http://localhost:3000/api",
   timeout: 10000,
 });
+
 console.log(
   "API URL:",
   import.meta.env.VITE_API_URL
 );
+
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
 
-    if (token) {
-config.headers.set(
-  "Authorization",
-  `Bearer ${token}`
-);
+    // These endpoints do not need authentication
+    const isPublicRequest =
+      config.url === "/auth/register" ||
+      config.url === "/auth/login";
+
+    if (token && !isPublicRequest) {
+      config.headers.set(
+        "Authorization",
+        `Bearer ${token}`
+      );
     }
 
     return config;
