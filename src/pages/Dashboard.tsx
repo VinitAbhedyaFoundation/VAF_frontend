@@ -56,6 +56,7 @@ import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../components/admin/contexts/ThemeContext";
 
 import CreateDriveModal from "../components/admin/drives/CreateDriveModal";
+import CompleteDriveModal from "@/components/admin/drives/CompleteDriveModal";
 import Header from "../components/admin/layout/Header";
 import Sidebar from "../components/admin/layout/Sidebar";
 import Overview from "../components/admin/overview/Overview";
@@ -213,6 +214,14 @@ export default function AdvancedDashboard() {
     useState<Volunteer | null>(null);
   const [selectedMessage, setSelectedMessage] =
     useState<MessageItem | null>(null);
+
+  const [showCompleteDriveModal, setShowCompleteDriveModal] =
+    useState(false);
+
+  const [completeDriveId, setCompleteDriveId] =
+    useState<number | null>(null);
+
+  const [totalWasteKg, setTotalWasteKg] = useState("");
 
   // ─────────────────────────────────────────────────────────────────────────
   // FORMS
@@ -987,26 +996,53 @@ export default function AdvancedDashboard() {
   // COMPLETE DRIVE
   // ─────────────────────────────────────────────────────────────────────────
 
-  const handleCompleteDrive =
-    async (driveId: number) => {
-      try {
-        await API.patch(
-          `/drive/${driveId}/complete`
-        );
+  const openCompleteDriveModal = (driveId: number) => {
+    setCompleteDriveId(driveId);
+    setTotalWasteKg("");
+    setShowCompleteDriveModal(true);
+  };
 
-        toast.success(
-          "Drive marked as completed"
-        );
+  const handleCompleteDrive = async () => {
+    if (completeDriveId === null) {
+      return;
+    }
 
-        await fetchDrives();
-        await fetchDashboardStats();
-      } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message ||
-          "Failed to complete drive"
-        );
-      }
-    };
+    const waste = Number(totalWasteKg);
+
+    if (!Number.isFinite(waste) || waste < 0) {
+      toast.error("Please enter a valid waste amount.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      await API.patch(
+        `/drive/${completeDriveId}/complete`,
+        {
+          totalWasteKg: waste,
+        }
+      );
+
+      toast.success(
+        `Drive completed. ${waste} kg waste recorded.`
+      );
+
+      setShowCompleteDriveModal(false);
+      setCompleteDriveId(null);
+      setTotalWasteKg("");
+
+      await fetchDrives();
+      await fetchDashboardStats();
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message ||
+        "Failed to complete drive"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // APPROVE ATTENDANCE
@@ -1222,21 +1258,11 @@ export default function AdvancedDashboard() {
               "drives" && (
                 <Drives
                   drives={drives}
-                  loadingDrives={
-                    loadingDrives
-                  }
-                  setShowDriveModal={
-                    setShowDriveModal
-                  }
-                  setSelectedDrive={
-                    setSelectedDrive
-                  }
-                  handleCompleteDrive={
-                    handleCompleteDrive
-                  }
-                  handleGenerateCertificates={
-                    handleGenerateCertificates
-                  }
+                  loadingDrives={loadingDrives}
+                  setShowDriveModal={setShowDriveModal}
+                  setSelectedDrive={setSelectedDrive}
+                  handleCompleteDrive={openCompleteDriveModal}
+                  handleGenerateCertificates={handleGenerateCertificates}
                 />
               )}
 
@@ -1387,6 +1413,19 @@ export default function AdvancedDashboard() {
           handleCreateDrive={
             handleCreateDrive
           }
+        />
+
+        <CompleteDriveModal
+          open={showCompleteDriveModal}
+          onClose={() => {
+            setShowCompleteDriveModal(false);
+            setCompleteDriveId(null);
+            setTotalWasteKg("");
+          }}
+          totalWasteKg={totalWasteKg}
+          setTotalWasteKg={setTotalWasteKg}
+          submitting={submitting}
+          handleCompleteDrive={handleCompleteDrive}
         />
 
         {/* ADD VOLUNTEER */}
