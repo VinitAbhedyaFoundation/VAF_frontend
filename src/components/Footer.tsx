@@ -12,15 +12,49 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
+// Use the same API instance your project already uses
+import API from "@/api/api";
+
 const Footer = () => {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   const linkClass =
     "relative text-sm text-gray-400 transition-colors duration-300 group-hover:text-white";
 
   const underline =
     "absolute left-0 -bottom-1 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full";
+
+  const handleSubscribe = async () => {
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
+      return;
+    }
+
+    setIsSubscribing(true);
+
+    try {
+      await API.post("/newsletter/subscribe", {
+        email: trimmedEmail,
+      });
+
+      setEmail("");
+
+      navigate("/newsletter-success");
+    } catch (error: any) {
+      console.error("Newsletter subscription failed:", error);
+
+      alert(
+        error?.response?.data?.message ||
+          "Unable to subscribe right now. Please try again."
+      );
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
     <motion.footer
@@ -82,19 +116,23 @@ const Footer = () => {
                 placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent flex-1 text-sm text-white placeholder-gray-600 outline-none"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSubscribe();
+                  }
+                }}
+                disabled={isSubscribing}
+                className="bg-transparent flex-1 text-sm text-white placeholder-gray-600 outline-none disabled:opacity-50"
               />
 
               <button
-                onClick={() => {
-                  if (!email) return;
-
-                  // future: send to backend
-                  navigate("/newsletter-success");
-                }}
-                className="text-sm text-white font-medium ml-4 relative group"
+                type="button"
+                onClick={handleSubscribe}
+                disabled={isSubscribing || !email.trim()}
+                className="text-sm text-white font-medium ml-4 relative group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                SIGN UP
+                {isSubscribing ? "SUBSCRIBING..." : "SIGN UP"}
+
                 <span className="absolute left-0 -bottom-1 w-0 h-[1px] bg-white transition-all group-hover:w-full"></span>
               </button>
             </div>
@@ -175,19 +213,43 @@ const Footer = () => {
             </h4>
 
             <div className="flex gap-5">
-              <a href="https://www.instagram.com/vinitabhedyafoundation" target="_blank">
+              <a
+                href="https://www.instagram.com/vinitabhedyafoundation"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Instagram className="w-5 h-5 hover:text-white" />
               </a>
-              <a href="https://x.com/MH20PLOGGERS" target="_blank">
+
+              <a
+                href="https://x.com/MH20PLOGGERS"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Twitter className="w-5 h-5 hover:text-white" />
               </a>
-              <a href="https://www.linkedin.com/company/sambhajinagarploggers/" target="_blank">
+
+              <a
+                href="https://www.linkedin.com/company/sambhajinagarploggers/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Linkedin className="w-5 h-5 hover:text-white" />
               </a>
-              <a href="https://www.facebook.com/share/1DnSdfrGCj/" target="_blank">
+
+              <a
+                href="https://www.facebook.com/share/1DnSdfrGCj/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Facebook className="w-5 h-5 hover:text-white" />
               </a>
-              <a href="https://youtube.com/@vinitabhedyafoundation" target="_blank">
+
+              <a
+                href="https://youtube.com/@vinitabhedyafoundation"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Youtube className="w-5 h-5 hover:text-white" />
               </a>
             </div>
