@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import { Toaster as UIToaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster as HotToaster } from "react-hot-toast";
+import API from "./api/api";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -30,50 +32,76 @@ import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 
 const queryClient = new QueryClient();
 
-// ✅ AUTH CHECK
+// AUTH CHECK
 function isLoggedIn() {
   const token = localStorage.getItem("token");
   return token && token !== "undefined";
 }
 
-// ✅ BASIC PROTECTION
+// BASIC PROTECTION
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   if (!isLoggedIn()) {
     return <Navigate to="/login" replace />;
   }
+
   return children;
 }
 
-// 🔥 ADMIN PROTECTION (CRITICAL)
-function AdminRoute({ children }: { children: JSX.Element }) {
-  const role = localStorage.getItem("role");
+// ROLE PROTECTION
+function RoleRoute({
+  allowedRoles,
+  children,
+}: {
+  allowedRoles: string[];
+  children: JSX.Element;
+}) {
+  const [role, setRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (role !== "Admin") {
+  useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        // Get the actual role from the authenticated backend user.
+        // Do NOT trust localStorage.role.
+        const response = await API.get("/auth/me");
+        setRole(response.data.role);
+      } catch (error) {
+        setRole(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRole();
+  }, []);
+
+  // Wait until the backend confirms the user's role.
+  if (loading) {
+    return null;
+  }
+
+  // User's actual backend role is not authorized.
+  if (!role || !allowedRoles.includes(role)) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return children;
 }
-function SuperAdminRoute({
-  children,
-}: {
-  children: JSX.Element;
-}) {
 
-  const role =
-    localStorage.getItem("role");
+function AdminRoute({ children }: { children: JSX.Element }) {
+  return (
+    <RoleRoute allowedRoles={["Admin", "SuperAdmin"]}>
+      {children}
+    </RoleRoute>
+  );
+}
 
-  if (role !== "SuperAdmin") {
-
-    return (
-      <Navigate
-        to="/dashboard"
-        replace
-      />
-    );
-  }
-
-  return children;
+function SuperAdminRoute({ children }: { children: JSX.Element }) {
+  return (
+    <RoleRoute allowedRoles={["SuperAdmin"]}>
+      {children}
+    </RoleRoute>
+  );
 }
 
 const App = () => (
@@ -99,7 +127,7 @@ const App = () => (
           }
         />
 
-        {/* 🔥 ADMIN DASHBOARD */}
+        {/* ADMIN DASHBOARD */}
         <Route
           path="/admin-dashboard"
           element={
@@ -110,7 +138,8 @@ const App = () => (
             </ProtectedRoute>
           }
         />
-        {/* 🔥 SUPER ADMIN DASHBOARD */}
+
+        {/* SUPER ADMIN DASHBOARD */}
         <Route
           path="/superadmin-dashboard"
           element={
@@ -128,7 +157,10 @@ const App = () => (
         <Route path="/social-shelf" element={<SocialShelfPage />} />
         <Route path="/laal-bindi" element={<LaalBindiPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/newsletter-success" element={<NewsletterSuccess />} />
+        <Route
+          path="/newsletter-success"
+          element={<NewsletterSuccess />}
+        />
         <Route path="/donate" element={<Donate />} />
 
         {/* BLOG */}
