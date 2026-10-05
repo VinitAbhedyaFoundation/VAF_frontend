@@ -94,9 +94,11 @@ export default function Donate() {
                 <span>+91 98765 43210</span>
               </div>
 
-              <div className="flex items-center gap-3 text-slate-700">
-                <Mail size={18} />
-                <span>info@vinitabhedyafoundation.org</span>
+              <div className="flex items-start gap-3 text-slate-700 min-w-0">
+                <Mail size={18} className="shrink-0 mt-1" />
+                <span className="break-all">
+                  info@vinitabhedyafoundation.org
+                </span>
               </div>
 
               <div className="flex items-center gap-3 text-slate-700">
