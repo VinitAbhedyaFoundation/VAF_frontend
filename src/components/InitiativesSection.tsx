@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const ploggersImg = "/images/VinitAbhedya/ploggers.jpeg";
-const ploggers2Img = "/images/VinitAbhedya/ploggers3.jpeg";
+const ploggers2Img = "/images/VinitAbhedya/ploggers3.webp";
 const socialShelfImg = "/images/VinitAbhedya/social-shelf.jpeg";
 const bookImg = "/images/VinitAbhedya/books.jpeg";
 const laalBindiImg = "/images/VinitAbhedya/laal-bindi.jpeg";
@@ -392,7 +392,7 @@ const InitiativesSection = () => {
       {/* Image */}
       <div className="rounded-3xl overflow-hidden shadow-xl">
         <img
-          src="/images/VinitAbhedya/cloth1.jpg"   // ✅ fixed path
+          src="/images/VinitAbhedya/cloth1.webp"   // ✅ fixed path
           alt="Cloth Collection Drive"
           className="w-full h-full object-cover"
         />
