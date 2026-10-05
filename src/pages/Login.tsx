@@ -42,11 +42,6 @@ const Login = () => {
 
       const data = res.data;
 
-      console.log(
-        "LOGIN RESPONSE:",
-        data
-      );
-
       // ✅ token fallback support
       const token =
         data.accessToken || data.token;
@@ -68,8 +63,6 @@ const Login = () => {
 
       const role = user.role;
 
-      console.log("USER ROLE:", role);
-
       // ✅ clear previous session
       localStorage.clear();
 
@@ -89,10 +82,6 @@ const Login = () => {
         JSON.stringify(user)
       );
 
-      console.log(
-        "STORED ROLE:",
-        localStorage.getItem("role")
-      );
 
       // ✅ role-based redirect
       if (role === "SuperAdmin") {
@@ -110,17 +99,15 @@ const Login = () => {
 
     } catch (err: any) {
 
-      console.error(err);
+  if (err?.response?.status === 401) {
+    setError("Invalid email or password");
+  } else {
+    setError("Unable to login. Please try again.");
+  }
 
-      setError(
-        err?.response?.data?.message ||
-        "Server error"
-      );
-
-    } finally {
-
-      setLoading(false);
-    }
+} finally {
+  setLoading(false);
+}
   };
 
   return (
