@@ -110,17 +110,15 @@ const Login = () => {
 
     } catch (err: any) {
 
-      console.error(err);
+  if (err?.response?.status === 401) {
+    setError("Invalid email or password");
+  } else {
+    setError("Unable to login. Please try again.");
+  }
 
-      setError(
-        err?.response?.data?.message ||
-        "Server error"
-      );
-
-    } finally {
-
-      setLoading(false);
-    }
+} finally {
+  setLoading(false);
+}
   };
 
   return (
