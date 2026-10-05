@@ -88,7 +88,9 @@ const Attendance: React.FC<AttendanceProps> = ({
           {
             label: "Pending",
             val: attendance.filter(
-              (item) => item.status === "Pending"
+              (item) =>
+                item.status === "Registered" ||
+                item.status === "Pending"
             ).length,
             icon: "⏳",
           },
@@ -153,12 +155,12 @@ const Attendance: React.FC<AttendanceProps> = ({
                   <td className="p-4 themed-secondary">
                     {item.drive
                       ? new Date(
-                          item.drive.date
-                        ).toLocaleDateString("en-IN", {
-                          weekday: "short",
-                          day: "numeric",
-                          month: "short",
-                        })
+                        item.drive.date
+                      ).toLocaleDateString("en-IN", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                      })
                       : "-"}
                   </td>
 
@@ -169,25 +171,25 @@ const Attendance: React.FC<AttendanceProps> = ({
                   <td className="p-4 themed-muted">
                     {item.createdAt
                       ? new Date(
-                          item.createdAt
-                        ).toLocaleDateString("en-IN")
+                        item.createdAt
+                      ).toLocaleDateString("en-IN")
                       : "-"}
                   </td>
 
                   <td className="p-4">
                     <span
-                      className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        item.status === "Approved"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
+                      className={`text-xs px-2 py-1 rounded-full font-medium ${item.status === "Approved"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                        }`}
                     >
                       {item.status}
                     </span>
                   </td>
 
                   <td className="p-4">
-                    {item.status === "Pending" ? (
+                    {item.status === "Registered" ||
+                      item.status === "Pending" ? (
                       <button
                         onClick={() =>
                           handleApproveAttendance(item.id)
