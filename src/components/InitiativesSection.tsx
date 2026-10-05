@@ -207,7 +207,7 @@ const InitiativesSection = () => {
             {/* Left Button */}
             <button
               onClick={() => paginate(-1)}
-              className="hidden md:flex absolute -left-6 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full"
+              className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full"
             >
               <ChevronLeft className="w-5 h-5 text-slate-800" />
             </button>
@@ -215,8 +215,7 @@ const InitiativesSection = () => {
             {/* Right Button */}
             <button
               onClick={() => paginate(1)}
-              className="hidden md:flex absolute -right-6 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full"
-            >
+              className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-40 bg-white shadow-lg p-3 rounded-full"            >
               <ChevronRight className="w-5 h-5 text-slate-800" />
             </button>
 
@@ -376,59 +375,59 @@ const InitiativesSection = () => {
       </section>
 
       {/* Cloth Collection Initiative Section */}
-<section className="relative py-16 sm:py-20 overflow-hidden">
+      <section className="relative py-16 sm:py-20 overflow-hidden">
 
-  {/* Background gradient (emerald blend) */}
-  <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-100/60" />
-  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-emerald-100/20 to-green-200/30" />
+        {/* Background gradient (emerald blend) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-100/60" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-emerald-100/20 to-green-200/30" />
 
-  {/* Soft glow blobs */}
-  <div className="absolute top-0 left-1/4 w-72 h-72 bg-emerald-200/30 rounded-full blur-3xl" />
-  <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-green-200/30 rounded-full blur-3xl" />
+        {/* Soft glow blobs */}
+        <div className="absolute top-0 left-1/4 w-72 h-72 bg-emerald-200/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-green-200/30 rounded-full blur-3xl" />
 
-  <div className="relative container mx-auto px-4 max-w-6xl">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+        <div className="relative container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
 
-      {/* Image */}
-      <div className="rounded-3xl overflow-hidden shadow-xl">
-        <img
-          src="/images/VinitAbhedya/cloth1.webp"   // ✅ fixed path
-          alt="Cloth Collection Drive"
-          className="w-full h-full object-cover"
-        />
-      </div>
+            {/* Image */}
+            <div className="rounded-3xl overflow-hidden shadow-xl">
+              <img
+                src="/images/VinitAbhedya/cloth1.webp"   // ✅ fixed path
+                alt="Cloth Collection Drive"
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-      {/* Content */}
-      <div className="space-y-6">
+            {/* Content */}
+            <div className="space-y-6">
 
-        <span className="inline-block bg-emerald-600 text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-md">
-          Social Impact
-        </span>
+              <span className="inline-block bg-emerald-600 text-white px-5 py-1.5 rounded-full text-sm font-semibold shadow-md">
+                Social Impact
+              </span>
 
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
-          Cloth Collection <br /> & Distribution
-        </h2>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
+                Cloth Collection <br /> & Distribution
+              </h2>
 
-        <p className="text-slate-700 text-lg leading-relaxed">
-          We collect gently used clothes from the community and distribute them
-          to underprivileged families. This initiative ensures dignity, warmth,
-          and real support for people who actually need it.
-        </p>
+              <p className="text-slate-700 text-lg leading-relaxed">
+                We collect gently used clothes from the community and distribute them
+                to underprivileged families. This initiative ensures dignity, warmth,
+                and real support for people who actually need it.
+              </p>
 
-        <div>
-          <a
-            href="/donate"
-            className="inline-block bg-emerald-600 text-white px-7 py-3.5 rounded-xl font-semibold shadow-lg hover:bg-emerald-700 transition-all duration-300 hover:scale-105"
-          >
-            Donate Now
-          </a>
+              <div>
+                <a
+                  href="/donate"
+                  className="inline-block bg-emerald-600 text-white px-7 py-3.5 rounded-xl font-semibold shadow-lg hover:bg-emerald-700 transition-all duration-300 hover:scale-105"
+                >
+                  Donate Now
+                </a>
+              </div>
+
+            </div>
+
+          </div>
         </div>
-
-      </div>
-
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* CTA Section - Soft Green Ombre Background */}
       <section className="relative py-12 sm:py-16 md:py-20 overflow-hidden">
