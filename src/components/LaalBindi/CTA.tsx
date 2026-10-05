@@ -106,11 +106,11 @@ export function CTA() {
           </p>
 
           <a
-            href="mailto:contact@vinitabhedyafoundation.org"
+            href="mailto:admin@vinitabhedyafoundation.com"
             className="text-[#8B3A3A] hover:text-[#A85555] text-base md:text-lg transition-colors duration-300 underline underline-offset-4"
           >
             admin@vinitabhedyafoundation.com
-              </a>
+          </a>
         </motion.div>
 
       </div>
