@@ -91,7 +91,7 @@ export default function Donate() {
 
               <div className="flex items-center gap-3 text-slate-700">
                 <Phone size={18} />
-                <span>+91 98765 43210</span>
+                <span>+91 8856859643</span>
               </div>
 
               <div className="flex items-start gap-3 text-slate-700 min-w-0">
