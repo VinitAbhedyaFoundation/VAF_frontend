@@ -42,11 +42,6 @@ const Login = () => {
 
       const data = res.data;
 
-      console.log(
-        "LOGIN RESPONSE:",
-        data
-      );
-
       // ✅ token fallback support
       const token =
         data.accessToken || data.token;
@@ -68,8 +63,6 @@ const Login = () => {
 
       const role = user.role;
 
-      console.log("USER ROLE:", role);
-
       // ✅ clear previous session
       localStorage.clear();
 
@@ -89,10 +82,6 @@ const Login = () => {
         JSON.stringify(user)
       );
 
-      console.log(
-        "STORED ROLE:",
-        localStorage.getItem("role")
-      );
 
       // ✅ role-based redirect
       if (role === "SuperAdmin") {
