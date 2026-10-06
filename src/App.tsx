@@ -97,11 +97,37 @@ function AdminRoute({ children }: { children: JSX.Element }) {
 }
 
 function SuperAdminRoute({ children }: { children: JSX.Element }) {
-  return (
-    <RoleRoute allowedRoles={["SuperAdmin"]}>
-      {children}
-    </RoleRoute>
-  );
+  const [role, setRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        const response = await API.get("/auth/me");
+        setRole(response.data.role);
+      } catch {
+        setRole(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRole();
+  }, []);
+
+  if (loading) {
+    return null;
+  }
+
+  if (role === "SuperAdmin") {
+    return children;
+  }
+
+  if (role === "Admin") {
+    return <Navigate to="/admin-dashboard" replace />;
+  }
+
+  return <Navigate to="/dashboard" replace />;
 }
 
 const App = () => (
