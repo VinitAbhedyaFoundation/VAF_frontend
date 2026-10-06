@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, ElementType } from "react";
+import { FC, ElementType, useEffect, useState } from "react";
 
 import {
   ClipboardList,
@@ -64,6 +64,23 @@ const Sidebar: FC<SidebarProps> = ({
   pendingBadge,
   goTo,
 }) => {
+  const [userEmail, setUserEmail] = useState("");
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+
+    if (!storedUser) {
+      return;
+    }
+
+    try {
+      const user = JSON.parse(storedUser);
+      setUserEmail(user.email || "");
+    } catch {
+      setUserEmail("");
+    }
+  }, []);
+
   return (
     <div
       className={`flex flex-col ${
@@ -140,8 +157,8 @@ const Sidebar: FC<SidebarProps> = ({
             Super Admin
           </h4>
 
-          <p className="text-[11px] text-slate-400">
-            admin@vaf.org
+          <p className="text-[11px] text-slate-400 break-all">
+            {userEmail || "Loading..."}
           </p>
         </div>
       </div>

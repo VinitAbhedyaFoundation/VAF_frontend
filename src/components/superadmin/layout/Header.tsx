@@ -41,6 +41,7 @@ const Header: FC<HeaderProps> = ({
         <button
           className="xl:hidden p-2 rounded-xl hover:bg-slate-100"
           onClick={onOpenMobileMenu}
+          aria-label="Open menu"
         >
           <Menu size={20} />
         </button>
@@ -51,13 +52,16 @@ const Header: FC<HeaderProps> = ({
           </h1>
 
           <p className="text-xs text-slate-400">
-            Volunteer Action Force
+            Vinit Abhedya Foundation
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="p-2 rounded-xl hover:bg-slate-100 relative">
+        <button
+          className="p-2 rounded-xl hover:bg-slate-100 relative"
+          aria-label="Notifications"
+        >
           <Bell size={18} />
 
           {pendingAttendance > 0 && (
