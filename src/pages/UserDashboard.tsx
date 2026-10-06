@@ -126,14 +126,9 @@ export default function UserDashboard() {
   const handleLogout = () => {
   localStorage.removeItem("user");
   localStorage.removeItem("token");
+  localStorage.removeItem("role");
 
-  toast.success("Logged out", {
-    duration: 500,
-  });
-
-  setTimeout(() => {
-    navigate("/login");
-  }, 500);
+  navigate("/login");
 };
 
   const goToSection = (id: SectionId) => {
