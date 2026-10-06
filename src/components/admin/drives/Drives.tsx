@@ -53,9 +53,7 @@ const Drives: React.FC<DrivesProps> = ({
           },
           {
             label: "Upcoming",
-            val: drives.filter(
-              (d) => !d.completed && new Date(d.date) >= new Date()
-            ).length,
+            val: drives.filter((d) => !d.completed).length,
           },
         ].map((s) => (
           <div
@@ -88,19 +86,18 @@ const Drives: React.FC<DrivesProps> = ({
                   </h2>
 
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
-                      drive.completed
-                        ? "bg-green-100 text-green-700"
-                        : new Date(drive.date) < new Date()
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${drive.completed
+                      ? "bg-green-100 text-green-700"
+                      : new Date(drive.date) < new Date()
                         ? "bg-amber-100 text-amber-700"
                         : "bg-blue-100 text-blue-700"
-                    }`}
+                      }`}
                   >
                     {drive.completed
                       ? "Completed"
                       : new Date(drive.date) < new Date()
-                      ? "Active"
-                      : "Upcoming"}
+                        ? "Active"
+                        : "Upcoming"}
                   </span>
                 </div>
 
@@ -153,19 +150,18 @@ const Drives: React.FC<DrivesProps> = ({
                 onClick={() =>
                   handleGenerateCertificates(drive.id)
                 }
-                className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
-                  drive.certificateIssued
-                    ? "bg-gray-200 cursor-not-allowed text-gray-500"
-                    : !drive.completed
+                className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${drive.certificateIssued
+                  ? "bg-gray-200 cursor-not-allowed text-gray-500"
+                  : !drive.completed
                     ? "bg-gray-200 cursor-not-allowed text-gray-400"
                     : "bg-indigo-600 hover:bg-indigo-700 text-white"
-                }`}
+                  }`}
               >
                 {drive.certificateIssued
                   ? "Certificates Issued ✅"
                   : !drive.completed
-                  ? "Complete drive to unlock"
-                  : "Generate Certificates"}
+                    ? "Complete drive to unlock"
+                    : "Generate Certificates"}
               </button>
             </motion.div>
           ))}

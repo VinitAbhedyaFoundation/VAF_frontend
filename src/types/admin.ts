@@ -46,7 +46,7 @@ export interface AttendanceRecord {
   };
   hours: number;
   createdAt: string;
-  status?: "Pending" | "Approved" | "Rejected";
+  status?: "Registered" | "Pending" | "Approved" | "Rejected";
 }
 
 export interface Volunteer {
