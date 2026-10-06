@@ -468,17 +468,12 @@ export default function AdvancedDashboard() {
   // ─────────────────────────────────────────────────────────────────────────
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
 
-    toast.success("Logged out", {
-      duration: 500,
-    });
-
-    setTimeout(() => {
-      navigate("/login");
-    }, 500);
-  };
+  navigate("/login");
+};
 
   // ─────────────────────────────────────────────────────────────────────────
   // METRICS
