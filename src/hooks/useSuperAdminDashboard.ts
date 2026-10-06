@@ -243,7 +243,7 @@ export const useSuperAdminDashboard = () => {
 
     const fetchDrives = async () => {
         try {
-            const res = await API.get("/drive/alldrives");
+            const res = await API.get("/drive/alldrives?page=1&limit=50");
 
             const formatted = res.data.map((d: any) => ({
                 id: d.id,
