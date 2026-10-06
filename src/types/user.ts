@@ -5,6 +5,31 @@
 import type { LevelInfo } from "@/components/user/utils/level";
 import type { LucideIcon } from "lucide-react";
 
+// =========================
+// ENUM-LIKE TYPES
+// =========================
+
+export type Gender = "Male" | "Female" | "Other";
+
+export type BloodGroup =
+  | "A_POSITIVE"
+  | "A_NEGATIVE"
+  | "B_POSITIVE"
+  | "B_NEGATIVE"
+  | "AB_POSITIVE"
+  | "AB_NEGATIVE"
+  | "O_POSITIVE"
+  | "O_NEGATIVE";
+
+export type Occupation =
+  | "Student"
+  | "WorkingProfessional"
+  | "Other";
+
+// =========================
+// NAVIGATION
+// =========================
+
 export type SectionId =
   | "overview"
   | "upcoming"
@@ -26,6 +51,10 @@ export interface NavItem {
   badge?: string;
 }
 
+// =========================
+// DASHBOARD
+// =========================
+
 export interface MetricData {
   id: string;
   label: string;
@@ -40,7 +69,7 @@ export interface Drive {
   id: string;
 
   participationId: number;
-  driveId: number; // <-- add this
+  driveId: number;
   attendanceMarked: boolean;
 
   title: string;
@@ -97,19 +126,39 @@ export interface Certificate {
   file?: string;
 }
 
+// =========================
+// USER PROFILE
+// =========================
+
 export interface User {
   id?: number;
 
   name: string;
-
   email: string;
 
+  phone?: string;
+  parentNumber?: string;
+
+  birthDate?: string;
+  gender?: Gender;
+  bloodGroup?: BloodGroup;
+
+  occupation?: Occupation;
+  highestQualification?: string;
+
   address?: string;
+  city?: string;
+  state?: string;
+
+  collegeOrCompany?: string;
 
   avatarUrl?: string;
-
   createdAt?: string;
 }
+
+// =========================
+// NOTIFICATIONS / ACTIVITY
+// =========================
 
 export interface Notification {
   id: number;
@@ -132,6 +181,7 @@ export interface DashboardStats {
   hoursVolunteered: number;
   wasteCollected: number;
 }
+
 export interface DashboardRecentDrive {
   driveId: number;
   participationId: number;
@@ -152,7 +202,8 @@ export interface DashboardRecentDrive {
 export interface DashboardData {
   stats: DashboardStats;
   activity: Activity[];
-recentDrives: DashboardRecentDrive[];  certificates: Certificate[];
+  recentDrives: DashboardRecentDrive[];
+  certificates: Certificate[];
 }
 
 export interface HeatmapData {
@@ -223,28 +274,49 @@ export interface OverviewProps {
   goToSection: (
     section: SectionId
   ) => void;
+
   levelInfo: LevelInfo;
-drives: number;
+  drives: number;
 }
 
 export interface CertificatesProps {
   certificates: Certificate[];
 }
 
+// =========================
+// PROFILE PROPS
+// =========================
+
 export interface ProfileProps {
-    user: User | null;
-    data: DashboardData | null;
-    handleLogout: () => void;
+  user: User | null;
+  data: DashboardData | null;
+  handleLogout: () => void;
 
-    onUpdateAvatar?: (file: File) => Promise<void>;
+  onUpdateAvatar?: (
+    file: File
+  ) => Promise<void>;
 
-    onUpdateProfile?: (data: {
-        name: string;
-        address: string;
-    }) => Promise<void>;
+  onUpdateProfile?: (
+    data: {
+      name: string;
+      birthDate?: string;
+      gender?: Gender;
+      bloodGroup?: BloodGroup;
+      phone?: string;
+      parentNumber?: string;
+      address?: string;
+      city?: string;
+      state?: string;
+      occupation?: Occupation;
+      highestQualification?: string;
+      collegeOrCompany?: string;
+    }
+  ) => Promise<void>;
 
-    onChangePassword?: (data: {
-        currentPassword: string;
-        newPassword: string;
-    }) => Promise<void>;
+  onChangePassword?: (
+    data: {
+      currentPassword: string;
+      newPassword: string;
+    }
+  ) => Promise<void>;
 }
