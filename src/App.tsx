@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster as UIToaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,28 +7,31 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster as HotToaster } from "react-hot-toast";
 import API from "./api/api";
 
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import PloggersPage from "./pages/Ploggers";
-import SocialShelfPage from "./pages/SocialShelf";
-import LaalBindiPage from "./pages/LaalBindi";
-import GalleryPage from "./components/Ploggers/GalleryPage";
-import NewsletterSuccess from "./pages/Newsletter";
-import Donate from "./pages/donate";
+// CORE
+const Index = lazy(() => import("./pages/Index"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// STATIC PAGES
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const PloggersPage = lazy(() => import("./pages/Ploggers"));
+const SocialShelfPage = lazy(() => import("./pages/SocialShelf"));
+const LaalBindiPage = lazy(() => import("./pages/LaalBindi"));
+const GalleryPage = lazy(() => import("./components/Ploggers/GalleryPage"));
+const NewsletterSuccess = lazy(() => import("./pages/Newsletter"));
+const Donate = lazy(() => import("./pages/donate"));
 
 // BLOG
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 
 // AUTH
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
 
 // DASHBOARDS
-import Dashboard from "./pages/UserDashboard";
-import AdminDashboard from "./pages/Dashboard";
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+const Dashboard = lazy(() => import("./pages/UserDashboard"));
+const AdminDashboard = lazy(() => import("./pages/Dashboard"));
+const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 
 const queryClient = new QueryClient();
 
@@ -137,65 +140,67 @@ const App = () => (
       <Sonner />
       <HotToaster position="top-right" />
 
-      <Routes>
-        {/* CORE */}
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+      <Suspense fallback={null}>
+        <Routes>
+          {/* CORE */}
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
-        {/* USER DASHBOARD */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+          {/* USER DASHBOARD */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* ADMIN DASHBOARD */}
-        <Route
-          path="/admin-dashboard"
-          element={
-            <ProtectedRoute>
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            </ProtectedRoute>
-          }
-        />
+          {/* ADMIN DASHBOARD */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* SUPER ADMIN DASHBOARD */}
-        <Route
-          path="/superadmin-dashboard"
-          element={
-            <ProtectedRoute>
-              <SuperAdminRoute>
-                <SuperAdminDashboard />
-              </SuperAdminRoute>
-            </ProtectedRoute>
-          }
-        />
+          {/* SUPER ADMIN DASHBOARD */}
+          <Route
+            path="/superadmin-dashboard"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <SuperAdminDashboard />
+                </SuperAdminRoute>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* STATIC */}
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/ploggers" element={<PloggersPage />} />
-        <Route path="/social-shelf" element={<SocialShelfPage />} />
-        <Route path="/laal-bindi" element={<LaalBindiPage />} />
-        <Route path="/gallery" element={<GalleryPage />} />
-        <Route
-          path="/newsletter-success"
-          element={<NewsletterSuccess />}
-        />
-        <Route path="/donate" element={<Donate />} />
+          {/* STATIC */}
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/ploggers" element={<PloggersPage />} />
+          <Route path="/social-shelf" element={<SocialShelfPage />} />
+          <Route path="/laal-bindi" element={<LaalBindiPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+          <Route
+            path="/newsletter-success"
+            element={<NewsletterSuccess />}
+          />
+          <Route path="/donate" element={<Donate />} />
 
-        {/* BLOG */}
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
+          {/* BLOG */}
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
 
-        {/* FALLBACK */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* FALLBACK */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </TooltipProvider>
   </QueryClientProvider>
 );
