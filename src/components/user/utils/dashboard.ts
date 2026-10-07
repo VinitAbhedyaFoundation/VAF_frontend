@@ -24,59 +24,74 @@ export const sectionLabel: Record<SectionId, string> = {
 export const createUserMetrics = (
   data: DashboardData | null
 ): MetricData[] => [
-  {
-    id: "m1",
-    label: "Drives Joined",
-    value: data?.stats?.drivesJoined || 0,
-    icon: Waves,
-    color: "text-emerald-600",
-    bg: "bg-emerald-50",
-  },
-  {
-    id: "m2",
-    label: "Hours Volunteered",
-    value: data?.stats?.hoursVolunteered || 0,
-    unit: "hrs",
-    icon: Clock,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-  },
-  {
-    id: "m3",
-    label: "Waste Collected",
-    value: data?.stats?.wasteCollected || 0,
-    unit: "kg",
-    icon: Droplets,
-    color: "text-purple-600",
-    bg: "bg-purple-50",
-  },
-];
+    {
+      id: "m1",
+      label: "Drives Joined",
+      value: data?.stats?.drivesJoined || 0,
+      icon: Waves,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+    },
+    {
+      id: "m2",
+      label: "Hours Volunteered",
+      value: data?.stats?.hoursVolunteered || 0,
+      unit: "hrs",
+      icon: Clock,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      id: "m3",
+      label: "Waste Collected",
+      value: data?.stats?.wasteCollected || 0,
+      unit: "kg",
+      icon: Droplets,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+    },
+  ];
 
 export const createMyDrives = (
   data: DashboardData | null
 ): Drive[] =>
-  data?.recentDrives?.map((d) => ({
-    id: d.driveId.toString(),
+  data?.recentDrives?.map((d) => {
+    const driveDate = new Date(d.date);
 
-    driveId: d.driveId, // ✅ Add this
+    return {
+      id: d.driveId.toString(),
 
-    participationId: d.participationId,
+      driveId: d.driveId,
 
-    attendanceMarked: d.attendanceMarked,
+      participationId: d.participationId,
 
-    title: d.title,
+      attendanceMarked: d.attendanceMarked,
 
-    location: d.location,
+      title: d.title,
 
-    date: d.date,
+      location: d.location,
 
-    status: d.status,
+      date:
+        driveDate.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }) +
+        ", " +
+        driveDate.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }),
 
-    volunteers: 0,
+      status: d.status,
 
-    hoursLogged: d.hours,
+      volunteers: 0,
 
-    description: d.description,
+      hoursLogged: d.hours,
 
-    type: d.type,
-  })) || [];
+      description: d.description,
+
+      type: d.type,
+    };
+  }) || [];

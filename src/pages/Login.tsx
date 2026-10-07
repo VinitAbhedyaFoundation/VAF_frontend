@@ -42,7 +42,7 @@ const Login = () => {
 
       const data = res.data;
 
-      // ✅ token fallback support
+      // Token fallback support
       const token =
         data.accessToken || data.token;
 
@@ -52,7 +52,7 @@ const Login = () => {
         return;
       }
 
-      // ✅ get user safely
+      // Get user safely
       const user = data.user;
 
       if (!user) {
@@ -63,10 +63,10 @@ const Login = () => {
 
       const role = user.role;
 
-      // ✅ clear previous session
+      // Clear previous session
       localStorage.clear();
 
-      // ✅ store auth data
+      // Store auth data
       localStorage.setItem(
         "token",
         token
@@ -82,57 +82,51 @@ const Login = () => {
         JSON.stringify(user)
       );
 
-
-      // ✅ role-based redirect
+      // Role-based redirect
       if (role === "SuperAdmin") {
-
         navigate("/superadmin-dashboard");
-
       } else if (role === "Admin") {
-
         navigate("/admin-dashboard");
-
       } else {
-
         navigate("/dashboard");
       }
-
     } catch (err: any) {
-
-  if (err?.response?.status === 401) {
-    setError("Invalid email or password");
-  } else {
-    setError("Unable to login. Please try again.");
-  }
-
-} finally {
-  setLoading(false);
-}
+      if (err?.response?.status === 401) {
+        setError("Invalid email or password");
+      } else {
+        setError(
+          "Unable to login. Please try again."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-6">
-
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white p-8 rounded-3xl shadow-lg"
       >
-
         {/* HEADER */}
         <div className="mb-6 text-center">
-          <h2 className="text-xl font-semibold text-gray-800">
+          <h1 className="text-xl font-semibold text-gray-800">
             Welcome Back
-          </h2>
+          </h1>
 
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             Login to continue
           </p>
         </div>
 
         {/* ERROR */}
         {error && (
-          <div className="mb-4 text-red-500 text-sm text-center bg-red-50 border border-red-200 rounded-lg py-2 px-3">
+          <div
+            role="alert"
+            className="mb-4 text-red-600 text-sm text-center bg-red-50 border border-red-200 rounded-lg py-2 px-3"
+          >
             {error}
           </div>
         )}
@@ -142,13 +136,16 @@ const Login = () => {
           onSubmit={handleLogin}
           className="space-y-4"
         >
-
           <div>
-            <p className="text-xs text-gray-500 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-xs text-gray-700 mb-1"
+            >
               Email
-            </p>
+            </label>
 
             <input
+              id="email"
               type="email"
               name="email"
               placeholder="Enter your email"
@@ -156,15 +153,20 @@ const Login = () => {
               onChange={handleChange}
               className={inputStyle}
               required
+              autoComplete="email"
             />
           </div>
 
           <div>
-            <p className="text-xs text-gray-500 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-xs text-gray-700 mb-1"
+            >
               Password
-            </p>
+            </label>
 
             <input
+              id="password"
               type="password"
               name="password"
               placeholder="Enter password"
@@ -172,6 +174,7 @@ const Login = () => {
               onChange={handleChange}
               className={inputStyle}
               required
+              autoComplete="current-password"
             />
           </div>
 
@@ -186,21 +189,19 @@ const Login = () => {
               ? "Logging in..."
               : "Login"}
           </motion.button>
-
         </form>
 
         {/* FOOTER */}
-        <p className="text-sm text-center mt-5 text-gray-500">
+        <p className="text-sm text-center mt-5 text-gray-600">
           Don’t have an account?{" "}
 
           <Link
             to="/signup"
-            className="text-green-600 hover:underline"
+            className="text-green-700 hover:underline"
           >
             Sign up
           </Link>
         </p>
-
       </motion.div>
     </div>
   );

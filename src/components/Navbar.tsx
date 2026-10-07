@@ -7,8 +7,8 @@ import { Link } from "react-router-dom";
 const logo = "/images/VinitAbhedya/Logo.png";
 
 const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
+  { label: "Home", href: "/#home" },
+  { label: "About", href: "/#about" },
   { label: "Contact", href: "#contact" },
   { label: "Blog", href: "/blog", isRoute: true },
 ];
@@ -28,12 +28,15 @@ const Navbar = () => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 60);
     };
+
     window.addEventListener("scroll", handleScroll);
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
+
     return () => {
       document.body.style.overflow = "";
     };
@@ -47,7 +50,10 @@ const Navbar = () => {
     if (href.startsWith("#")) {
       const id = href.slice(1);
       const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: "smooth" });
+
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
     }
   };
 
@@ -62,18 +68,25 @@ const Navbar = () => {
         }`}
       >
         <div className="container mx-auto flex items-center justify-between h-16 md:h-20 px-4 md:px-6">
-
           {/* LOGO */}
-          <Link to="/" onClick={scrollToTop} className="flex items-center gap-2 md:gap-3">
-            <img src={logo} alt="Logo" className="h-10 md:h-14" />
-            <span className={`font-serif text-lg md:text-xl ${scrolled ? "text-black" : "text-white"}`}>
+          <Link
+            to="/"
+            onClick={scrollToTop}
+            className="flex items-center gap-2 md:gap-3"
+          >
+            <img src={logo} alt="Vinit Abhedya Foundation logo" className="h-10 md:h-14" />
+
+            <span
+              className={`font-serif text-lg md:text-xl ${
+                scrolled ? "text-black" : "text-white"
+              }`}
+            >
               Vinit Abhedya Foundation
             </span>
           </Link>
 
           {/* DESKTOP NAV */}
           <div className="hidden lg:flex items-center gap-8 relative">
-
             {navLinks.map((link) =>
               link.isRoute ? (
                 <Link
@@ -109,8 +122,15 @@ const Navbar = () => {
               onMouseEnter={() => setDropdownOpen(true)}
               onMouseLeave={() => setDropdownOpen(false)}
             >
-              <button className={`flex items-center gap-1 text-sm font-medium ${scrolled ? "text-black" : "text-white"}`}>
-                Initiatives <ChevronDown className="w-4 h-4" />
+              <button
+                type="button"
+                aria-label="Open initiatives menu"
+                className={`flex items-center gap-1 text-sm font-medium ${
+                  scrolled ? "text-black" : "text-white"
+                }`}
+              >
+                Initiatives
+                <ChevronDown className="w-4 h-4" aria-hidden="true" />
               </button>
 
               <AnimatePresence>
@@ -136,7 +156,7 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            {/* LOGIN (TEXT ONLY) */}
+            {/* LOGIN */}
             <Link
               to="/login"
               className={`text-sm font-medium transition ${
@@ -146,10 +166,10 @@ const Navbar = () => {
               Login
             </Link>
 
-            {/* DONATE (PRIMARY) */}
+            {/* DONATE */}
             <Link to="/donate">
               <Button className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6">
-                <Heart className="w-4 h-4 mr-2" />
+                <Heart className="w-4 h-4 mr-2" aria-hidden="true" />
                 Donate
               </Button>
             </Link>
@@ -157,10 +177,20 @@ const Navbar = () => {
 
           {/* MOBILE TOGGLE */}
           <button
-            className={`${scrolled ? "text-black" : "text-white"} lg:hidden`}
+            type="button"
+            className={`${
+              scrolled ? "text-black" : "text-white"
+            } lg:hidden`}
             onClick={() => setOpen((prev) => !prev)}
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            aria-controls="mobile-navigation"
           >
-            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {open ? (
+              <X className="w-6 h-6" aria-hidden="true" />
+            ) : (
+              <Menu className="w-6 h-6" aria-hidden="true" />
+            )}
           </button>
         </div>
       </nav>
@@ -169,6 +199,7 @@ const Navbar = () => {
       <AnimatePresence>
         {open && (
           <motion.div
+            id="mobile-navigation"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -177,15 +208,23 @@ const Navbar = () => {
           >
             {/* HEADER */}
             <div className="flex items-center justify-between px-4 py-4 border-b">
-              <img src={logo} className="h-10" />
-              <button onClick={() => setOpen(false)}>
-                <X className="w-6 h-6 text-black" />
+              <img
+                src={logo}
+                alt="Vinit Abhedya Foundation logo"
+                className="h-10"
+              />
+
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close menu"
+              >
+                <X className="w-6 h-6 text-black" aria-hidden="true" />
               </button>
             </div>
 
             {/* LINKS */}
             <div className="flex flex-col px-6 py-8 gap-6">
-
               {navLinks.map((link) =>
                 link.isRoute ? (
                   <Link
@@ -218,15 +257,27 @@ const Navbar = () => {
               {/* INITIATIVES */}
               <div>
                 <button
+                  type="button"
                   onClick={() => setDropdownOpen((prev) => !prev)}
                   className="flex justify-between w-full text-sm font-semibold text-gray-500 uppercase"
+                  aria-expanded={dropdownOpen}
+                  aria-controls="mobile-initiatives"
                 >
-                  Initiatives
-                  <ChevronDown className={`w-4 h-4 ${dropdownOpen ? "rotate-180" : ""}`} />
+                  <span>Initiatives</span>
+
+                  <ChevronDown
+                    className={`w-4 h-4 ${
+                      dropdownOpen ? "rotate-180" : ""
+                    }`}
+                    aria-hidden="true"
+                  />
                 </button>
 
                 {dropdownOpen && (
-                  <div className="mt-3 flex flex-col gap-2">
+                  <div
+                    id="mobile-initiatives"
+                    className="mt-3 flex flex-col gap-2"
+                  >
                     {initiatives.map((item) => (
                       <Link
                         key={item.href}
@@ -245,17 +296,21 @@ const Navbar = () => {
                 )}
               </div>
 
-              {/* LOGIN (BUTTON FOR MOBILE) */}
+              {/* LOGIN */}
               <Link to="/login" onClick={() => setOpen(false)}>
-                <button className="w-full border border-black py-2 rounded-lg text-black">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border border-black py-2 rounded-lg text-black"
+                >
                   Login
-                </button>
+                </Button>
               </Link>
 
               {/* DONATE */}
               <Link to="/donate" onClick={() => setOpen(false)}>
                 <Button className="w-full mt-2 bg-green-600 text-white">
-                  <Heart className="w-4 h-4 mr-2" />
+                  <Heart className="w-4 h-4 mr-2" aria-hidden="true" />
                   Donate
                 </Button>
               </Link>

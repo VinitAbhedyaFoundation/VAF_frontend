@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Check, X, ShieldCheck } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Check,
+  X,
+  ShieldCheck,
+} from "lucide-react";
 
 import api from "@/api/api";
 
@@ -46,9 +52,14 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement
+    >
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   };
 
   // ─────────────────────────────────────────────
@@ -189,7 +200,9 @@ const Signup = () => {
     setStep(step + 1);
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
     const step1Error = validateStep1();
@@ -215,9 +228,12 @@ const Signup = () => {
 
       navigate("/login");
     } catch (err: any) {
-      const message = Array.isArray(err.response?.data?.message)
+      const message = Array.isArray(
+        err.response?.data?.message
+      )
         ? err.response.data.message[0]
-        : err.response?.data?.message || "Signup failed";
+        : err.response?.data?.message ||
+          "Signup failed";
 
       setError(message);
     } finally {
@@ -234,91 +250,133 @@ const Signup = () => {
       >
         {/* HEADER */}
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800">
+          <h1 className="text-2xl font-semibold text-gray-800">
             Create Account
-          </h2>
+          </h1>
 
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             Step {step} of 3
           </p>
 
           {/* Progress */}
-          <div className="mt-4 h-2 bg-gray-200 rounded-full">
+          <div
+            className="mt-4 h-2 bg-gray-200 rounded-full"
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={3}
+            aria-valuenow={step}
+            aria-label={`Signup progress: step ${step} of 3`}
+          >
             <div
               className="h-2 bg-green-600 rounded-full transition-all"
-              style={{ width: `${(step / 3) * 100}%` }}
+              style={{
+                width: `${(step / 3) * 100}%`,
+              }}
             />
           </div>
         </div>
 
+        {/* ERROR */}
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">
+          <div
+            role="alert"
+            className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm"
+          >
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSignup} className="space-y-6">
+        {/* FORM */}
+        <form
+          onSubmit={handleSignup}
+          className="space-y-6"
+        >
           {/* STEP 1 */}
           {step === 1 && (
             <div className="grid grid-cols-2 gap-5">
               {/* Name */}
               <div>
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="name"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Full Name
-                </p>
+                </label>
 
                 <input
+                  id="name"
                   name="name"
                   value={form.name}
                   onChange={handleChange}
                   className={inputStyle}
                   placeholder="Enter your full name"
+                  autoComplete="name"
+                  required
                 />
               </div>
 
               {/* Email */}
               <div>
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="email"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Email
-                </p>
+                </label>
 
                 <input
+                  id="email"
                   name="email"
                   type="email"
                   className={inputStyle}
                   value={form.email}
                   onChange={handleChange}
                   placeholder="Enter your email"
+                  autoComplete="email"
+                  required
                 />
               </div>
 
               {/* Password */}
               <div className="col-span-2">
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="password"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Password
-                </p>
+                </label>
 
                 <div className="relative">
                   <input
+                    id="password"
                     name="password"
-                    type={showPassword ? "text" : "password"}
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
                     value={form.password}
                     onChange={handleChange}
                     className={`${inputStyle} pr-12`}
                     placeholder="Create a strong password"
+                    autoComplete="new-password"
+                    required
                   />
 
                   <button
                     type="button"
                     onClick={() =>
-                      setShowPassword((prev) => !prev)
+                      setShowPassword(
+                        (prev) => !prev
+                      )
                     }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800"
                     aria-label={
                       showPassword
                         ? "Hide password"
                         : "Show password"
                     }
+                    aria-pressed={showPassword}
                   >
                     {showPassword ? (
                       <EyeOff size={18} />
@@ -332,28 +390,34 @@ const Signup = () => {
                 {password && (
                   <div className="mt-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-gray-500">
+                      <span className="text-xs font-medium text-gray-600">
                         Password strength
                       </span>
 
                       <span
                         className={`text-xs font-bold ${
-                          passwordStrength.label === "Weak"
-                            ? "text-red-500"
-                            : passwordStrength.label === "Fair"
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                          passwordStrength.label ===
+                          "Weak"
+                            ? "text-red-600"
+                            : passwordStrength.label ===
+                                "Fair"
+                              ? "text-yellow-700"
+                              : "text-green-700"
                         }`}
                       >
                         {passwordStrength.label}
                       </span>
                     </div>
 
-                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-1.5 bg-gray-200 rounded-full overflow-hidden"
+                      aria-hidden="true"
+                    >
                       <div
                         className={`h-full rounded-full transition-all ${passwordStrength.className}`}
                         style={{
-                          width: passwordStrength.width,
+                          width:
+                            passwordStrength.width,
                         }}
                       />
                     </div>
@@ -364,6 +428,7 @@ const Signup = () => {
                         <ShieldCheck
                           size={16}
                           className="text-green-600"
+                          aria-hidden="true"
                         />
 
                         <p className="text-xs font-bold text-gray-700">
@@ -404,23 +469,28 @@ const Signup = () => {
                       </div>
 
                       {!strongPassword && (
-                        <p className="mt-3 text-xs text-amber-600">
-                          💡 Tip: Use a mix of uppercase and
-                          lowercase letters, numbers, and a
-                          special character for a stronger password.
+                        <p className="mt-3 text-xs text-amber-700">
+                          💡 Tip: Use a mix of
+                          uppercase and lowercase
+                          letters, numbers, and a
+                          special character for a
+                          stronger password.
                         </p>
                       )}
 
-                      {strongPassword && !veryStrongPassword && (
-                        <p className="mt-3 text-xs text-green-600">
-                          👍 Good password! Add a special character
-                          to make it even stronger.
-                        </p>
-                      )}
+                      {strongPassword &&
+                        !veryStrongPassword && (
+                          <p className="mt-3 text-xs text-green-700">
+                            👍 Good password! Add a
+                            special character to
+                            make it even stronger.
+                          </p>
+                        )}
 
                       {veryStrongPassword && (
-                        <p className="mt-3 text-xs text-emerald-600 font-medium">
-                          🔐 Excellent! Your password is very strong.
+                        <p className="mt-3 text-xs text-emerald-700 font-medium">
+                          🔐 Excellent! Your password
+                          is very strong.
                         </p>
                       )}
                     </div>
@@ -435,73 +505,116 @@ const Signup = () => {
             <div className="grid grid-cols-2 gap-5">
               {/* Phone */}
               <div>
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="phone"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Phone
-                </p>
+                </label>
 
                 <input
+                  id="phone"
                   name="phone"
+                  type="tel"
                   value={form.phone}
                   onChange={handleChange}
                   className={inputStyle}
                   placeholder="10-digit phone number"
+                  autoComplete="tel"
+                  inputMode="numeric"
+                  required
                 />
               </div>
 
               {/* Gender */}
               <div>
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="gender"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Gender
-                </p>
+                </label>
 
                 <select
+                  id="gender"
                   name="gender"
                   value={form.gender}
                   onChange={handleChange}
                   className={inputStyle}
+                  required
                 >
                   <option value="">Select</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
+                  <option value="Male">
+                    Male
+                  </option>
+                  <option value="Female">
+                    Female
+                  </option>
                 </select>
               </div>
 
               {/* Blood Group */}
               <div>
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="bloodGroup"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Blood Group
-                </p>
+                </label>
 
                 <select
-  name="bloodGroup"
-  value={form.bloodGroup}
-  onChange={handleChange}
-  className={inputStyle}
->
-  <option value="">Select</option>
-  <option value="A_POSITIVE">A+</option>
-  <option value="A_NEGATIVE">A-</option>
-  <option value="B_POSITIVE">B+</option>
-  <option value="B_NEGATIVE">B-</option>
-  <option value="AB_POSITIVE">AB+</option>
-  <option value="AB_NEGATIVE">AB-</option>
-  <option value="O_POSITIVE">O+</option>
-  <option value="O_NEGATIVE">O-</option>
-</select>
+                  id="bloodGroup"
+                  name="bloodGroup"
+                  value={form.bloodGroup}
+                  onChange={handleChange}
+                  className={inputStyle}
+                  required
+                >
+                  <option value="">Select</option>
+                  <option value="A_POSITIVE">
+                    A+
+                  </option>
+                  <option value="A_NEGATIVE">
+                    A-
+                  </option>
+                  <option value="B_POSITIVE">
+                    B+
+                  </option>
+                  <option value="B_NEGATIVE">
+                    B-
+                  </option>
+                  <option value="AB_POSITIVE">
+                    AB+
+                  </option>
+                  <option value="AB_NEGATIVE">
+                    AB-
+                  </option>
+                  <option value="O_POSITIVE">
+                    O+
+                  </option>
+                  <option value="O_NEGATIVE">
+                    O-
+                  </option>
+                </select>
               </div>
 
               {/* Birth Date */}
               <div>
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="birthDate"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Birth Date
-                </p>
+                </label>
 
                 <input
+                  id="birthDate"
                   type="date"
                   name="birthDate"
                   value={form.birthDate}
                   onChange={handleChange}
                   className={inputStyle}
+                  autoComplete="bday"
                 />
               </div>
             </div>
@@ -512,13 +625,19 @@ const Signup = () => {
             <div className="grid grid-cols-2 gap-5">
               {/* Qualification */}
               <div>
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="highestQualification"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Qualification
-                </p>
+                </label>
 
                 <input
+                  id="highestQualification"
                   name="highestQualification"
-                  value={form.highestQualification}
+                  value={
+                    form.highestQualification
+                  }
                   onChange={handleChange}
                   className={inputStyle}
                   placeholder="e.g. BTech"
@@ -527,18 +646,24 @@ const Signup = () => {
 
               {/* Occupation */}
               <div>
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="occupation"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Occupation
-                </p>
+                </label>
 
                 <select
+                  id="occupation"
                   name="occupation"
                   value={form.occupation}
                   onChange={handleChange}
                   className={inputStyle}
                 >
                   <option value="">Select</option>
-                  <option value="Student">Student</option>
+                  <option value="Student">
+                    Student
+                  </option>
                   <option value="WorkingProfessional">
                     Working Professional
                   </option>
@@ -547,31 +672,44 @@ const Signup = () => {
 
               {/* Address */}
               <div className="col-span-2">
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="address"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Address
-                </p>
+                </label>
 
                 <input
+                  id="address"
                   name="address"
                   value={form.address}
                   onChange={handleChange}
                   className={inputStyle}
                   placeholder="Enter your address"
+                  autoComplete="street-address"
+                  required
                 />
               </div>
 
               {/* Parent Number */}
               <div className="col-span-2">
-                <p className="text-xs text-gray-500 mb-1">
+                <label
+                  htmlFor="parentNumber"
+                  className="block text-xs text-gray-700 mb-1"
+                >
                   Parent Number
-                </p>
+                </label>
 
                 <input
+                  id="parentNumber"
                   name="parentNumber"
+                  type="tel"
                   value={form.parentNumber}
                   onChange={handleChange}
                   className={inputStyle}
                   placeholder="10-digit parent number"
+                  inputMode="numeric"
+                  required
                 />
               </div>
             </div>
@@ -586,7 +724,7 @@ const Signup = () => {
                   setError("");
                   setStep(step - 1);
                 }}
-                className="text-sm text-gray-500 hover:text-black"
+                className="text-sm text-gray-700 hover:text-black"
               >
                 ← Back
               </button>
@@ -606,17 +744,20 @@ const Signup = () => {
                 disabled={loading}
                 className="ml-auto bg-green-600 text-white px-6 py-2 rounded-xl hover:bg-green-700 transition text-sm disabled:opacity-60"
               >
-                {loading ? "Submitting..." : "Create Account"}
+                {loading
+                  ? "Submitting..."
+                  : "Create Account"}
               </button>
             )}
           </div>
         </form>
 
-        <p className="text-sm text-center mt-6 text-gray-500">
+        <p className="text-sm text-center mt-6 text-gray-600">
           Already have an account?{" "}
+
           <Link
             to="/login"
-            className="text-green-600 hover:underline"
+            className="text-green-700 hover:underline"
           >
             Login
           </Link>
@@ -643,17 +784,21 @@ const PasswordRequirement = ({
         <Check
           size={14}
           className="text-green-600 flex-shrink-0"
+          aria-hidden="true"
         />
       ) : (
         <X
           size={14}
-          className="text-gray-300 flex-shrink-0"
+          className="text-gray-500 flex-shrink-0"
+          aria-hidden="true"
         />
       )}
 
       <span
         className={`text-xs ${
-          valid ? "text-green-600" : "text-gray-400"
+          valid
+            ? "text-green-700"
+            : "text-gray-600"
         }`}
       >
         {text}
