@@ -6,7 +6,7 @@ const VOLUNTEER_FORM =
   "https://docs.google.com/forms/d/e/1FAIpQLScrmxN2cjHbjJs8vBSqrRIyhlioUrAsiq8ufqvg7B_3G3efUg/viewform";
 
 const SESSION_FORM =
-"https://docs.google.com/forms/d/1CdjS6LotlErRAV_2qHIkEv1nrriqyAQlcohxuXeSYhw/edit"
+"https://docs.google.com/forms/d/e/1FAIpQLSe4Ulcsu93URYoHu3YAwpUotzrRQMeviDdOwWWUTHc40HdgDw/viewform?usp=dialog"
 export function CTA() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });

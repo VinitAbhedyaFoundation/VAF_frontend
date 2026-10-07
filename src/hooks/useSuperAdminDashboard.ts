@@ -495,9 +495,12 @@ export const useSuperAdminDashboard = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-    };
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+
+  window.location.href = "/login";
+};
 
     // ── effects ──────────────────────────────────────
 

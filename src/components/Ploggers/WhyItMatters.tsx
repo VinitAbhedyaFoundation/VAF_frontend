@@ -60,9 +60,10 @@ const WhyItMatters = () => {
 
   return (
     <section
-      ref={sectionRef}
-      className="relative py-16 sm:py-24 px-4 bg-gradient-to-b from-white via-emerald-50/30 to-white"
-    >
+  id="why-it-matters"
+  ref={sectionRef}
+  className="relative py-16 sm:py-24 px-4 bg-gradient-to-b from-white via-emerald-50/30 to-white"
+>
       <div className="max-w-6xl mx-auto flex flex-col gap-16">
 
         {/* 🚨 HERO EVENT BLOCK (POSTER + URGENCY) */}

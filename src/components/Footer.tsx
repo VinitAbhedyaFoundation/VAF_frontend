@@ -48,7 +48,6 @@ const Footer = () => {
       });
 
       setEmail("");
-
       navigate("/newsletter-success");
     } catch (error: any) {
       console.error("Newsletter subscription failed:", error);
@@ -86,10 +85,8 @@ const Footer = () => {
         />
 
         <div className="relative max-w-7xl mx-auto px-6">
-
           {/* TOP GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
-
             {/* HELP */}
             <div>
               <h4 className="text-sm font-semibold text-white mb-6 uppercase tracking-widest">
@@ -105,7 +102,7 @@ const Footer = () => {
                 </li>
 
                 <li className="group cursor-pointer w-fit">
-                  <a href="#faq" className={linkClass}>
+                  <a href="/#faq" className={linkClass}>
                     Frequently Asked Questions
                     <span className={underline}></span>
                   </a>
@@ -125,7 +122,12 @@ const Footer = () => {
               </p>
 
               <div className="flex border-b border-gray-700 pb-3 focus-within:border-white transition-colors">
+                <label htmlFor="newsletter-email" className="sr-only">
+                  Email address
+                </label>
+
                 <input
+                  id="newsletter-email"
                   type="email"
                   placeholder="Email Address"
                   value={email}
@@ -136,6 +138,7 @@ const Footer = () => {
                     }
                   }}
                   disabled={isSubscribing}
+                  autoComplete="email"
                   className="bg-transparent flex-1 text-sm text-white placeholder-gray-600 outline-none disabled:opacity-50"
                 />
 
@@ -164,7 +167,7 @@ const Footer = () => {
                   className="flex items-center gap-3 text-sm text-gray-500 hover:text-white transition group w-fit"
                 >
                   <span className="w-8 h-8 flex items-center justify-center bg-white/5 rounded-lg">
-                    <Mail className="w-4 h-4" />
+                    <Mail className="w-4 h-4" aria-hidden="true" />
                   </span>
 
                   admin@vinitabhedyafoundation.com
@@ -177,7 +180,7 @@ const Footer = () => {
                   className="flex items-center gap-3 text-sm text-gray-500 hover:text-white transition group w-fit"
                 >
                   <span className="w-8 h-8 flex items-center justify-center bg-white/5 rounded-lg">
-                    <MapPin className="w-4 h-4" />
+                    <MapPin className="w-4 h-4" aria-hidden="true" />
                   </span>
 
                   Chh. Sambhajinagar, Maharashtra
@@ -188,7 +191,6 @@ const Footer = () => {
 
           {/* SECOND GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
-
             {/* LEGAL */}
             <div>
               <h4 className="text-sm font-semibold text-white mb-6 uppercase tracking-widest">
@@ -233,40 +235,60 @@ const Footer = () => {
                   href="https://www.instagram.com/vinitabhedyafoundation"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Vinit Abhedya Foundation on Instagram"
                 >
-                  <Instagram className="w-5 h-5 hover:text-white" />
+                  <Instagram
+                    className="w-5 h-5 hover:text-white"
+                    aria-hidden="true"
+                  />
                 </a>
 
                 <a
                   href="https://x.com/MH20PLOGGERS"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Vinit Abhedya Foundation on X"
                 >
-                  <Twitter className="w-5 h-5 hover:text-white" />
+                  <Twitter
+                    className="w-5 h-5 hover:text-white"
+                    aria-hidden="true"
+                  />
                 </a>
 
                 <a
                   href="https://www.linkedin.com/company/sambhajinagarploggers/"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Vinit Abhedya Foundation on LinkedIn"
                 >
-                  <Linkedin className="w-5 h-5 hover:text-white" />
+                  <Linkedin
+                    className="w-5 h-5 hover:text-white"
+                    aria-hidden="true"
+                  />
                 </a>
 
                 <a
                   href="https://www.facebook.com/share/1DnSdfrGCj/"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Vinit Abhedya Foundation on Facebook"
                 >
-                  <Facebook className="w-5 h-5 hover:text-white" />
+                  <Facebook
+                    className="w-5 h-5 hover:text-white"
+                    aria-hidden="true"
+                  />
                 </a>
 
                 <a
                   href="https://youtube.com/@vinitabhedyafoundation"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Vinit Abhedya Foundation on YouTube"
                 >
-                  <Youtube className="w-5 h-5 hover:text-white" />
+                  <Youtube
+                    className="w-5 h-5 hover:text-white"
+                    aria-hidden="true"
+                  />
                 </a>
               </div>
             </div>
@@ -278,7 +300,10 @@ const Footer = () => {
           <div className="border-t border-white/10 pt-8 text-center text-xs text-gray-500">
             <p>
               © 2026 Vinit Abhedya Foundation. Made with{" "}
-              <Heart className="inline w-3 h-3 text-red-500 animate-pulse" />{" "}
+              <Heart
+                className="inline w-3 h-3 text-red-500 animate-pulse"
+                aria-hidden="true"
+              />{" "}
               for a better world.
             </p>
           </div>
@@ -324,15 +349,17 @@ const Footer = () => {
                 className="absolute top-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition hover:bg-white/10 hover:text-white"
                 aria-label="Close"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
 
               <div className="relative px-6 py-8 sm:px-8 sm:py-9 text-center">
-
                 {/* Icon */}
                 <div className="flex justify-center mb-5">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full border border-red-400/20 bg-red-500/10">
-                    <AlertCircle className="h-7 w-7 text-red-400" />
+                    <AlertCircle
+                      className="h-7 w-7 text-red-400"
+                      aria-hidden="true"
+                    />
                   </div>
                 </div>
 

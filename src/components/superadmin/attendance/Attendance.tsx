@@ -169,7 +169,7 @@ const Attendance: FC<AttendanceProps> = ({
 
       {/* Filters + Bulk Action */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(
             ["All", "Registered", "Pending", "Approved"] as const
           ).map((filter) => (
