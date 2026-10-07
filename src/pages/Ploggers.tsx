@@ -1,3 +1,4 @@
+import SEO from "@/components/SEO";
 import Navbar from "@/components/Ploggers/Navbar";
 import HeroSection from "@/components/Ploggers/HeroSection";
 import WhatIsPlogging from "@/components/Ploggers/WhatIsPlogging";
@@ -12,24 +13,30 @@ import "./Ploggers.css";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <><SEO
+      title="Ploggers | Vinit Abhedya Foundation"
+      description="Join Vinit Abhedya Foundation's plogging initiative to make Chh. Sambhajinagar cleaner through community-powered environmental action."
+      path="/ploggers"
+    />
+      <div className="min-h-screen bg-background">
+        <Navbar />
 
-      <main>
-        <HeroSection />
-        <WhatIsPlogging />
-        <WhyItMatters />
-        <WhatWeDo />
-        <CommunityGallery />
-        <ImpactSection />
-        <FoundationSection />
+        <main>
+          <HeroSection />
+          <WhatIsPlogging />
+          <WhyItMatters />
+          <WhatWeDo />
+          <CommunityGallery />
+          <ImpactSection />
+          <FoundationSection />
 
-        {/* CTA SECTION */}
-        <CTASection />
-      </main>
+          {/* CTA SECTION */}
+          <CTASection />
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 };
 

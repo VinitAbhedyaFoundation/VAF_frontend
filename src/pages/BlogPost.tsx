@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 
 const blogData = {
   "vinit-abhedya-foundation-work": {
@@ -84,6 +85,7 @@ A reading community builds a stronger society.
 
 const BlogPost = () => {
   const { slug } = useParams();
+
   const blog = blogData[slug as keyof typeof blogData];
 
   if (!blog) {
@@ -94,73 +96,91 @@ const BlogPost = () => {
     );
   }
 
+  const description = blog.content
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 155);
+
+  const imageUrl = `https://vinitabhedyafoundation.com${blog.image}`;
+
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-24">
+    <>
+      <SEO
+        title={`${blog.title} | Vinit Abhedya Foundation`}
+        description={description}
+        path={`/blog/${slug}`}
+        image={imageUrl}
+        type="article"
+      />
 
-      {/* BACK BUTTON */}
-      <div className="max-w-5xl mx-auto mb-6">
-        <Link
-          to="/blog"
-          className="text-green-600 font-medium hover:underline"
-        >
-          ← Back to Blog
-        </Link>
-      </div>
+      <div className="min-h-screen bg-gray-50 px-6 py-24">
 
-      {/* HERO */}
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-md overflow-hidden">
-        
-        {/* IMAGE */}
-        <div className="overflow-hidden">
-          <img
-            src={blog.image}
-            alt={blog.title}
-            className="w-full h-72 md:h-96 object-cover hover:scale-105 transition duration-500"
-          />
+        {/* BACK BUTTON */}
+        <div className="max-w-5xl mx-auto mb-6">
+          <Link
+            to="/blog"
+            className="text-green-600 font-medium hover:underline"
+          >
+            ← Back to Blog
+          </Link>
         </div>
 
-        {/* CONTENT */}
-        <div className="p-8 md:p-10">
-          <span className="inline-block text-xs font-semibold bg-green-100 text-green-700 px-3 py-1 rounded-full uppercase tracking-wide mb-4">
-            {blog.category}
-          </span>
+        {/* HERO */}
+        <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-md overflow-hidden">
 
-          <h1 className="text-3xl md:text-4xl font-bold mb-6">
-            {blog.title}
-          </h1>
+          {/* IMAGE */}
+          <div className="overflow-hidden">
+            <img
+              src={blog.image}
+              alt={blog.title}
+              className="w-full h-72 md:h-96 object-cover hover:scale-105 transition duration-500"
+            />
+          </div>
 
-          <div className="text-gray-700 leading-relaxed space-y-6 text-lg">
-            {blog.content
-              .trim()
-              .split("\n")
-              .filter((p) => p.trim() !== "")
-              .map((para, index) => (
-                <p key={index}>{para}</p>
-              ))}
+          {/* CONTENT */}
+          <div className="p-8 md:p-10">
+            <span className="inline-block text-xs font-semibold bg-green-100 text-green-700 px-3 py-1 rounded-full uppercase tracking-wide mb-4">
+              {blog.category}
+            </span>
+
+            <h1 className="text-3xl md:text-4xl font-bold mb-6">
+              {blog.title}
+            </h1>
+
+            <div className="text-gray-700 leading-relaxed space-y-6 text-lg">
+              {blog.content
+                .trim()
+                .split("\n")
+                .filter((p) => p.trim() !== "")
+                .map((para, index) => (
+                  <p key={index}>{para}</p>
+                ))}
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="max-w-4xl mx-auto mt-16 text-center">
+          <div className="bg-white rounded-2xl shadow-md p-8">
+            <h3 className="text-2xl font-semibold mb-4">
+              Be part of the change 💚
+            </h3>
+
+            <p className="text-gray-600 mb-6">
+              Support our initiatives and help us create meaningful impact in
+              society.
+            </p>
+
+            <Link
+              to="/donate"
+              className="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition"
+            >
+              Donate Now
+            </Link>
           </div>
         </div>
       </div>
-
-      {/* CTA */}
-      <div className="max-w-4xl mx-auto mt-16 text-center">
-        <div className="bg-white rounded-2xl shadow-md p-8">
-          <h3 className="text-2xl font-semibold mb-4">
-            Be part of the change 💚
-          </h3>
-
-          <p className="text-gray-600 mb-6">
-            Support our initiatives and help us create meaningful impact in society.
-          </p>
-
-          <Link
-            to="/donate"
-            className="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition"
-          >
-            Donate Now
-          </Link>
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 

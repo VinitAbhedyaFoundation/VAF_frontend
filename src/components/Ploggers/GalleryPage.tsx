@@ -1,3 +1,5 @@
+import SEO from "@/components/SEO";
+
 import { useState } from "react";
 
 const sections = [
@@ -8,7 +10,7 @@ const sections = [
       "Celebrating Chhatrapati Shivaji Maharaj's legacy by keeping his city clean.",
     images: [
       "/images/Ploggers/community5.jpeg",
-      "/images/Ploggers/shivjayanti3.jpeg",      
+      "/images/Ploggers/shivjayanti3.jpeg",
       "/images/Ploggers/shivjayanti1.jpeg",
       "/images/Ploggers/shivjayanti4.jpeg",
     ],
@@ -45,7 +47,7 @@ const sections = [
     description:
       "Week after week, our volunteers hit the streets to pick up what others leave behind.",
     images: [
-      
+
       "/images/Ploggers/litter1.jpeg",
       "/images/Ploggers/litter4.jpeg",
       "/images/Ploggers/litter2.jpeg",
@@ -157,6 +159,11 @@ const GalleryPage = () => {
 
   return (
     <>
+      <SEO
+        title="Gallery | Vinit Abhedya Foundation"
+        description="Explore photos and moments from Vinit Abhedya Foundation's environmental and social initiatives."
+        path="/gallery"
+      />
       {lightbox !== null && (
         <Lightbox
           images={currentImages}
