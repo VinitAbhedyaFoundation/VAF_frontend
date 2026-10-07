@@ -7,10 +7,6 @@ const API = axios.create({
   timeout: 10000,
 });
 
-console.log(
-  "API URL:",
-  import.meta.env.VITE_API_URL
-);
 
 API.interceptors.request.use(
   (config) => {
