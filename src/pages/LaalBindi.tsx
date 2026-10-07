@@ -1,3 +1,4 @@
+
 import { Navigation } from '../components/LaalBindi/Navigation';
 import { Hero } from '../components/LaalBindi/Hero';
 import { About } from '../components/LaalBindi/About';

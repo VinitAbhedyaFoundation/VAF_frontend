@@ -1,3 +1,4 @@
+import SEO from "@/components/SEO";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ImpactSection from "@/components/ImpactSection";
@@ -13,21 +14,28 @@ import FAQSection from "@/components/FAQSection";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <HeroSection />
-      <ImpactSection />
-      <AboutSection />
-      <InitiativesSection />
-      <MediaCoverageSection />
+    <>
+      <SEO
+        title="Vinit Abhedya Foundation | Cleaner, Greener & Heartful Chh. Sambhajinagar"
+        description="Vinit Abhedya Foundation works to make Chh. Sambhajinagar cleaner, greener and heartful through community-driven environmental and social initiatives."
+        path="/"
+      />
+      <div className="min-h-screen">
+        <Navbar />
+        <HeroSection />
+        <ImpactSection />
+        <AboutSection />
+        <InitiativesSection />
+        <MediaCoverageSection />
 
-      <TestimonialsSection />
-      { /* <TeamSection /> */}
-      <VolunteerOfMonthSection />
-      <DonationSection />
-      <FAQSection />
-      <Footer />
-    </div>
+        <TestimonialsSection />
+        { /* <TeamSection /> */}
+        <VolunteerOfMonthSection />
+        <DonationSection />
+        <FAQSection />
+        <Footer />
+      </div>
+    </>
   );
 };
 
