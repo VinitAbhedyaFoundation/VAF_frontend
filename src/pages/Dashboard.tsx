@@ -975,7 +975,6 @@ export default function AdvancedDashboard() {
             messageForm.title,
           content:
             messageForm.content,
-          senderId: user.id,
         }
       );
 
