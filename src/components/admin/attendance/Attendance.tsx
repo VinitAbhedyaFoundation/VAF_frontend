@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import type { AttendanceRecord } from "../../../types/admin";
 import SectionLoader from "../common/SectionLoader";
 import AttendanceScanner from "./AttendanceScanner";
-
-
 
 interface AttendanceProps {
   attendance: AttendanceRecord[];
@@ -12,19 +10,97 @@ interface AttendanceProps {
   handleApproveAttendance: (id: number) => void;
 }
 
+const PAGE_SIZE = 10;
+
+const TABLE_HEADERS = [
+  "Volunteer",
+  "Email",
+  "Drive",
+  "Hours",
+  "Date",
+  "Status",
+  "Action",
+];
+
 const Attendance: React.FC<AttendanceProps> = ({
   attendance,
   loadingAttendance,
   handleApproveAttendance,
 }) => {
   const [showScanner, setShowScanner] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const stats = useMemo(() => {
+    return attendance.reduce(
+      (result, item) => {
+        if (item.status === "Approved") {
+          result.approved += 1;
+        }
+
+        if (
+          item.status === "Registered" ||
+          item.status === "Pending"
+        ) {
+          result.pending += 1;
+        }
+
+        return result;
+      },
+      {
+        approved: 0,
+        pending: 0,
+      }
+    );
+  }, [attendance]);
+
+  const totalPages = Math.ceil(attendance.length / PAGE_SIZE);
+
+  // Keep the current page valid if records are removed.
+  const safePage = Math.max(
+    1,
+    Math.min(currentPage, totalPages || 1)
+  );
+
+  const paginatedAttendance = useMemo(() => {
+    const startIndex = (safePage - 1) * PAGE_SIZE;
+
+    return attendance.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [attendance, safePage]);
+
+  const firstRecord =
+    attendance.length === 0
+      ? 0
+      : (safePage - 1) * PAGE_SIZE + 1;
+
+  const lastRecord = Math.min(
+    safePage * PAGE_SIZE,
+    attendance.length
+  );
+
+  const statsCards = [
+    {
+      label: "Total Records",
+      value: attendance.length,
+      icon: "📋",
+    },
+    {
+      label: "Marked",
+      value: stats.approved,
+      icon: "✅",
+    },
+    {
+      label: "Pending",
+      value: stats.pending,
+      icon: "⏳",
+    },
+  ];
 
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold themed-text">
+          <h1 className="themed-text text-2xl font-bold">
             Attendance
           </h1>
 
@@ -34,8 +110,9 @@ const Attendance: React.FC<AttendanceProps> = ({
         </div>
 
         <button
+          type="button"
           onClick={() => setShowScanner(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow transition"
+          className="rounded-xl bg-green-600 px-5 py-2 text-white shadow transition hover:bg-green-700"
         >
           📷 Start QR Scanner
         </button>
@@ -43,24 +120,38 @@ const Attendance: React.FC<AttendanceProps> = ({
 
       {/* Scanner Modal */}
       {showScanner && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative overflow-hidden">
-
-            {/* Modal Header */}
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setShowScanner(false);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="attendance-scanner-title"
+            className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl"
+          >
             <div className="flex items-center justify-between border-b px-6 py-4">
-              <h2 className="text-xl font-bold">
+              <h2
+                id="attendance-scanner-title"
+                className="text-xl font-bold"
+              >
                 Scan Volunteer QR
               </h2>
 
               <button
+                type="button"
                 onClick={() => setShowScanner(false)}
-                className="text-gray-500 hover:text-red-500 text-2xl"
+                aria-label="Close QR scanner"
+                className="text-2xl text-gray-500 hover:text-red-500"
               >
                 ×
               </button>
             </div>
 
-            {/* Scanner */}
             <div className="p-6">
               <AttendanceScanner
                 onClose={() => setShowScanner(false)}
@@ -70,153 +161,193 @@ const Attendance: React.FC<AttendanceProps> = ({
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {[
-          {
-            label: "Total Records",
-            val: attendance.length,
-            icon: "📋",
-          },
-          {
-            label: "Marked",
-            val: attendance.filter(
-              (item) => item.status === "Approved"
-            ).length,
-            icon: "✅",
-          },
-          {
-            label: "Pending",
-            val: attendance.filter(
-              (item) =>
-                item.status === "Registered" ||
-                item.status === "Pending"
-            ).length,
-            icon: "⏳",
-          },
-        ].map((s) => (
+      {/* Statistics */}
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        {statsCards.map((stat) => (
           <div
-            key={s.label}
-            className="themed-card rounded-2xl p-5 border themed-border shadow-sm"
+            key={stat.label}
+            className="themed-card themed-border rounded-2xl border p-5 shadow-sm"
           >
-            <p className="text-2xl mb-1">{s.icon}</p>
+            <p className="mb-1 text-2xl">{stat.icon}</p>
 
-            <p className="text-3xl font-black themed-text">
-              {s.val}
+            <p className="themed-text text-3xl font-black">
+              {stat.value}
             </p>
 
-            <p className="text-xs font-bold themed-muted uppercase tracking-widest">
-              {s.label}
+            <p className="themed-muted text-xs font-bold uppercase tracking-widest">
+              {stat.label}
             </p>
           </div>
         ))}
       </div>
 
+      {/* Attendance Table */}
       {loadingAttendance ? (
         <SectionLoader />
       ) : (
-        <div className="themed-card rounded-2xl shadow-sm border themed-border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="themed-subtle text-left">
-              <tr>
-                {[
-                  "Volunteer",
-                  "Email",
-                  "Drive",
-                  "Hours",
-                  "Date",
-                  "Status",
-                  "Action",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="p-4 text-xs font-bold themed-muted uppercase tracking-wider"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {attendance.map((item) => (
-                <tr
-                  key={item.id}
-                  className="border-t themed-border table-row-hover transition"
-                >
-                  <td className="p-4 font-semibold themed-text">
-                    {item.user?.name}
-                  </td>
-
-                  <td className="p-4 themed-muted text-xs">
-                    {item.user?.email}
-                  </td>
-
-                  <td className="p-4 themed-secondary">
-                    {item.drive
-                      ? new Date(
-                        item.drive.date
-                      ).toLocaleDateString("en-IN", {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                      })
-                      : "-"}
-                  </td>
-
-                  <td className="p-4 themed-secondary">
-                    {item.hours} hrs
-                  </td>
-
-                  <td className="p-4 themed-muted">
-                    {item.createdAt
-                      ? new Date(
-                        item.createdAt
-                      ).toLocaleDateString("en-IN")
-                      : "-"}
-                  </td>
-
-                  <td className="p-4">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full font-medium ${item.status === "Approved"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                        }`}
+        <div className="themed-card themed-border overflow-hidden rounded-2xl border shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[850px] text-sm">
+              <thead className="themed-subtle text-left">
+                <tr>
+                  {TABLE_HEADERS.map((header) => (
+                    <th
+                      key={header}
+                      scope="col"
+                      className="themed-muted p-4 text-xs font-bold uppercase tracking-wider"
                     >
-                      {item.status}
-                    </span>
-                  </td>
-
-                  <td className="p-4">
-                    {item.status === "Registered" ||
-                      item.status === "Pending" ? (
-                      <button
-                        onClick={() =>
-                          handleApproveAttendance(item.id)
-                        }
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-xs"
-                      >
-                        Approve
-                      </button>
-                    ) : (
-                      <span className="text-green-600 text-xs font-medium">
-                        Approved
-                      </span>
-                    )}
-                  </td>
+                      {header}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
 
+              <tbody>
+                {paginatedAttendance.map((item) => {
+                  const isPending =
+                    item.status === "Registered" ||
+                    item.status === "Pending";
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className="table-row-hover themed-border border-t transition"
+                    >
+                      <td className="themed-text p-4 font-semibold">
+                        {item.user?.name ?? "Unknown"}
+                      </td>
+
+                      <td className="themed-muted p-4 text-xs">
+                        {item.user?.email ?? "-"}
+                      </td>
+
+                      <td className="themed-secondary p-4">
+                        {item.drive?.date
+                          ? new Date(
+                            item.drive.date
+                          ).toLocaleDateString("en-IN", {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                          })
+                          : "-"}
+                      </td>
+
+                      <td className="themed-secondary p-4">
+                        {item.hours} hrs
+                      </td>
+
+                      <td className="themed-muted p-4">
+                        {item.createdAt
+                          ? new Date(
+                            item.createdAt
+                          ).toLocaleDateString("en-IN")
+                          : "-"}
+                      </td>
+
+                      <td className="p-4">
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${item.status === "Approved"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                            }`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+
+                      <td className="p-4">
+                        {isPending ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleApproveAttendance(item.id)
+                            }
+                            className="rounded-lg bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700"
+                          >
+                            Approve
+                          </button>
+                        ) : (
+                          <span className="text-xs font-medium text-green-600">
+                            Approved
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Empty State */}
           {attendance.length === 0 && (
-            <p className="text-center themed-muted py-8 text-sm">
+            <p className="themed-muted py-8 text-center text-sm">
               No attendance records yet.
             </p>
+          )}
+
+          {/* Pagination */}
+          {attendance.length > 0 && (
+            <div className="themed-border flex flex-col gap-3 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p
+                className="themed-muted text-sm"
+                aria-live="polite"
+              >
+                Showing {firstRecord}–{lastRecord} of{" "}
+                {attendance.length} records
+              </p>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((page) => page - 1)
+                  }
+                  disabled={safePage === 1}
+                  className="themed-border rounded-lg border px-3 py-2 text-sm transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Previous
+                </button>
+
+                {Array.from(
+                  { length: totalPages },
+                  (_, index) => index + 1
+                ).map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    aria-label={`Go to page ${page}`}
+                    aria-current={
+                      page === safePage ? "page" : undefined
+                    }
+                    className={`min-w-9 rounded-lg border px-3 py-2 text-sm transition ${page === safePage
+                        ? "border-green-600 bg-green-600 text-white"
+                        : "themed-border border hover:bg-gray-100"
+                      }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((page) => page + 1)
+                  }
+                  disabled={safePage >= totalPages}
+                  className="themed-border rounded-lg border px-3 py-2 text-sm transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
     </div>
   );
 };
+
 export default Attendance;

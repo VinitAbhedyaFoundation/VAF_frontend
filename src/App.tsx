@@ -1,4 +1,3 @@
-
 import {
   lazy,
   Suspense,
@@ -12,7 +11,10 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 import { Toaster as UIToaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -44,10 +46,21 @@ const Signup = lazy(() => import("./pages/Signup"));
 const Dashboard = lazy(() => import("./pages/UserDashboard"));
 const AdminDashboard = lazy(() => import("./pages/Dashboard"));
 const SuperAdminDashboard = lazy(
-  () => import("./pages/SuperAdminDashboard"),
+  () => import("./pages/SuperAdminDashboard")
 );
 
-const queryClient = new QueryClient();
+// Change this path to match your actual logo file.
+const LOGO_SRC = "/images/VinitAbhedya/Logo.png";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 type Role = "User" | "Admin" | "SuperAdmin";
 
@@ -56,26 +69,64 @@ type AuthState = {
   loading: boolean;
 };
 
-function LoadingScreen() {
+const VALID_ROLES: Role[] = ["User", "Admin", "SuperAdmin"];
+
+// FULL-SCREEN CUSTOM LOADING SCREEN
+function LoadingScreen({
+  message = "Preparing your experience",
+}: {
+  message?: string;
+}) {
   return (
     <div
-      className="flex min-h-[40vh] items-center justify-center"
+      className="fixed inset-0 z-[9999] flex min-h-screen w-full items-center justify-center bg-white px-4"
       role="status"
       aria-live="polite"
+      aria-label={message}
     >
-      <span className="text-sm text-muted-foreground">
-        Loading...
-      </span>
+      <div className="flex flex-col items-center justify-center text-center">
+        {/* Centered VAF logo */}
+        <div className="relative mb-7 flex h-32 w-32 items-center justify-center sm:h-40 sm:w-40">
+          {/* Animated ring */}
+          <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-green-100 border-t-green-600" />
+
+          {/* Logo */}
+          <div className="flex h-28 w-28 items-center justify-center sm:h-36 sm:w-36">
+            <img
+              src={LOGO_SRC}
+              alt="Vinit Abhedya Foundation logo"
+              className="h-full w-full object-contain"
+              onError={(event) => {
+                // Graceful fallback if the logo path is incorrect.
+                event.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+        </div>
+
+        <h1 className="text-lg font-bold tracking-wide text-gray-900 sm:text-xl">
+          Vinit Abhedya Foundation
+        </h1>
+
+        <p className="mt-2 text-sm text-gray-500">
+          {message}
+        </p>
+
+        {/* Loading indicator */}
+        <div className="mt-6 h-1 w-40 overflow-hidden rounded-full bg-green-100">
+          <div className="h-full w-1/2 animate-pulse rounded-full bg-green-600" />
+        </div>
+      </div>
     </div>
   );
 }
 
-function ProtectedRoute({ children }: { children: ReactNode }) {
+// AUTHENTICATION
+function useAuthRole() {
   const [auth, setAuth] = useState<AuthState>({
     role: null,
     loading: true,
   });
-  const location = useLocation();
 
   useEffect(() => {
     let active = true;
@@ -94,13 +145,11 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
         const response = await API.get("/auth/me");
         const role = response.data?.role;
 
-        if (
-          active &&
-          (role === "User" || role === "Admin" || role === "SuperAdmin")
-        ) {
-          setAuth({ role, loading: false });
-        } else if (active) {
-          setAuth({ role: null, loading: false });
+        if (active) {
+          setAuth({
+            role: VALID_ROLES.includes(role) ? role : null,
+            loading: false,
+          });
         }
       } catch {
         if (active) {
@@ -115,10 +164,26 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [location.pathname]);
+  }, []);
+
+  return auth;
+}
+
+// PROTECTED ROUTES
+function ProtectedRoute({
+  children,
+  allowedRoles,
+}: {
+  children: ReactNode;
+  allowedRoles?: Role[];
+}) {
+  const location = useLocation();
+  const auth = useAuthRole();
 
   if (auth.loading) {
-    return <LoadingScreen />;
+    return (
+      <LoadingScreen message="Verifying your session..." />
+    );
   }
 
   if (!auth.role) {
@@ -131,60 +196,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  return children;
-}
-
-function RoleRoute({
-  allowedRoles,
-  children,
-}: {
-  allowedRoles: Role[];
-  children: ReactNode;
-}) {
-  const [auth, setAuth] = useState<AuthState>({
-    role: null,
-    loading: true,
-  });
-
-  useEffect(() => {
-    let active = true;
-
-    const fetchRole = async () => {
-      try {
-        const response = await API.get("/auth/me");
-        const role = response.data?.role;
-
-        if (
-          active &&
-          (role === "User" || role === "Admin" || role === "SuperAdmin")
-        ) {
-          setAuth({ role, loading: false });
-        } else if (active) {
-          setAuth({ role: null, loading: false });
-        }
-      } catch {
-        if (active) {
-          setAuth({ role: null, loading: false });
-        }
-      }
-    };
-
-    void fetchRole();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (auth.loading) {
-    return <LoadingScreen />;
-  }
-
-  if (!auth.role) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!allowedRoles.includes(auth.role)) {
+  if (allowedRoles && !allowedRoles.includes(auth.role)) {
     if (auth.role === "SuperAdmin") {
       return <Navigate to="/superadmin-dashboard" replace />;
     }
@@ -199,22 +211,7 @@ function RoleRoute({
   return children;
 }
 
-function AdminRoute({ children }: { children: ReactNode }) {
-  return (
-    <RoleRoute allowedRoles={["Admin", "SuperAdmin"]}>
-      {children}
-    </RoleRoute>
-  );
-}
-
-function SuperAdminRoute({ children }: { children: ReactNode }) {
-  return (
-    <RoleRoute allowedRoles={["SuperAdmin"]}>
-      {children}
-    </RoleRoute>
-  );
-}
-
+// APP
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -223,7 +220,11 @@ function App() {
         <Sonner />
         <HotToaster position="top-right" />
 
-        <Suspense fallback={<LoadingScreen />}>
+        <Suspense
+          fallback={
+            <LoadingScreen message="Loading page..." />
+          }
+        >
           <Routes>
             {/* CORE */}
             <Route path="/" element={<Index />} />
@@ -234,10 +235,8 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute>
-                  <RoleRoute allowedRoles={["User"]}>
-                    <Dashboard />
-                  </RoleRoute>
+                <ProtectedRoute allowedRoles={["User"]}>
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
@@ -246,10 +245,10 @@ function App() {
             <Route
               path="/admin-dashboard"
               element={
-                <ProtectedRoute>
-                  <AdminRoute>
-                    <AdminDashboard />
-                  </AdminRoute>
+                <ProtectedRoute
+                  allowedRoles={["Admin", "SuperAdmin"]}
+                >
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />
@@ -258,19 +257,26 @@ function App() {
             <Route
               path="/superadmin-dashboard"
               element={
-                <ProtectedRoute>
-                  <SuperAdminRoute>
-                    <SuperAdminDashboard />
-                  </SuperAdminRoute>
+                <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+                  <SuperAdminDashboard />
                 </ProtectedRoute>
               }
             />
 
-            {/* STATIC */}
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            {/* STATIC PAGES */}
+            <Route
+              path="/privacy-policy"
+              element={<PrivacyPolicy />}
+            />
             <Route path="/ploggers" element={<PloggersPage />} />
-            <Route path="/social-shelf" element={<SocialShelfPage />} />
-            <Route path="/laal-bindi" element={<LaalBindiPage />} />
+            <Route
+              path="/social-shelf"
+              element={<SocialShelfPage />}
+            />
+            <Route
+              path="/laal-bindi"
+              element={<LaalBindiPage />}
+            />
             <Route path="/gallery" element={<GalleryPage />} />
             <Route
               path="/newsletter-success"
