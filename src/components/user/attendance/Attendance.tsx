@@ -24,12 +24,12 @@ const Attendance: FC<AttendanceProps> = ({
       bg: "bg-blue-50",
       color: "text-blue-600",
     },
-    {
-      label: "POINTS EARNED",
-      value: data?.stats?.impactPoints || 0,
-      bg: "bg-amber-50",
-      color: "text-amber-600",
-    },
+   {
+  label: "WASTE COLLECTED",
+  value: data?.stats?.wasteCollected || 0,
+  bg: "bg-amber-50",
+  color: "text-amber-600",
+},
     {
       label: "PENDING",
       value: participations.filter(

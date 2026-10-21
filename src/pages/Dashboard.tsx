@@ -1,6 +1,13 @@
 "use client";
 
 import API from "@/api/api";
+import { isAxiosError } from "axios";
+import CreateDriveModal from "../components/admin/drives/CreateDriveModal";
+import CompleteDriveModal from "@/components/admin/drives/CompleteDriveModal";
+import Header from "../components/admin/layout/Header";
+import Sidebar from "../components/admin/layout/Sidebar";
+import Overview from "../components/admin/overview/Overview";
+
 
 import Attendance from "@/components/admin/attendance/Attendance";
 import Certificates from "@/components/admin/certificates/Certificates";
@@ -55,11 +62,85 @@ import { useNavigate } from "react-router-dom";
 
 import { ThemeContext } from "../components/admin/contexts/ThemeContext";
 
-import CreateDriveModal from "../components/admin/drives/CreateDriveModal";
-import CompleteDriveModal from "@/components/admin/drives/CompleteDriveModal";
-import Header from "../components/admin/layout/Header";
-import Sidebar from "../components/admin/layout/Sidebar";
-import Overview from "../components/admin/overview/Overview";
+interface AdminUser {
+  id?: number;
+  name?: string;
+  email?: string;
+  role?: string;
+}
+
+interface ApiLeaderboardEntry {
+  name: string;
+  kg: number;
+  drives: number;
+}
+
+interface DashboardStatsResponse extends DashboardStats {
+  leaderboard?: ApiLeaderboardEntry[];
+}
+
+interface ApiVolunteer {
+  id: number;
+  name: string;
+  email: string;
+  city?: string | null;
+  birthDate?: string | null;
+  totalDrives?: number | null;
+  status?: string | null;
+  createdAt?: string | null;
+  role?: string;
+}
+
+interface VolunteersResponse {
+  users?: ApiVolunteer[];
+}
+
+interface DrivesResponse {
+  drives?: Drive[];
+}
+
+interface AttendanceResponse {
+  records?: AttendanceRecord[];
+}
+
+interface ApiAttendanceRecord {
+  id: number;
+  user?: { name?: string | null; email?: string | null } | null;
+  drive?: { date?: string | null } | null;
+  hours?: number | null;
+  createdAt?: string | null;
+  status?: AttendanceRecord["status"];
+}
+
+interface ApiAttendanceCreateResponse {
+  record?: ApiAttendanceRecord;
+  id?: number;
+  user?: ApiAttendanceRecord["user"];
+  drive?: ApiAttendanceRecord["drive"];
+  hours?: number | null;
+  createdAt?: string | null;
+  status?: AttendanceRecord["status"];
+}
+
+interface StoredUser {
+  id?: number;
+  role?: string;
+}
+
+const getApiErrorMessage = (error: unknown, fallback: string): string => {
+  if (isAxiosError<{ message?: string }>(error)) {
+    return error.response?.data?.message || fallback;
+  }
+  return fallback;
+};
+
+const normalizeVolunteerStatus = (status?: string | null): Volunteer["status"] => {
+  if (status === "Approved" || status === "Active" || status === "Rejected") {
+    return status as Volunteer["status"];
+  }
+  return "Pending";
+};
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -165,7 +246,7 @@ export default function AdvancedDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<SectionId>("overview");
 
-  const [adminUser, setAdminUser] = useState<any>(null);
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 
   const isSuperAdmin = adminUser?.role === "SuperAdmin";
 
@@ -270,23 +351,20 @@ export default function AdvancedDashboard() {
 
   const fetchDashboardStats = useCallback(async () => {
     try {
-      const res = await API.get("/admin/dashboard-stats");
+      const res = await API.get<DashboardStatsResponse>("/admin/dashboard-stats");
 
       setDashboardStats(res.data);
 
       setLeaderboard(
         (res.data.leaderboard ?? []).map(
-          (u: any, i: number) => ({
+          (u, i: number) => ({
             ...u,
             rank: i + 1,
           })
         )
       );
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to load dashboard stats"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to load dashboard stats"));
     }
   }, []);
 
@@ -294,19 +372,16 @@ export default function AdvancedDashboard() {
     setLoadingDrives(true);
 
     try {
-      const res = await API.get("/drive/alldrives", {
+      const res = await API.get<Drive[] | DrivesResponse>("/drive/alldrives", {
         params: {
           page: 1,
           limit: 50,
         },
       });
 
-      setDrives(res.data.drives ?? res.data);
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to load drives"
-      );
+      setDrives(Array.isArray(res.data) ? res.data : res.data.drives ?? []);
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to load drives"));
     } finally {
       setLoadingDrives(false);
     }
@@ -316,14 +391,11 @@ export default function AdvancedDashboard() {
     setLoadingAttendance(true);
 
     try {
-      const res = await API.get("/attendance/all");
+      const res = await API.get<AttendanceRecord[] | AttendanceResponse>("/attendance/all");
 
-      setAttendance(res.data.records ?? res.data);
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to load attendance"
-      );
+      setAttendance(Array.isArray(res.data) ? res.data : res.data.records ?? []);
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to load attendance"));
     } finally {
       setLoadingAttendance(false);
     }
@@ -333,11 +405,11 @@ export default function AdvancedDashboard() {
     setLoadingVolunteers(true);
 
     try {
-      const res = await API.get("/user/all");
+      const res = await API.get<VolunteersResponse | ApiVolunteer[]>("/user/all");
 
-      const data = res.data.users ?? res.data;
+      const data = Array.isArray(res.data) ? res.data : res.data.users ?? [];
 
-      const mapped: Volunteer[] = data.map((v: any) => ({
+      const mapped: Volunteer[] = data.map((v: ApiVolunteer) => ({
         id: v.id,
         name: v.name,
         email: v.email,
@@ -350,7 +422,7 @@ export default function AdvancedDashboard() {
 
         drives: v.totalDrives ?? 0,
 
-        status: v.status ?? "Pending",
+        status: normalizeVolunteerStatus(v.status),
 
         joined: v.createdAt
           ? new Date(v.createdAt).toLocaleDateString(
@@ -370,11 +442,8 @@ export default function AdvancedDashboard() {
       }));
 
       setVolunteers(mapped);
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to load volunteers"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to load volunteers"));
     } finally {
       setLoadingVolunteers(false);
     }
@@ -384,9 +453,9 @@ export default function AdvancedDashboard() {
     setLoadingMessages(true);
 
     try {
-      const res = await API.get("/message/all");
+      const res = await API.get<{ messages?: ApiMessage[] } | ApiMessage[]>("/message/all");
 
-      const data = res.data.messages ?? res.data;
+      const data = Array.isArray(res.data) ? res.data : res.data.messages ?? [];
 
       const mapped: MessageItem[] = data.map(
         (msg: ApiMessage) => ({
@@ -407,11 +476,8 @@ export default function AdvancedDashboard() {
       );
 
       setMessages(mapped);
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to load messages"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to load messages"));
     } finally {
       setLoadingMessages(false);
     }
@@ -426,7 +492,7 @@ export default function AdvancedDashboard() {
 
     if (user) {
       try {
-        setAdminUser(JSON.parse(user));
+        setAdminUser(JSON.parse(user) as AdminUser);
       } catch {
         setAdminUser(null);
       }
@@ -468,12 +534,12 @@ export default function AdvancedDashboard() {
   // ─────────────────────────────────────────────────────────────────────────
 
   const handleLogout = () => {
-  localStorage.removeItem("user");
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
 
-  navigate("/login");
-};
+    navigate("/login");
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // METRICS
@@ -620,11 +686,8 @@ export default function AdvancedDashboard() {
       toast.success("Drive created 🚀");
 
       await fetchDashboardStats();
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to create drive"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to create drive"));
     } finally {
       setSubmitting(false);
     }
@@ -661,7 +724,7 @@ export default function AdvancedDashboard() {
         return;
       }
 
-      const res = await API.post(
+      const res = await API.post<ApiAttendanceCreateResponse>(
         "/user/attendance",
         {
           driveId: selectedDrive.id,
@@ -673,7 +736,7 @@ export default function AdvancedDashboard() {
         }
       );
 
-      const raw = res.data.record ?? res.data;
+      const raw: ApiAttendanceRecord = res.data.record ?? res.data as ApiAttendanceRecord;
 
       const safeRecord: AttendanceRecord = {
         id: raw.id,
@@ -717,11 +780,8 @@ export default function AdvancedDashboard() {
       toast.success("Attendance marked ✅");
 
       await fetchDashboardStats();
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to mark attendance"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to mark attendance"));
     } finally {
       setSubmitting(false);
     }
@@ -795,11 +855,8 @@ export default function AdvancedDashboard() {
       );
 
       await fetchDashboardStats();
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to add volunteer"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to add volunteer"));
     } finally {
       setSubmitting(false);
     }
@@ -837,11 +894,8 @@ export default function AdvancedDashboard() {
 
       await fetchVolunteers();
       await fetchDashboardStats();
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to approve volunteer"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to approve volunteer"));
     }
   };
 
@@ -877,11 +931,8 @@ export default function AdvancedDashboard() {
         fetchVolunteers(),
         fetchDashboardStats(),
       ]);
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to remove volunteer"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to remove volunteer"));
     }
   };
 
@@ -901,14 +952,12 @@ export default function AdvancedDashboard() {
     setSubmitting(true);
 
     try {
-      let user: any = null;
+      let user: StoredUser | null = null;
 
       try {
         user = JSON.parse(
-          localStorage.getItem(
-            "user"
-          ) || "{}"
-        );
+          localStorage.getItem("user") || "{}"
+        ) as StoredUser;
       } catch {
         user = null;
       }
@@ -940,11 +989,8 @@ export default function AdvancedDashboard() {
       });
 
       toast.success("Message sent 📧");
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to send message"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to send message"));
     } finally {
       setSubmitting(false);
     }
@@ -979,11 +1025,8 @@ export default function AdvancedDashboard() {
 
         await fetchDrives();
         await fetchDashboardStats();
-      } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message ||
-          "Failed to generate certificates"
-        );
+      } catch (err: unknown) {
+        toast.error(getApiErrorMessage(err, "Failed to generate certificates"));
       }
     };
 
@@ -1029,11 +1072,8 @@ export default function AdvancedDashboard() {
 
       await fetchDrives();
       await fetchDashboardStats();
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-        "Failed to complete drive"
-      );
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to complete drive"));
     } finally {
       setSubmitting(false);
     }
@@ -1056,9 +1096,9 @@ export default function AdvancedDashboard() {
 
         await fetchAttendance();
         await fetchDashboardStats();
-      } catch (err: any) {
+      } catch (err: unknown) {
         toast.error(
-          "Failed to approve attendance"
+          getApiErrorMessage(err, "Failed to approve attendance")
         );
       }
     };

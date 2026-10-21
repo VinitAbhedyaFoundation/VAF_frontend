@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { isAxiosError } from "axios";
 
 import API from "../api/api";
 
@@ -18,6 +19,61 @@ import {
 } from "@/types/superadmin";
 
 import { INITIAL_SETTINGS } from "@/constants/superadmin";
+
+interface ApiUser {
+    id: number;
+    name: string;
+    email: string;
+    city?: string | null;
+    role: string;
+    status: string;
+    createdAt: string;
+    totalDrives?: number;
+    totalHours?: number;
+    wasteKg?: number;
+}
+
+interface UsersResponse {
+    users: ApiUser[];
+}
+
+interface ApiDrive {
+    id: number;
+    date: string;
+    location?: string | null;
+    volunteerCount?: number | null;
+    totalWasteKg?: number | null;
+    completed: boolean;
+    totalHours?: number | null;
+    coordinator?: { name?: string | null } | null;
+}
+
+interface ApiAttendance {
+    id: number;
+    user?: { name?: string | null; email?: string | null } | null;
+    drive?: {
+        title?: string | null;
+        location?: string | null;
+        date?: string | null;
+    } | null;
+    driveId: number;
+    createdAt: string;
+    hours?: number | null;
+    waste?: number | null;
+    status: AttendanceStatus;
+}
+
+interface ApiErrorResponse {
+    message?: string;
+}
+
+const getErrorMessage = (error: unknown, fallback: string): string => {
+    if (isAxiosError<ApiErrorResponse>(error)) {
+        return error.response?.data?.message || fallback;
+    }
+
+    return fallback;
+};
 
 export const useSuperAdminDashboard = () => {
     // ── settings ─────────────────────────────────────
@@ -45,13 +101,13 @@ export const useSuperAdminDashboard = () => {
 
     // ── forms ────────────────────────────────────────
     const [adminForm, setAdminForm] = useState({
-    name: "",
-    email: "",
-    role: "Admin",
-    city: "",
-    gender: "" as "" | "Male" | "Female" | "Other",
-    password: "",
-});
+        name: "",
+        email: "",
+        role: "Admin",
+        city: "",
+        gender: "" as "" | "Male" | "Female" | "Other",
+        password: "",
+    });
 
     const [userForm, setUserForm] = useState({
         name: "",
@@ -132,8 +188,8 @@ export const useSuperAdminDashboard = () => {
             attendanceFilter === "All"
                 ? attendance
                 : attendance.filter(
-                      (a) => a.status === attendanceFilter
-                  ),
+                    (a) => a.status === attendanceFilter
+                ),
         [attendance, attendanceFilter]
     );
 
@@ -182,22 +238,23 @@ export const useSuperAdminDashboard = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await API.get("/user/all");
+            const res = await API.get<UsersResponse>("/user/all");
 
             const formatted = res.data.users
-                .filter((u: any) => u.role === "User")
-                .map((u: any) => ({
+                .filter((u) => u.role === "User")
+                .map((u) => ({
                     id: u.id,
                     name: u.name,
                     email: u.email,
                     city: u.city || "N/A",
                     drives: u.totalDrives || 0,
-                    status:
+                    status: (
                         u.status === "Approved"
                             ? "Active"
                             : u.status === "Pending"
-                              ? "Pending"
-                              : "Suspended",
+                                ? "Pending"
+                                : "Suspended"
+                    ) as User["status"],
                     joined: new Date(u.createdAt).toLocaleDateString(),
                     totalHours: u.totalHours || 0,
                     wasteKg: u.wasteKg || 0,
@@ -211,15 +268,13 @@ export const useSuperAdminDashboard = () => {
 
     const fetchAdmins = async () => {
         try {
-            const res = await API.get("/user/all");
+            const res = await API.get<UsersResponse>("/user/all");
 
             const formatted = res.data.users
                 .filter(
-                    (u: any) =>
-                        u.role === "Admin" ||
-                        u.role === "SuperAdmin"
+                    (u) => u.role === "Admin" || u.role === "SuperAdmin"
                 )
-                .map((u: any) => ({
+                .map((u) => ({
                     id: u.id,
                     name: u.name,
                     email: u.email,
@@ -229,10 +284,11 @@ export const useSuperAdminDashboard = () => {
                         u.createdAt
                     ).toLocaleDateString(),
                     lastActive: "Recently",
-                    status:
+                    status: (
                         u.status === "Approved"
                             ? "Active"
-                            : "Suspended",
+                            : "Suspended"
+                    ) as Admin["status"],
                 }));
 
             setAdmins(formatted);
@@ -243,19 +299,21 @@ export const useSuperAdminDashboard = () => {
 
     const fetchDrives = async () => {
         try {
-            const res = await API.get("/drive/alldrives?page=1&limit=50");
+            const res = await API.get<ApiDrive[]>("/drive/alldrives?page=1&limit=50");
 
-            const formatted = res.data.map((d: any) => ({
+            const formatted = res.data.map((d) => ({
                 id: d.id,
                 date: d.date,
                 location: d.location ?? "N/A",
                 volunteers: d.volunteerCount ?? 0,
                 wasteKg: d.totalWasteKg ?? 0,
-                status: d.completed
-                    ? "Completed"
-                    : new Date(d.date) > new Date()
-                      ? "Upcoming"
-                      : "Active",
+                status: (
+                    d.completed
+                        ? "Completed"
+                        : new Date(d.date) > new Date()
+                            ? "Upcoming"
+                            : "Active"
+                ) as Drive["status"],
                 hours: d.totalHours ?? 0,
                 coordinator: d.coordinator?.name,
             }));
@@ -268,9 +326,9 @@ export const useSuperAdminDashboard = () => {
 
     const fetchAttendance = async () => {
         try {
-            const res = await API.get("/attendance/all");
+            const res = await API.get<ApiAttendance[]>("/attendance/all");
 
-            const formatted = res.data.map((a: any) => ({
+            const formatted = res.data.map((a) => ({
                 id: a.id,
                 volunteer: a.user?.name ?? "Unknown",
                 email: a.user?.email ?? "",
@@ -299,53 +357,49 @@ export const useSuperAdminDashboard = () => {
     // ── handlers ─────────────────────────────────────
 
     const handleAddAdmin = async () => {
-    if (
-        !adminForm.name ||
-        !adminForm.email ||
-        !adminForm.city ||
-        !adminForm.gender ||
-        !adminForm.password
-    ) {
-        toast.error("Fill all required fields");
-        return;
-    }
+        if (
+            !adminForm.name ||
+            !adminForm.email ||
+            !adminForm.city ||
+            !adminForm.gender ||
+            !adminForm.password
+        ) {
+            toast.error("Fill all required fields");
+            return;
+        }
 
-    try {
-        setSubmitting(true);
+        try {
+            setSubmitting(true);
 
-        await API.post("/auth/adminregister", {
-            name: adminForm.name,
-            email: adminForm.email,
-            city: adminForm.city,
-            gender: adminForm.gender,
-            password: adminForm.password,
-        });
+            await API.post("/auth/adminregister", {
+                name: adminForm.name,
+                email: adminForm.email,
+                city: adminForm.city,
+                gender: adminForm.gender,
+                password: adminForm.password,
+            });
 
-        toast.success("Admin created successfully");
+            toast.success("Admin created successfully");
 
-        setAdminModal(false);
+            setAdminModal(false);
 
-        setAdminForm({
-            name: "",
-            email: "",
-            role: "Admin",
-            city: "",
-            gender: "",
-            password: "",
-        });
+            setAdminForm({
+                name: "",
+                email: "",
+                role: "Admin",
+                city: "",
+                gender: "",
+                password: "",
+            });
 
-        await fetchAdmins();
-    } catch (error: any) {
-        console.error(error);
-
-        toast.error(
-            error?.response?.data?.message ||
-                "Failed to create admin"
-        );
-    } finally {
-        setSubmitting(false);
-    }
-};
+            await fetchAdmins();
+        } catch (error: unknown) {
+            console.error(error);
+            toast.error(getErrorMessage(error, "Failed to create admin"));
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const handleAddUser = async () => {
         if (
@@ -383,13 +437,9 @@ export const useSuperAdminDashboard = () => {
             });
 
             await fetchUsers();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-
-            toast.error(
-                error?.response?.data?.message ||
-                    "Failed to add user"
-            );
+            toast.error(getErrorMessage(error, "Failed to add user"));
         } finally {
             setSubmitting(false);
         }
@@ -473,18 +523,15 @@ export const useSuperAdminDashboard = () => {
             });
 
             toast.success(
-                `${ids.length} attendance record${
-                    ids.length > 1 ? "s" : ""
+                `${ids.length} attendance record${ids.length > 1 ? "s" : ""
                 } approved`
             );
 
             await fetchAttendance();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-
             toast.error(
-                error?.response?.data?.message ||
-                    "Failed to approve attendance"
+                getErrorMessage(error, "Failed to approve attendance")
             );
         }
     };
@@ -495,12 +542,12 @@ export const useSuperAdminDashboard = () => {
     };
 
     const handleLogout = () => {
-  localStorage.removeItem("user");
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
 
-  window.location.href = "/login";
-};
+        window.location.href = "/login";
+    };
 
     // ── effects ──────────────────────────────────────
 
@@ -510,7 +557,6 @@ export const useSuperAdminDashboard = () => {
         fetchDrives();
         fetchAttendance();
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return {

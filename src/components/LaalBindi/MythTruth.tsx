@@ -29,13 +29,21 @@ export function MythTruth() {
     },
   ];
 
-  const toggleReveal = (index: number) => {
-    setRevealedItems((prev) => {
-      const newSet = new Set(prev);
-      newSet.has(index) ? newSet.delete(index) : newSet.add(index);
-      return newSet;
-    });
-  };
+  
+const toggleReveal = (index: number) => {
+  setRevealedItems((prev) => {
+    const newSet = new Set(prev);
+
+    if (newSet.has(index)) {
+      newSet.delete(index);
+    } else {
+      newSet.add(index);
+    }
+
+    return newSet;
+  });
+};
+
 
   return (
     <section

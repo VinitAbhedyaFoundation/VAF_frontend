@@ -17,7 +17,7 @@ interface ExportItem {
   label: string;
   count: number;
   icon: string;
-  data: any[];
+  data: unknown[];
 }
 
 interface DataSettingsProps {
@@ -35,7 +35,7 @@ interface DataSettingsProps {
 
   exportItems: ExportItem[];
 
-  handleExport: (label: string, data: any[]) => void;
+  handleExport: (label: string, data: unknown[]) => void;
   handleSave: () => void;
 
   saving: boolean;

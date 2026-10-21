@@ -1,18 +1,19 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { isAxiosError } from "axios";
 import {
+  AlertCircle,
+  Facebook,
   Heart,
+  Instagram,
+  Linkedin,
   Mail,
   MapPin,
-  Facebook,
-  Instagram,
   Twitter,
-  Youtube,
-  Linkedin,
-  AlertCircle,
   X,
+  Youtube,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import API from "@/api/api";
 
@@ -49,12 +50,17 @@ const Footer = () => {
 
       setEmail("");
       navigate("/newsletter-success");
-    } catch (error: any) {
+
+    } catch (error: unknown) {
       console.error("Newsletter subscription failed:", error);
 
+      const message = isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+
       setErrorMessage(
-        error?.response?.data?.message ||
-          "We couldn't complete your subscription right now. Please try again."
+        message ||
+        "We couldn't complete your subscription right now. Please try again."
       );
 
       setShowErrorModal(true);

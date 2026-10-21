@@ -189,7 +189,6 @@ const Profile: FC<ProfileProps> = ({
                     <div className="relative">
                         <div className="w-20 h-20 rounded-full bg-emerald-600/30 border-2 border-emerald-500/50 flex items-center justify-center overflow-hidden">
                             {avatarPreview || user?.avatarUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                     src={avatarPreview ?? user?.avatarUrl}
                                     alt={user?.name ?? "Profile picture"}
