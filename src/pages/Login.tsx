@@ -1,10 +1,20 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { isAxiosError } from "axios";
 import API from "../api/api";
 
 const inputStyle =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-100 outline-none transition text-sm";
+
+interface LoginResponse {
+  accessToken?: string;
+  token?: string;
+  user?: {
+    role: string;
+    [key: string]: unknown;
+  };
+}
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,47 +27,36 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleLogin = async (
-    e: React.FormEvent
-  ) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setLoading(true);
     setError("");
 
     try {
-      const res = await API.post(
-        "/auth/login",
-        form
-      );
-
+      const res = await API.post<LoginResponse>("/auth/login", form);
       const data = res.data;
 
       // Token fallback support
-      const token =
-        data.accessToken || data.token;
+      const token = data.accessToken || data.token;
 
       if (!token) {
         setError("Invalid credentials");
-        setLoading(false);
         return;
       }
 
       // Get user safely
       const user = data.user;
 
-      if (!user) {
+      if (!user || typeof user.role !== "string" || !user.role) {
         setError("User data missing");
-        setLoading(false);
         return;
       }
 
@@ -67,20 +66,9 @@ const Login = () => {
       localStorage.clear();
 
       // Store auth data
-      localStorage.setItem(
-        "token",
-        token
-      );
-
-      localStorage.setItem(
-        "role",
-        role
-      );
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify(user)
-      );
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+      localStorage.setItem("user", JSON.stringify(user));
 
       // Role-based redirect
       if (role === "SuperAdmin") {
@@ -90,13 +78,11 @@ const Login = () => {
       } else {
         navigate("/dashboard");
       }
-    } catch (err: any) {
-      if (err?.response?.status === 401) {
+    } catch (err: unknown) {
+      if (isAxiosError(err) && err.response?.status === 401) {
         setError("Invalid email or password");
       } else {
-        setError(
-          "Unable to login. Please try again."
-        );
+        setError("Unable to login. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -185,9 +171,7 @@ const Login = () => {
             disabled={loading}
             className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl transition text-sm disabled:opacity-60"
           >
-            {loading
-              ? "Logging in..."
-              : "Login"}
+            {loading ? "Logging in..." : "Login"}
           </motion.button>
         </form>
 

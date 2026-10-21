@@ -1,18 +1,41 @@
-import React from "react";
 import { motion } from "framer-motion";
-import CountUp from "react-countup";
 import { Leaf } from "lucide-react";
+import React from "react";
+import CountUp from "react-countup";
 
 import Spinner from "../common/Spinner";
 
+
+interface AdminUser {
+  name?: string;
+}
+
+interface Metric {
+  id: string | number;
+  bgLight: string;
+  color: string;
+  icon: React.ElementType;
+  trend: string;
+  value: number;
+  label: string;
+}
+
+interface LeaderboardEntry {
+  name: string;
+  rank: number;
+  drives: number;
+  kg: number;
+}
+
 interface OverviewProps {
-  adminUser: any;
+  adminUser: AdminUser | null;
   appLoading: boolean;
-  metrics: any[];
+  metrics: Metric[];
   accent: { hex: string };
-  leaderboard: any[];
+  leaderboard: LeaderboardEntry[];
   getRankColor: (rank: number) => string;
 }
+
 
 const Overview: React.FC<OverviewProps> = ({
   adminUser,

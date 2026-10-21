@@ -1,12 +1,12 @@
 // ─── SETTINGS SECTION ─────────────────────────────────────────────────────────
 import React, { useState } from "react";
 import type {
-  Volunteer,
-  Drive,
-  AttendanceRecord,
-  MessageItem,
-  SectionId,
-  SettingsTab,
+    Volunteer,
+    Drive,
+    AttendanceRecord,
+    MessageItem,
+    SectionId,
+    SettingsTab,
 } from "@/types/admin";
 import Spinner from "../common/Spinner";
 import AccountSettings from "./AccountSettings";
@@ -83,7 +83,7 @@ const SettingsSection: React.FC<{
         { label: "Messages", count: messages.length, icon: "📧", data: messages },
     ];
 
-    const handleExport = (label: string, data: any[]) => {
+    const handleExport = (label: string, data: unknown[]) => {
         if (!data?.length) { toast.error("No data available"); return; }
 
         if (exportFormat === "JSON") {
@@ -98,7 +98,25 @@ const SettingsSection: React.FC<{
 
         if (exportFormat === "CSV") {
             const headers = Object.keys(data[0]);
-            const rows = data.map(row => headers.map(h => row[h]));
+            const rows = data.map((row) => {
+                if (typeof row !== "object" || row === null || Array.isArray(row)) {
+                    return headers.map(() => "");
+                }
+
+                const record = row as Record<string, unknown>;
+
+                return headers.map((header) => {
+                    const value = record[header];
+
+                    if (value === null || value === undefined) return "";
+
+                    const text = typeof value === "object"
+                        ? JSON.stringify(value)
+                        : String(value);
+
+                    return `"${text.replace(/"/g, '""')}"`;
+                });
+            });
             const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
             const blob = new Blob([csv], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
@@ -166,28 +184,28 @@ const SettingsSection: React.FC<{
                     )}
 
                     {activeTab === "data" && (
-  <DataSettings
-    autoBackup={autoBackup}
-    setAutoBackup={setAutoBackup}
-    backupFrequency={backupFrequency}
-    setBackupFrequency={setBackupFrequency}
-    retentionDays={retentionDays}
-    setRetentionDays={setRetentionDays}
-    exportFormat={exportFormat}
-    setExportFormat={setExportFormat}
-    exportItems={exportItems}
-    handleExport={handleExport}
-    handleSave={handleSave}
-    saving={saving}
-    Spinner={Spinner}
-  />
-)}
+                        <DataSettings
+                            autoBackup={autoBackup}
+                            setAutoBackup={setAutoBackup}
+                            backupFrequency={backupFrequency}
+                            setBackupFrequency={setBackupFrequency}
+                            retentionDays={retentionDays}
+                            setRetentionDays={setRetentionDays}
+                            exportFormat={exportFormat}
+                            setExportFormat={setExportFormat}
+                            exportItems={exportItems}
+                            handleExport={handleExport}
+                            handleSave={handleSave}
+                            saving={saving}
+                            Spinner={Spinner}
+                        />
+                    )}
 
                     {activeTab === "system" && (
-  <SystemSettings
-    setShowDeleteConfirm={setShowDeleteConfirm}
-  />
-)}
+                        <SystemSettings
+                            setShowDeleteConfirm={setShowDeleteConfirm}
+                        />
+                    )}
                 </div>
             </div>
 

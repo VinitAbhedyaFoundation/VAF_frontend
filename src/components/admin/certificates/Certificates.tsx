@@ -8,6 +8,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import { isAxiosError } from "axios";
 
 import API from "../../../api/api";
 
@@ -61,16 +62,14 @@ const Certificates: React.FC = () => {
       );
 
       setTemplates(response.data);
-    } catch (err: any) {
-      console.error(
-        "Failed to fetch certificate templates:",
-        err,
-      );
+    } catch (err: unknown) {
+      console.error("Failed to fetch certificate templates:", err);
 
-      setError(
-        err.response?.data?.message ||
-          "Failed to load certificate templates.",
-      );
+      const message = isAxiosError<{ message?: string }>(err)
+        ? err.response?.data?.message
+        : undefined;
+
+      setError(message || "Failed to load certificate templates.");
     } finally {
       setLoading(false);
     }
@@ -180,7 +179,7 @@ const Certificates: React.FC = () => {
 
       setSuccess(
         response.data?.message ||
-          "Certificate template uploaded successfully.",
+        "Certificate template uploaded successfully.",
       );
 
       setTemplateName("");
@@ -191,16 +190,14 @@ const Certificates: React.FC = () => {
       }
 
       await fetchTemplates();
-    } catch (err: any) {
-      console.error(
-        "Certificate template upload failed:",
-        err,
-      );
+    } catch (err: unknown) {
+      console.error("Certificate template upload failed:", err);
 
-      setError(
-        err.response?.data?.message ||
-          "Failed to upload certificate template.",
-      );
+      const message = isAxiosError<{ message?: string }>(err)
+        ? err.response?.data?.message
+        : undefined;
+
+      setError(message || "Failed to upload certificate template.");
     } finally {
       setUploading(false);
     }
@@ -230,7 +227,7 @@ const Certificates: React.FC = () => {
 
       setSuccess(
         response.data?.message ||
-          "Certificate template deleted successfully.",
+        "Certificate template deleted successfully.",
       );
 
       setTemplates((current) =>
@@ -238,16 +235,14 @@ const Certificates: React.FC = () => {
           (item) => item.id !== template.id,
         ),
       );
-    } catch (err: any) {
-      console.error(
-        "Failed to delete certificate template:",
-        err,
-      );
+    } catch (err: unknown) {
+      console.error("Failed to delete certificate template:", err);
 
-      setError(
-        err.response?.data?.message ||
-          "Failed to delete certificate template.",
-      );
+      const message = isAxiosError<{ message?: string }>(err)
+        ? err.response?.data?.message
+        : undefined;
+
+      setError(message || "Failed to delete certificate template.");
     } finally {
       setDeletingId(null);
     }
@@ -524,7 +519,7 @@ const Certificates: React.FC = () => {
                     className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/20 px-4 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-500/10 disabled:opacity-50"
                   >
                     {deletingId ===
-                    template.id ? (
+                      template.id ? (
                       <Loader2
                         size={16}
                         className="animate-spin"
@@ -534,7 +529,7 @@ const Certificates: React.FC = () => {
                     )}
 
                     {deletingId ===
-                    template.id
+                      template.id
                       ? "Deleting..."
                       : "Delete Template"}
                   </button>

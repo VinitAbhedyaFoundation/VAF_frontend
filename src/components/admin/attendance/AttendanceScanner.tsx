@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import toast from "react-hot-toast";
+import { isAxiosError } from "axios";
 
 import { scanAttendance } from "../../../api/attendance";
 
@@ -40,14 +41,17 @@ const AttendanceScanner: React.FC<AttendanceScannerProps> = ({
         // Temporary refresh
         window.location.reload();
       }, 700);
-    } catch (err: any) {
+
+    } catch (err: unknown) {
       scanned.current = false;
 
-      toast.error(
-        err?.response?.data?.message ||
-          "Invalid QR Code"
-      );
+      const message = isAxiosError<{ message?: string }>(err)
+        ? err.response?.data?.message
+        : undefined;
+
+      toast.error(message || "Invalid QR Code");
     }
+
   };
 
   return (
