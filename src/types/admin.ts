@@ -1,3 +1,4 @@
+
 import type { LucideIcon } from "lucide-react";
 
 export type SectionId =
@@ -15,19 +16,14 @@ export interface NavItem {
   id: SectionId;
 }
 
-export interface SidebarProps {
-  mobile?: boolean;
-  activeNav: SectionId;
-  goTo: (section: SectionId) => void;
-  pendingBadge?: string;
-}
-
 export interface Drive {
   id: number;
   title?: string;
   date: string;
   totalHours: number;
   location?: string;
+  initiative?: string | null;
+  description?: string | null;
   certificateIssued?: boolean;
   completed?: boolean;
   driveLocation?: {
@@ -89,8 +85,14 @@ export type ThemeMode = "light" | "dark" | "system";
 export interface AccentPalette {
   hex: string;
   name: string;
-  50: string; 100: string; 200: string; 400: string;
-  500: string; 600: string; 700: string; 900: string;
+  50: string;
+  100: string;
+  200: string;
+  400: string;
+  500: string;
+  600: string;
+  700: string;
+  900: string;
   shadow: string;
 }
 
@@ -101,4 +103,11 @@ export type SettingsTab =
   | "data"
   | "system";
 
-export interface ApiMessage { id: number; subject?: string; title?: string; content?: string; createdAt?: string; recipients?: number; }
+export interface ApiMessage {
+  id: number;
+  subject?: string;
+  title?: string;
+  content?: string;
+  createdAt?: string;
+  recipients?: number;
+}
