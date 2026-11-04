@@ -1,8 +1,16 @@
+
 import React from "react";
 import { Leaf } from "lucide-react";
 
 import { NAV_ITEMS } from "../../../constants/admin";
-import type { SidebarProps } from "../../../types/admin";
+import type { SectionId } from "../../../types/admin";
+
+interface SidebarProps {
+  mobile?: boolean;
+  activeNav: SectionId;
+  goTo: (section: SectionId) => void;
+  pendingBadge?: string;
+}
 
 const Sidebar: React.FC<SidebarProps> = ({
   mobile = false,
@@ -55,7 +63,9 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               {badge && (
-                <span className="text-[10px] opacity-60">{badge}</span>
+                <span className="text-[10px] opacity-60">
+                  {badge}
+                </span>
               )}
             </button>
           );

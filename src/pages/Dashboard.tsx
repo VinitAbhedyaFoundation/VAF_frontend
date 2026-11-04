@@ -141,6 +141,26 @@ const normalizeVolunteerStatus = (status?: string | null): Volunteer["status"] =
   return "Pending";
 };
 
+const calculateAge = (birthDateValue?: string | null): number => {
+  if (!birthDateValue) return 0;
+
+  const birthDate = new Date(birthDateValue);
+  if (Number.isNaN(birthDate.getTime())) return 0;
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+
+  if (
+    today.getMonth() < birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() &&
+      today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return age >= 0 ? age : 0;
+};
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -172,6 +192,14 @@ const getRankColor = (r: number) =>
       : r === 3
         ? "text-orange-400"
         : "text-white";
+
+const toDateTimeLocal = (value: string | Date): string => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localDate.toISOString().slice(0, 16);
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN DASHBOARD
@@ -291,6 +319,7 @@ export default function AdvancedDashboard() {
   const [showMessageModal, setShowMessageModal] = useState(false);
 
   const [selectedDrive, setSelectedDrive] = useState<Drive | null>(null);
+  const [editingDriveId, setEditingDriveId] = useState<number | null>(null);
   const [selectedVolunteer, setSelectedVolunteer] =
     useState<Volunteer | null>(null);
   const [selectedMessage, setSelectedMessage] =
@@ -313,6 +342,8 @@ export default function AdvancedDashboard() {
     location: "",
     date: "",
     totalHours: "",
+    initiative: "",
+    description: "",
   });
 
   const [attendanceForm, setAttendanceForm] = useState({
@@ -415,10 +446,7 @@ export default function AdvancedDashboard() {
         email: v.email,
         city: v.city ?? "Unknown",
 
-        age: v.birthDate
-          ? new Date().getFullYear() -
-          new Date(v.birthDate).getFullYear()
-          : 0,
+        age: calculateAge(v.birthDate),
 
         drives: v.totalDrives ?? 0,
 
@@ -643,69 +671,84 @@ export default function AdvancedDashboard() {
 
   const handleCreateDrive = async () => {
     if (
-      !driveForm.title ||
-      !driveForm.location ||
+      !driveForm.title.trim() ||
+      !driveForm.location.trim() ||
       !driveForm.date ||
-      !driveForm.totalHours
+      !driveForm.totalHours ||
+      !driveForm.initiative
     ) {
       toast.error("Fill all required fields");
+      return;
+    }
+
+    const totalHours = Number(driveForm.totalHours);
+
+    if (!Number.isInteger(totalHours) || totalHours <= 0) {
+      toast.error("Enter a valid whole number of hours");
+      return;
+    }
+
+    const driveDate = new Date(driveForm.date);
+
+    if (Number.isNaN(driveDate.getTime())) {
+      toast.error("Enter a valid drive date");
       return;
     }
 
     setSubmitting(true);
 
     try {
-      const res = await API.post(
-        "/drive/newdrive",
-        {
-          title: driveForm.title,
-          location: driveForm.location,
-          date: new Date(
-            driveForm.date
-          ).toISOString(),
-          totalHours: Number(
-            driveForm.totalHours
-          ),
-        }
-      );
+      const payload = {
+        title: driveForm.title.trim(),
+        location: driveForm.location.trim(),
+        date: driveDate.toISOString(),
+        totalHours,
+        initiative: driveForm.initiative,
+        description: driveForm.description.trim() || undefined,
+      };
 
-      setDrives((prev) => [
-        res.data.drive ?? res.data,
-        ...prev,
-      ]);
+      if (editingDriveId !== null) {
+        await API.patch(`/drive/${editingDriveId}`, payload);
+        toast.success("Drive updated successfully");
+      } else {
+        await API.post("/drive/newdrive", payload);
+        toast.success("Drive created 🚀");
+      }
 
       setShowDriveModal(false);
-
+      setEditingDriveId(null);
       setDriveForm({
         title: "",
         location: "",
         date: "",
         totalHours: "",
+        initiative: "",
+        description: "",
       });
 
-      toast.success("Drive created 🚀");
-
-      await fetchDashboardStats();
+      await Promise.all([fetchDrives(), fetchDashboardStats()]);
     } catch (err: unknown) {
-      toast.error(getApiErrorMessage(err, "Failed to create drive"));
+      toast.error(getApiErrorMessage(err, editingDriveId !== null ? "Failed to update drive" : "Failed to create drive"));
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
   // MANUAL ATTENDANCE
   // ─────────────────────────────────────────────────────────────────────────
 
   const handleMarkAttendance = async () => {
-    if (
-      !attendanceForm.name ||
-      !attendanceForm.hours ||
-      !attendanceForm.drive
-    ) {
-      toast.error(
-        "Name, hours and drive are required"
-      );
+    const name = attendanceForm.name.trim();
+    const email = attendanceForm.email.trim();
+    const hours = Number(attendanceForm.hours);
+
+    if (!name || !attendanceForm.hours.trim() || !attendanceForm.drive) {
+      toast.error("Name, hours and drive are required");
+      return;
+    }
+
+    if (!Number.isFinite(hours) || hours <= 0) {
+      toast.error("Enter a valid positive number of hours");
       return;
     }
 
@@ -728,34 +771,37 @@ export default function AdvancedDashboard() {
         "/user/attendance",
         {
           driveId: selectedDrive.id,
-          name: attendanceForm.name,
-          email: attendanceForm.email,
-          hours: Number(
-            attendanceForm.hours
-          ),
+          name,
+          email,
+          hours,
         }
       );
 
-      const raw: ApiAttendanceRecord = res.data.record ?? res.data as ApiAttendanceRecord;
+      const responseData = res.data;
+      const raw = responseData?.record ?? responseData;
+
+      if (!raw || typeof raw !== "object" || !raw.id) {
+        throw new Error(
+          "Attendance API response did not include a valid attendance record ID"
+        );
+      }
 
       const safeRecord: AttendanceRecord = {
         id: raw.id,
         user: {
           name:
             raw.user?.name ??
-            attendanceForm.name,
+            name,
           email:
             raw.user?.email ??
-            attendanceForm.email,
+            email,
         },
         drive: {
           date:
             raw.drive?.date ??
             selectedDrive.date,
         },
-        hours:
-          raw.hours ??
-          Number(attendanceForm.hours),
+        hours: raw.hours ?? hours,
         createdAt:
           raw.createdAt ??
           new Date().toISOString(),
@@ -792,12 +838,11 @@ export default function AdvancedDashboard() {
   // ─────────────────────────────────────────────────────────────────────────
 
   const handleAddVolunteer = async () => {
-    if (
-      !volunteerForm.name ||
-      !volunteerForm.email ||
-      !volunteerForm.city ||
-      !volunteerForm.gender
-    ) {
+    const name = volunteerForm.name.trim();
+    const email = volunteerForm.email.trim();
+    const city = volunteerForm.city.trim();
+
+    if (!name || !email || !city || !volunteerForm.gender) {
       toast.error("Fill all required fields");
       return;
     }
@@ -808,9 +853,9 @@ export default function AdvancedDashboard() {
       const res = await API.post(
         "/user/create-volunteer",
         {
-          name: volunteerForm.name,
-          email: volunteerForm.email,
-          city: volunteerForm.city,
+          name,
+          email,
+          city,
           gender: volunteerForm.gender,
           password:
             volunteerForm.password || "Volunteer@123",
@@ -820,11 +865,11 @@ export default function AdvancedDashboard() {
       const newVol: Volunteer =
         res.data.user ?? {
           id: Date.now(),
-          name: volunteerForm.name,
-          email: volunteerForm.email,
+          name,
+          email,
           drives: 0,
           status: "Pending",
-          city: volunteerForm.city,
+          city,
           joined: new Date().toLocaleDateString(
             "en-IN",
             {
@@ -942,8 +987,8 @@ export default function AdvancedDashboard() {
 
   const handleSendMessage = async () => {
     if (
-      !messageForm.title ||
-      !messageForm.content
+      !messageForm.title.trim() ||
+      !messageForm.content.trim()
     ) {
       toast.error("Fill all fields");
       return;
@@ -971,10 +1016,8 @@ export default function AdvancedDashboard() {
       await API.post(
         "/message/send",
         {
-          subject:
-            messageForm.title,
-          content:
-            messageForm.content,
+          subject: messageForm.title.trim(),
+          content: messageForm.content.trim(),
         }
       );
 
@@ -1430,11 +1473,11 @@ export default function AdvancedDashboard() {
           open={
             showDriveModal
           }
-          onClose={() =>
-            setShowDriveModal(
-              false
-            )
-          }
+          onClose={() => {
+            setShowDriveModal(false);
+            setEditingDriveId(null);
+          }}
+          isEditing={editingDriveId !== null}
           driveForm={
             driveForm
           }
@@ -1553,14 +1596,22 @@ export default function AdvancedDashboard() {
         {/* DRIVE DETAILS */}
 
         <DriveDetailsModal
-          drive={
-            selectedDrive
-          }
-          onClose={() =>
-            setSelectedDrive(
-              null
-            )
-          }
+          drive={selectedDrive}
+          onClose={() => setSelectedDrive(null)}
+          onEdit={(drive) => {
+            setEditingDriveId(drive.id);
+            setDriveForm({
+              title: drive.title || "",
+              location: drive.location || drive.driveLocation?.location || "",
+              date: toDateTimeLocal(drive.date),
+              totalHours: String(drive.totalHours),
+              initiative: drive.initiative || "",
+              description: drive.description || "",
+            });
+
+            setSelectedDrive(null);
+            setShowDriveModal(true);
+          }}
         />
       </div>
     </ThemeContext.Provider>
