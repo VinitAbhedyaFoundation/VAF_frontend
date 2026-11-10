@@ -1,6 +1,7 @@
 "use client";
 
 import { FC, ElementType, useEffect, useState } from "react";
+import API from "@/api/api";
 
 import {
   ClipboardList,
@@ -26,37 +27,37 @@ const NAV_ITEMS: {
   icon: ElementType;
   id: NavSection;
 }[] = [
-  {
-    label: "Overview",
-    icon: LayoutDashboard,
-    id: "overview",
-  },
-  {
-    label: "Manage Admins",
-    icon: ShieldCheck,
-    id: "admins",
-  },
-  {
-    label: "Manage Users",
-    icon: UserCircle,
-    id: "users",
-  },
-  {
-    label: "All Drives",
-    icon: Waves,
-    id: "drives",
-  },
-  {
-    label: "Attendance Logs",
-    icon: ClipboardList,
-    id: "attendance",
-  },
-  {
-    label: "System Settings",
-    icon: Settings,
-    id: "settings",
-  },
-];
+    {
+      label: "Overview",
+      icon: LayoutDashboard,
+      id: "overview",
+    },
+    {
+      label: "Manage Admins",
+      icon: ShieldCheck,
+      id: "admins",
+    },
+    {
+      label: "Manage Users",
+      icon: UserCircle,
+      id: "users",
+    },
+    {
+      label: "All Drives",
+      icon: Waves,
+      id: "drives",
+    },
+    {
+      label: "Attendance Logs",
+      icon: ClipboardList,
+      id: "attendance",
+    },
+    {
+      label: "System Settings",
+      icon: Settings,
+      id: "settings",
+    },
+  ];
 
 const Sidebar: FC<SidebarProps> = ({
   mobile = false,
@@ -65,29 +66,44 @@ const Sidebar: FC<SidebarProps> = ({
   goTo,
 }) => {
   const [userEmail, setUserEmail] = useState("");
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    let active = true;
 
-    if (!storedUser) {
-      return;
-    }
+    const fetchUser = async () => {
+      try {
+        const response = await API.get<{ email?: string }>("/auth/me");
 
-    try {
-      const user = JSON.parse(storedUser);
-      setUserEmail(user.email || "");
-    } catch {
-      setUserEmail("");
-    }
+        if (active) {
+          setUserEmail(response.data.email || "");
+        }
+      } catch (error) {
+        if (active) {
+          setUserEmail("");
+        }
+
+        console.error("Failed to fetch sidebar user:", error);
+      } finally {
+        if (active) {
+          setIsLoadingUser(false);
+        }
+      }
+    };
+
+    void fetchUser();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
     <div
-      className={`flex flex-col ${
-        mobile
+      className={`flex flex-col ${mobile
           ? "p-8 w-80"
           : "w-80 border-r border-slate-200 bg-white p-8 hidden xl:flex sticky top-0 h-screen"
-      }`}
+        }`}
     >
       {/* Logo */}
       <div className="flex items-center gap-2 mb-12">
@@ -121,11 +137,10 @@ const Sidebar: FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => goTo(item.id)}
-              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all ${
-                active === item.id
+              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all ${active === item.id
                   ? "bg-emerald-900 text-white shadow-xl shadow-emerald-200"
                   : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <item.icon size={20} />
@@ -158,7 +173,7 @@ const Sidebar: FC<SidebarProps> = ({
           </h4>
 
           <p className="text-[11px] text-slate-400 break-all">
-            {userEmail || "Loading..."}
+            {isLoadingUser ? "Loading..." : userEmail || "Unknown user"}
           </p>
         </div>
       </div>

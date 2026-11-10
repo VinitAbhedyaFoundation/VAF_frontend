@@ -122,11 +122,6 @@ interface ApiAttendanceCreateResponse {
   status?: AttendanceRecord["status"];
 }
 
-interface StoredUser {
-  id?: number;
-  role?: string;
-}
-
 const getApiErrorMessage = (error: unknown, fallback: string): string => {
   if (isAxiosError<{ message?: string }>(error)) {
     return error.response?.data?.message || fallback;
@@ -516,15 +511,29 @@ export default function AdvancedDashboard() {
   // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
+    let active = true;
 
-    if (user) {
+    const fetchAdminUser = async () => {
       try {
-        setAdminUser(JSON.parse(user) as AdminUser);
-      } catch {
-        setAdminUser(null);
+        const response = await API.get<AdminUser>("/auth/me");
+
+        if (active) {
+          setAdminUser(response.data);
+        }
+      } catch (error) {
+        if (active) {
+          setAdminUser(null);
+        }
+
+        console.error("Failed to fetch admin user:", error);
       }
-    }
+    };
+
+    void fetchAdminUser();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -561,12 +570,14 @@ export default function AdvancedDashboard() {
   // LOGOUT
   // ─────────────────────────────────────────────────────────────────────────
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await API.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    } finally {
+      navigate("/login", { replace: true });
+    }
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -997,17 +1008,7 @@ export default function AdvancedDashboard() {
     setSubmitting(true);
 
     try {
-      let user: StoredUser | null = null;
-
-      try {
-        user = JSON.parse(
-          localStorage.getItem("user") || "{}"
-        ) as StoredUser;
-      } catch {
-        user = null;
-      }
-
-      if (!user?.id) {
+      if (!adminUser?.id) {
         toast.error("User not logged in");
         setSubmitting(false);
         return;

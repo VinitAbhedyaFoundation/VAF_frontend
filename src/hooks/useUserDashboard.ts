@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from "react";
+import API from "@/api/api";
 
 import type {
   Certificate,
@@ -8,9 +10,6 @@ import type {
   UpcomingDrive,
   User,
 } from "@/types/user";
-
-const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 interface ApiDrive {
   id: number | string;
@@ -40,21 +39,9 @@ export function useUserDashboard() {
 
   const fetchParticipations = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const res = await API.get<Participation[]>("/attendance/my");
 
-      const res = await fetch(`${API_URL}/attendance/my`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error(
-          `Failed to fetch participations: ${res.status}`,
-        );
-      }
-
-      const json: unknown = await res.json();
+      const json: unknown = res.data;
 
       setParticipations(
         Array.isArray(json) ? (json as Participation[]) : [],
@@ -71,19 +58,11 @@ export function useUserDashboard() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const res = await API.get<{ user?: User } & Partial<User>>(
+          "/auth/me",
+        );
 
-        if (!token) return;
-
-        const res = await fetch(`${API_URL}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) return;
-
-        const json: { user?: User } & Partial<User> = await res.json();
+        const json = res.data;
 
         setUser(json.user ?? (json as User));
       } catch (err: unknown) {
@@ -101,19 +80,9 @@ export function useUserDashboard() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const res = await API.get<DashboardResponse>("/dashboard/me");
 
-        if (!token) return;
-
-        const res = await fetch(`${API_URL}/dashboard/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) return;
-
-        const json: DashboardResponse = await res.json();
+        const json = res.data;
 
         setData(json);
 
@@ -137,6 +106,7 @@ export function useUserDashboard() {
 
   useEffect(() => {
     void fetchParticipations();
+
     // This fetch is intentionally performed once when the hook mounts.
   }, []);
 
@@ -147,13 +117,9 @@ export function useUserDashboard() {
   useEffect(() => {
     const fetchUpcoming = async () => {
       try {
-        const res = await fetch(`${API_URL}/drive/upcoming`);
+        const res = await API.get<unknown>("/drive/upcoming");
 
-        if (!res.ok) {
-          throw new Error(`Failed to fetch drives: ${res.status}`);
-        }
-
-        const json: unknown = await res.json();
+        const json = res.data;
 
         if (!Array.isArray(json)) {
           throw new Error("Invalid drives response");
@@ -192,13 +158,9 @@ export function useUserDashboard() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch(`${API_URL}/drive/upcoming`);
+      const res = await API.get<unknown>("/drive/upcoming");
 
-      if (!res.ok) {
-        throw new Error(`Failed to fetch notifications: ${res.status}`);
-      }
-
-      const json: unknown = await res.json();
+      const json = res.data;
 
       if (!Array.isArray(json)) {
         throw new Error("Invalid notifications source response");

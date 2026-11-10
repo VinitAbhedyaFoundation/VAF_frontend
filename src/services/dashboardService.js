@@ -1,20 +1,12 @@
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:3000/api";
 
-export const getDashboard = async (token) => {
-  const res = await fetch(
-    `${API_URL}/dashboard/me`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+import API from "@/api/api";
 
-  if (!res.ok) {
+export const getDashboard = async () => {
+  try {
+    const res = await API.get("/dashboard/me");
+    return res.data;
+  } catch (error) {
+    console.error("Dashboard fetch failed:", error);
     throw new Error("Failed to fetch dashboard");
   }
-
-  return res.json();
 };

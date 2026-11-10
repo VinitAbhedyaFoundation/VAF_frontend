@@ -541,12 +541,14 @@ export const useSuperAdminDashboard = () => {
         setIsMobileMenuOpen(false);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-
-        window.location.href = "/login";
+    const handleLogout = async () => {
+        try {
+            await API.post("/auth/logout");
+        } catch (error) {
+            console.error("Logout request failed:", error);
+        } finally {
+            window.location.href = "/login";
+        }
     };
 
     // ── effects ──────────────────────────────────────
