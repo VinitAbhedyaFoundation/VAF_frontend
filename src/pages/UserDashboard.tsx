@@ -89,17 +89,19 @@ export default function UserDashboard() {
 
   const handleJoin = async (drive: UpcomingDrive) => {
     setActionLoadingId(drive.id);
+
     try {
-      const token = localStorage.getItem("token");
       await api.post(
-        `/attendance/join`,
-        { driveId: Number(drive.id) },
-        { headers: { Authorization: `Bearer ${token}` } }
+        "/attendance/join",
+        { driveId: Number(drive.id) }
       );
+
       toast.success("Drive joined successfully");
       await fetchParticipations();
     } catch (err) {
-      toast.error("Could not join drive. Already joined or server error.");
+      toast.error(
+        "Could not join drive. Already joined or server error."
+      );
     } finally {
       setActionLoadingId(null);
     }
@@ -107,13 +109,13 @@ export default function UserDashboard() {
 
   const handleMarkAttendance = async (driveId: number) => {
     setActionLoadingId(driveId.toString());
+
     try {
-      const token = localStorage.getItem("token");
       await api.post(
         "/attendance/mark",
-        { driveId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { driveId }
       );
+
       toast.success("Attendance submitted");
       await fetchParticipations();
     } catch (err) {
@@ -123,13 +125,15 @@ export default function UserDashboard() {
     }
   };
 
-  const handleLogout = () => {
-  localStorage.removeItem("user");
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
-
-  navigate("/login");
-};
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout request failed", err);
+    } finally {
+      navigate("/login", { replace: true });
+    }
+  };
 
   const goToSection = (id: SectionId) => {
     setActiveNav(id);
@@ -181,8 +185,8 @@ export default function UserDashboard() {
         user={user}
         streak={streak}
         levelInfo={levelInfo}
-levelStyles={LEVEL_STYLES}
-drives={drives}
+        levelStyles={LEVEL_STYLES}
+        drives={drives}
       />
 
 
@@ -220,7 +224,7 @@ drives={drives}
               actionLoadingId={actionLoadingId}
               goToSection={goToSection}
               levelInfo={levelInfo}
-drives={drives}
+              drives={drives}
             />
           )}
 

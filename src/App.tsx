@@ -122,6 +122,7 @@ function LoadingScreen({
 }
 
 // AUTHENTICATION
+
 function useAuthRole() {
   const [auth, setAuth] = useState<AuthState>({
     role: null,
@@ -132,17 +133,10 @@ function useAuthRole() {
     let active = true;
 
     const verifySession = async () => {
-      const token = localStorage.getItem("token");
-
-      if (!token || token === "undefined" || token === "null") {
-        if (active) {
-          setAuth({ role: null, loading: false });
-        }
-        return;
-      }
-
       try {
+        // Browser automatically sends the HttpOnly cookie
         const response = await API.get("/auth/me");
+
         const role = response.data?.role;
 
         if (active) {
@@ -153,12 +147,19 @@ function useAuthRole() {
         }
       } catch {
         if (active) {
-          setAuth({ role: null, loading: false });
+          setAuth({
+            role: null,
+            loading: false,
+          });
         }
       }
     };
 
-    setAuth({ role: null, loading: true });
+    setAuth({
+      role: null,
+      loading: true,
+    });
+
     void verifySession();
 
     return () => {
@@ -168,6 +169,7 @@ function useAuthRole() {
 
   return auth;
 }
+
 
 // PROTECTED ROUTES
 function ProtectedRoute({

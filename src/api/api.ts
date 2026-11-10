@@ -1,51 +1,98 @@
+
 import axios from "axios";
 
+const baseURL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:3000/api";
+
 const API = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL ||
-    "http://localhost:3000/api",
+  baseURL,
   timeout: 10000,
+  withCredentials: true,
 });
 
+// Keep the CSRF token in memory only.
+let csrfToken: string | null = null;
+let csrfTokenRequest: Promise<string> | null = null;
 
-API.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
+const getCsrfToken = async (): Promise<string> => {
+  if (csrfToken) {
+    return csrfToken;
+  }
 
-    // These endpoints do not need authentication
-    const isPublicRequest =
-      config.url === "/auth/register" ||
-      config.url === "/auth/login";
+  if (!csrfTokenRequest) {
+    csrfTokenRequest = axios
+      .get<{ csrfToken: string }>("/auth/csrf", {
+        baseURL,
+        timeout: 10000,
+        withCredentials: true,
+      })
+      .then((response) => {
+        csrfToken = response.data.csrfToken;
+        return csrfToken;
+      })
+      .finally(() => {
+        csrfTokenRequest = null;
+      });
+  }
 
-    if (token && !isPublicRequest) {
-      config.headers.set(
-        "Authorization",
-        `Bearer ${token}`
-      );
+  return csrfTokenRequest;
+};
+
+// Attach CSRF token to every state-changing request.
+API.interceptors.request.use(async (config) => {
+  const method = config.method?.toUpperCase();
+
+  const requiresCsrf = [
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+  ].includes(method || "");
+
+  if (requiresCsrf) {
+    const token = await getCsrfToken();
+
+    config.headers.set("X-CSRF-Token", token);
+  }
+
+  return config;
+});
+
+// Capture rotated CSRF tokens returned by login endpoints.
+API.interceptors.response.use(
+  (response) => {
+    const newCsrfToken = response.data?.csrfToken;
+
+    if (typeof newCsrfToken === "string") {
+      csrfToken = newCsrfToken;
     }
 
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+    // Clear the in-memory token after logout.
+    if (response.config.url === "/auth/logout") {
+      csrfToken = null;
+    }
 
-API.interceptors.response.use(
-  (response) => response,
+    return response;
+  },
 
   (error) => {
+    const requestUrl = error.config?.url || "";
+
+    const isPublicRequest =
+      requestUrl === "/auth/login" ||
+      requestUrl === "/auth/adminlogin" ||
+      requestUrl === "/auth/register";
+
     if (
       error.response?.status === 401 &&
-      error.config?.url !== "/auth/login"
+      !isPublicRequest
     ) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      localStorage.removeItem("user");
-
       window.location.href = "/login";
     }
 
     if (error.response?.status === 403) {
-      console.error("Permission denied");
+      console.error("Permission denied or CSRF validation failed");
     }
 
     return Promise.reject(error);

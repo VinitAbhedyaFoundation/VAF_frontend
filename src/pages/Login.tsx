@@ -7,13 +7,8 @@ import API from "../api/api";
 const inputStyle =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-green-500 focus:ring-2 focus:ring-green-100 outline-none transition text-sm";
 
-interface LoginResponse {
-  accessToken?: string;
-  token?: string;
-  user?: {
-    role: string;
-    [key: string]: unknown;
-  };
+interface CurrentUserResponse {
+  role: string;
 }
 
 const Login = () => {
@@ -41,34 +36,19 @@ const Login = () => {
     setError("");
 
     try {
-      const res = await API.post<LoginResponse>("/auth/login", form);
-      const data = res.data;
+      // Login and receive the HttpOnly cookie
+      await API.post("/auth/login", form);
 
-      // Token fallback support
-      const token = data.accessToken || data.token;
+      // Fetch authenticated user details using the cookie
+      const userResponse =
+        await API.get<CurrentUserResponse>("/auth/me");
 
-      if (!token) {
-        setError("Invalid credentials");
+      const role = userResponse.data.role;
+
+      if (!role) {
+        setError("User role could not be verified");
         return;
       }
-
-      // Get user safely
-      const user = data.user;
-
-      if (!user || typeof user.role !== "string" || !user.role) {
-        setError("User data missing");
-        return;
-      }
-
-      const role = user.role;
-
-      // Clear previous session
-      localStorage.clear();
-
-      // Store auth data
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-      localStorage.setItem("user", JSON.stringify(user));
 
       // Role-based redirect
       if (role === "SuperAdmin") {
