@@ -49,7 +49,7 @@ export default function CompleteDriveModal({
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  Record the total waste collected during this drive.
+                  Record the total waste collected during this drive (optional).
                 </p>
               </div>
 
@@ -94,7 +94,7 @@ export default function CompleteDriveModal({
                   id="totalWasteKg"
                   type="number"
                   min="0"
-                  step="0.1"
+                  step="1"
                   value={totalWasteKg}
                   onChange={(e) =>
                     setTotalWasteKg(e.target.value)
@@ -124,10 +124,7 @@ export default function CompleteDriveModal({
               <button
                 type="button"
                 onClick={handleCompleteDrive}
-                disabled={
-                  submitting ||
-                  totalWasteKg.trim() === ""
-                }
+                disabled={submitting}
                 className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting

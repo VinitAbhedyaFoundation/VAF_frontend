@@ -81,6 +81,8 @@ export interface Drive {
   volunteers: number;
   hoursLogged?: number;
 
+  driveResourcesUrl?: string | null;
+
   description?: string;
   type?: string;
 }
@@ -194,6 +196,7 @@ export interface DashboardRecentDrive {
   status: "Registered" | "Pending" | "Approved" | "Rejected";
 
   hours: number;
+  driveResourcesUrl?: string | null;
 
   description?: string;
   type?: string;

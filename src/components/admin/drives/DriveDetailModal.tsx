@@ -1,32 +1,32 @@
+
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Pencil, MapPin, CalendarDays, Clock, CheckCircle2 } from "lucide-react";
+import {
+  X,
+  Pencil,
+  MapPin,
+  CalendarDays,
+  Clock,
+  CheckCircle2,
+} from "lucide-react";
 
 import type { Drive } from "../../../types/admin";
 
 interface DriveDetailsModalProps {
   drive: Drive | null;
   onClose: () => void;
-  /** Pass this from the parent to enable editing for eligible drives. */
   onEdit?: (drive: Drive) => void;
 }
-
-const isUpcomingDrive = (drive: Drive): boolean => {
-  if (drive.completed) return false;
-
-  const startTime = new Date(drive.date).getTime();
-  return Number.isFinite(startTime) && startTime > Date.now();
-};
 
 const DriveDetailsModal: React.FC<DriveDetailsModalProps> = ({
   drive,
   onClose,
   onEdit,
 }) => {
-  const canEdit = Boolean(drive && onEdit && isUpcomingDrive(drive));
+  const canEdit = Boolean(drive && onEdit);
 
   const handleEdit = () => {
-    if (!drive || !onEdit || !canEdit) return;
+    if (!drive || !onEdit) return;
 
     onClose();
     onEdit(drive);
@@ -135,7 +135,7 @@ const DriveDetailsModal: React.FC<DriveDetailsModalProps> = ({
                   <p className="themed-text text-sm font-semibold">
                     {drive.completed
                       ? "Completed"
-                      : isUpcomingDrive(drive)
+                      : new Date(drive.date).getTime() > Date.now()
                         ? "Upcoming"
                         : "Ongoing or recently ended"}
                   </p>

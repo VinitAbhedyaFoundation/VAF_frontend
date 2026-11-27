@@ -1,3 +1,4 @@
+
 import React, { useRef } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import toast from "react-hot-toast";
@@ -7,16 +8,16 @@ import { scanAttendance } from "../../../api/attendance";
 
 interface AttendanceScannerProps {
   onClose: () => void;
+  onAttendanceUpdated: () => Promise<void>;
 }
 
 const AttendanceScanner: React.FC<AttendanceScannerProps> = ({
   onClose,
+  onAttendanceUpdated,
 }) => {
   const scanned = useRef(false);
 
-  const handleScan = async (
-    results: { rawValue: string }[]
-  ) => {
+  const handleScan = async (results: { rawValue: string }[]) => {
     if (scanned.current) return;
     if (!results?.length) return;
 
@@ -29,19 +30,14 @@ const AttendanceScanner: React.FC<AttendanceScannerProps> = ({
         throw new Error("Invalid QR");
       }
 
-      const response = await scanAttendance(
-        qr.participationId
-      );
+      const response = await scanAttendance(qr.participationId);
 
       toast.success(response.message);
 
-      setTimeout(() => {
-        onClose();
+      // Refresh attendance data without reloading the page.
+      await onAttendanceUpdated();
 
-        // Temporary refresh
-        window.location.reload();
-      }, 700);
-
+      onClose();
     } catch (err: unknown) {
       scanned.current = false;
 
@@ -51,7 +47,6 @@ const AttendanceScanner: React.FC<AttendanceScannerProps> = ({
 
       toast.error(message || "Invalid QR Code");
     }
-
   };
 
   return (
@@ -66,6 +61,7 @@ const AttendanceScanner: React.FC<AttendanceScannerProps> = ({
       />
 
       <button
+        type="button"
         onClick={() => {
           scanned.current = false;
           onClose();

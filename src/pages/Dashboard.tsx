@@ -333,13 +333,14 @@ export default function AdvancedDashboard() {
   // ─────────────────────────────────────────────────────────────────────────
 
   const [driveForm, setDriveForm] = useState({
-    title: "",
-    location: "",
-    date: "",
-    totalHours: "",
-    initiative: "",
-    description: "",
-  });
+  title: "",
+  location: "",
+  date: "",
+  totalHours: "",
+  initiative: "",
+  description: "",
+  driveResourcesUrl: "",
+});
 
   const [attendanceForm, setAttendanceForm] = useState({
     name: "",
@@ -710,13 +711,14 @@ export default function AdvancedDashboard() {
 
     try {
       const payload = {
-        title: driveForm.title.trim(),
-        location: driveForm.location.trim(),
-        date: driveDate.toISOString(),
-        totalHours,
-        initiative: driveForm.initiative,
-        description: driveForm.description.trim() || undefined,
-      };
+  title: driveForm.title.trim(),
+  location: driveForm.location.trim(),
+  date: driveDate.toISOString(),
+  totalHours,
+  initiative: driveForm.initiative,
+  description: driveForm.description.trim() || undefined,
+  driveResourcesUrl: driveForm.driveResourcesUrl.trim() || undefined,
+};
 
       if (editingDriveId !== null) {
         await API.patch(`/drive/${editingDriveId}`, payload);
@@ -729,13 +731,14 @@ export default function AdvancedDashboard() {
       setShowDriveModal(false);
       setEditingDriveId(null);
       setDriveForm({
-        title: "",
-        location: "",
-        date: "",
-        totalHours: "",
-        initiative: "",
-        description: "",
-      });
+  title: "",
+  location: "",
+  date: "",
+  totalHours: "",
+  initiative: "",
+  description: "",
+  driveResourcesUrl: "",
+});
 
       await Promise.all([fetchDrives(), fetchDashboardStats()]);
     } catch (err: unknown) {
@@ -1083,15 +1086,20 @@ export default function AdvancedDashboard() {
     setShowCompleteDriveModal(true);
   };
 
+
   const handleCompleteDrive = async () => {
     if (completeDriveId === null) {
       return;
     }
 
-    const waste = Number(totalWasteKg);
+    const hasWasteAmount = totalWasteKg.trim() !== "";
+    const waste = hasWasteAmount ? Number(totalWasteKg) : undefined;
 
-    if (!Number.isFinite(waste) || waste < 0) {
-      toast.error("Please enter a valid waste amount.");
+    if (
+      hasWasteAmount &&
+      (!Number.isFinite(waste) || waste! < 0 || !Number.isInteger(waste))
+    ) {
+      toast.error("Please enter a valid whole-number waste amount.");
       return;
     }
 
@@ -1100,13 +1108,15 @@ export default function AdvancedDashboard() {
     try {
       await API.patch(
         `/drive/${completeDriveId}/complete`,
-        {
-          totalWasteKg: waste,
-        }
+        hasWasteAmount
+          ? { totalWasteKg: waste }
+          : {}
       );
 
       toast.success(
-        `Drive completed. ${waste} kg waste recorded.`
+        hasWasteAmount
+          ? `Drive completed. ${waste} kg waste recorded.`
+          : "Drive completed successfully."
       );
 
       setShowCompleteDriveModal(false);
@@ -1121,6 +1131,7 @@ export default function AdvancedDashboard() {
       setSubmitting(false);
     }
   };
+
 
   // ─────────────────────────────────────────────────────────────────────────
   // APPROVE ATTENDANCE
@@ -1349,15 +1360,10 @@ export default function AdvancedDashboard() {
             {activeNav ===
               "attendance" && (
                 <Attendance
-                  attendance={
-                    attendance
-                  }
-                  loadingAttendance={
-                    loadingAttendance
-                  }
-                  handleApproveAttendance={
-                    handleApproveAttendance
-                  }
+                  attendance={attendance}
+                  loadingAttendance={loadingAttendance}
+                  handleApproveAttendance={handleApproveAttendance}
+                  onAttendanceUpdated={fetchAttendance}
                 />
               )}
 
@@ -1602,13 +1608,14 @@ export default function AdvancedDashboard() {
           onEdit={(drive) => {
             setEditingDriveId(drive.id);
             setDriveForm({
-              title: drive.title || "",
-              location: drive.location || drive.driveLocation?.location || "",
-              date: toDateTimeLocal(drive.date),
-              totalHours: String(drive.totalHours),
-              initiative: drive.initiative || "",
-              description: drive.description || "",
-            });
+  title: drive.title || "",
+  location: drive.location || drive.driveLocation?.location || "",
+  date: toDateTimeLocal(drive.date),
+  totalHours: String(drive.totalHours),
+  initiative: drive.initiative || "",
+  description: drive.description || "",
+  driveResourcesUrl: drive.driveResourcesUrl || "",
+});
 
             setSelectedDrive(null);
             setShowDriveModal(true);
