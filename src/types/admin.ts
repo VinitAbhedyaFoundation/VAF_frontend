@@ -29,6 +29,7 @@ export interface Drive {
   driveLocation?: {
     location: string;
   };
+  driveResourcesUrl?: string | null;
 }
 
 export interface AttendanceRecord {

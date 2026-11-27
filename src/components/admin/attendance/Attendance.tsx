@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from "react";
 
 import type { AttendanceRecord } from "../../../types/admin";
@@ -8,6 +9,7 @@ interface AttendanceProps {
   attendance: AttendanceRecord[];
   loadingAttendance: boolean;
   handleApproveAttendance: (id: number) => void;
+  onAttendanceUpdated: () => Promise<void>;
 }
 
 const PAGE_SIZE = 10;
@@ -26,6 +28,7 @@ const Attendance: React.FC<AttendanceProps> = ({
   attendance,
   loadingAttendance,
   handleApproveAttendance,
+  onAttendanceUpdated,
 }) => {
   const [showScanner, setShowScanner] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -155,6 +158,7 @@ const Attendance: React.FC<AttendanceProps> = ({
             <div className="p-6">
               <AttendanceScanner
                 onClose={() => setShowScanner(false)}
+                onAttendanceUpdated={onAttendanceUpdated}
               />
             </div>
           </div>
@@ -224,12 +228,12 @@ const Attendance: React.FC<AttendanceProps> = ({
                       <td className="themed-secondary p-4">
                         {item.drive?.date
                           ? new Date(
-                            item.drive.date
-                          ).toLocaleDateString("en-IN", {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                          })
+                              item.drive.date
+                            ).toLocaleDateString("en-IN", {
+                              weekday: "short",
+                              day: "numeric",
+                              month: "short",
+                            })
                           : "-"}
                       </td>
 
@@ -240,17 +244,18 @@ const Attendance: React.FC<AttendanceProps> = ({
                       <td className="themed-muted p-4">
                         {item.createdAt
                           ? new Date(
-                            item.createdAt
-                          ).toLocaleDateString("en-IN")
+                              item.createdAt
+                            ).toLocaleDateString("en-IN")
                           : "-"}
                       </td>
 
                       <td className="p-4">
                         <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${item.status === "Approved"
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${
+                            item.status === "Approved"
                               ? "bg-green-100 text-green-700"
                               : "bg-yellow-100 text-yellow-700"
-                            }`}
+                          }`}
                         >
                           {item.status}
                         </span>
@@ -322,10 +327,11 @@ const Attendance: React.FC<AttendanceProps> = ({
                     aria-current={
                       page === safePage ? "page" : undefined
                     }
-                    className={`min-w-9 rounded-lg border px-3 py-2 text-sm transition ${page === safePage
+                    className={`min-w-9 rounded-lg border px-3 py-2 text-sm transition ${
+                      page === safePage
                         ? "border-green-600 bg-green-600 text-white"
                         : "themed-border border hover:bg-gray-100"
-                      }`}
+                    }`}
                   >
                     {page}
                   </button>

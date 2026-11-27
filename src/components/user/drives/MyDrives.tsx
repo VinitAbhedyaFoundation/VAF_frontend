@@ -8,6 +8,7 @@ import {
   UserCircle,
   Waves,
   QrCode,
+  ExternalLink,
 } from "lucide-react";
 
 import type { Drive, MyDrivesProps } from "@/types/user";
@@ -72,6 +73,17 @@ const MyDrives: FC<MyDrivesProps> = ({ drives }) => {
                   <Calendar size={13} />
                   {new Date(drive.date).toLocaleDateString("en-IN")}
                 </p>
+                {drive.driveResourcesUrl && (
+                  <a
+                    href={drive.driveResourcesUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors mb-3"
+                  >
+                    <ExternalLink size={15} />
+                    View Drive Resources
+                  </a>
+                )}
 
                 <div className="flex justify-between items-center pt-4 border-t border-slate-100">
                   <div className="flex items-center gap-1.5 text-sm font-bold text-slate-700">

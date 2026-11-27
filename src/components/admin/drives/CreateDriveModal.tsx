@@ -14,6 +14,7 @@ interface CreateDriveModalProps {
     totalHours: string;
     initiative: string;
     description: string;
+    driveResourcesUrl: string;
   };
   setDriveForm: React.Dispatch<
     React.SetStateAction<{
@@ -23,6 +24,7 @@ interface CreateDriveModalProps {
       totalHours: string;
       initiative: string;
       description: string;
+      driveResourcesUrl: string;
     }>
   >;
   submitting: boolean;
@@ -147,6 +149,13 @@ const CreateDriveModal: React.FC<CreateDriveModalProps> = ({
             {driveForm.description.length}/2000
           </p>
         </div>
+
+        <InputField
+          label="Google Drive Resources Link (Optional)"
+          value={driveForm.driveResourcesUrl}
+          onChange={(value) => updateField("driveResourcesUrl", value)}
+          placeholder="https://drive.google.com/drive/folders/..."
+        />
 
         <div className="themed-border flex justify-end gap-3 border-t pt-4">
           <button

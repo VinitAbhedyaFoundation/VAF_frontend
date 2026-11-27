@@ -91,6 +91,7 @@ export const createMyDrives = (
       hoursLogged: d.hours,
 
       description: d.description,
+      driveResourcesUrl: d.driveResourcesUrl,
 
       type: d.type,
     };
